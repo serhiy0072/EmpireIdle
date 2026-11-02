@@ -98,6 +98,40 @@ public class ClanChildPersistenceTests : IAsyncLifetime
         Assert.Contains(saved.Helpers, h => h.HelperId == helperId);
     }
 
+    [Fact]
+    public async Task AcceptHelp_ShouldConflict_WhenAnotherHelperTookTheLastSlot()
+    {
+        var now = DateTime.UtcNow;
+        var request = new ClanHelpRequest(Guid.NewGuid(), ServerId, Guid.NewGuid(), Guid.NewGuid(),
+            ClanHelpTarget.Construction, Guid.NewGuid(), TimeSpan.FromHours(1), now.AddHours(1), now);
+
+        await using (var seed = CreateContext())
+        {
+            seed.ClanHelpRequests.Add(request);
+            await seed.SaveChangesAsync();
+        }
+
+        // Обидва прочитали запит з порожнім останнім місцем
+        await using var first = CreateContext();
+        await using var second = CreateContext();
+        var firstCopy = await first.ClanHelpRequests.Include(r => r.Helpers).FirstAsync(r => r.Id == request.Id);
+        var secondCopy = await second.ClanHelpRequests.Include(r => r.Helpers).FirstAsync(r => r.Id == request.Id);
+
+        // Допомога приходить пізніше за створення запиту: з тим самим моментом Touch нічого б не змінив
+        // (Postgres зберігає мікросекунди, і прочитаний UpdatedAt часом точно дорівнює now), а без зміни
+        // кореня EF не перевіряє xmin — тест падав приблизно раз на десять прогонів
+        var helpedAt = now.AddSeconds(1);
+        firstCopy.AcceptHelp(Guid.NewGuid(), 0.1, maxHelpers: 1, helpedAt);
+        secondCopy.AcceptHelp(Guid.NewGuid(), 0.1, maxHelpers: 1, helpedAt);
+        await first.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => second.SaveChangesAsync());
+
+        await using var verify = CreateContext();
+        var saved = await verify.ClanHelpRequests.Include(r => r.Helpers).FirstAsync(r => r.Id == request.Id);
+        Assert.Single(saved.Helpers);
+    }
+
     private AppDbContext CreateContext()
     {
         var scope = _factory.Services.CreateScope();

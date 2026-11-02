@@ -14,19 +14,16 @@ import {
   useMyMarket,
   type MarketKind,
 } from "../lib/queries/market";
+import { t } from "i18next";
 
 type Tab = "browse" | "mine" | "sell";
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: "browse", label: "Вітрина" },
-  { key: "mine", label: "Мої лоти" },
-  { key: "sell", label: "Продати" },
-];
+const TABS: { key: Tab }[] = [{ key: "browse" }, { key: "mine" }, { key: "sell" }];
 
-const KINDS: { kind: MarketKind | null; label: string }[] = [
-  { kind: null, label: "Усе" },
-  { kind: MARKET_KIND.Equipment, label: "Спорядження" },
-  { kind: MARKET_KIND.Item, label: "Предмети" },
+const KINDS: { kind: MarketKind | null; label: "all" | "equipment" | "items" }[] = [
+  { kind: null, label: "all" },
+  { kind: MARKET_KIND.Equipment, label: "equipment" },
+  { kind: MARKET_KIND.Item, label: "items" },
 ];
 
 const pill = (active: boolean) =>
@@ -53,7 +50,7 @@ export default function MarketPage() {
   const cancel = useCancelListing(playerId);
 
   if (my.isPending) {
-    return <p className="text-slate-500">Завантаження ринку…</p>;
+    return <p className="text-slate-500">{t("items:market.loading")}</p>;
   }
 
   if (my.isError) {
@@ -66,11 +63,11 @@ export default function MarketPage() {
     return (
       <div className="space-y-2">
         <MarketTabs />
-        <h1 className="text-xl font-medium text-slate-800">Ринок гравців</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("items:market.title")}</h1>
         <p className="text-sm text-slate-600">
           {market.opensAtTownHall != null
-            ? `Ринок відкриється, коли ратуша досягне ${market.opensAtTownHall} рівня.`
-            : "У цьому світі ринку немає."}
+            ? t("items:market.locked", { level: market.opensAtTownHall })
+            : t("items:market.none")}
         </p>
       </div>
     );
@@ -84,17 +81,21 @@ export default function MarketPage() {
     <div className="space-y-4">
       <MarketTabs />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Ринок гравців</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("items:market.title")}</h1>
         <p className="text-sm text-slate-500">
-          Лотів {market.activeListings}/{market.listingLimit} · податок {Math.round(market.taxShare * 100)}% · строк{" "}
-          {market.listingHours} год
+          {t("items:market.summary", {
+            active: market.activeListings,
+            limit: market.listingLimit,
+            tax: Math.round(market.taxShare * 100),
+            hours: market.listingHours,
+          })}
         </p>
       </div>
 
       <nav className="flex flex-wrap gap-1">
         {TABS.map((item) => (
           <button key={item.key} type="button" onClick={() => setTab(item.key)} className={pill(tab === item.key)}>
-            {item.label}
+            {t(`items:market.tab.${item.key}`)}
           </button>
         ))}
       </nav>
@@ -114,7 +115,7 @@ export default function MarketPage() {
                 }}
                 className={pill(kind === item.kind)}
               >
-                {item.label}
+                {t(`items:market.kind.${item.label}`)}
               </button>
             ))}
           </div>
@@ -122,7 +123,7 @@ export default function MarketPage() {
           {listings.isError && <ErrorBanner error={listings.error} />}
 
           {listings.data?.listings.length === 0 ? (
-            <p className="text-sm text-slate-500">Поки ніхто нічого не продає.</p>
+            <p className="text-sm text-slate-500">{t("items:market.empty")}</p>
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {listings.data?.listings.map((listing) => (
@@ -131,7 +132,7 @@ export default function MarketPage() {
                   listing={listing}
                   action={
                     listing.isOwn ? (
-                      <span className="text-xs text-slate-400">ваш лот</span>
+                      <span className="text-xs text-slate-400">{t("items:market.yours")}</span>
                     ) : (
                       <button
                         type="button"
@@ -139,7 +140,7 @@ export default function MarketPage() {
                         onClick={() => buy.mutate(listing.id)}
                         className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                       >
-                        Купити
+                        {t("items:market.buy")}
                       </button>
                     )
                   }
@@ -167,7 +168,7 @@ export default function MarketPage() {
       {tab === "mine" && (
         <section className="space-y-3">
           {market.listings.length === 0 ? (
-            <p className="text-sm text-slate-500">У вас немає лотів.</p>
+            <p className="text-sm text-slate-500">{t("items:market.noListings")}</p>
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {market.listings.map((listing) => (
@@ -182,7 +183,7 @@ export default function MarketPage() {
                         onClick={() => cancel.mutate(listing.id)}
                         className="rounded-lg border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                       >
-                        Зняти
+                        {t("items:market.withdraw")}
                       </button>
                     )
                   }

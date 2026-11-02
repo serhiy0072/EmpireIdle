@@ -17,5 +17,12 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Мови до вибору; порожній список означає лише мову за замовчуванням.</summary>
         public IReadOnlyList<string> SupportedLanguages => Languages.Count == 0 ? [DefaultLanguage] : Languages;
+
+        /// <summary>
+        /// Перша підтримувана з бажаних мов, інакше мова за замовчуванням:
+        /// гравець бачить назви, а не помилку.
+        /// </summary>
+        public string Resolve(IEnumerable<string?> preferred)
+            => preferred.FirstOrDefault(language => language is not null && SupportedLanguages.Contains(language)) ?? DefaultLanguage;
     }
 }

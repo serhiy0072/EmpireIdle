@@ -8,6 +8,7 @@ import ItemIcon from "../../inventory/ItemIcon";
 import HeroPortrait from "../HeroPortrait";
 import EquipmentInfoModal from "./EquipmentInfoModal";
 import { WeaponDetails, WeaponSlot } from "./HeroWeapon";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -114,7 +115,7 @@ export default function HeroGearTab({
             setPicked(null);
             setInfoSlot(slot.index);
           }}
-          top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+          top={piece.level > 0 ? t("heroes:gear.level", { level: piece.level }) : undefined}
           bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
         >
           <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={56} bare />
@@ -142,20 +143,20 @@ export default function HeroGearTab({
         </div>
       </div>
 
-      {!atHome && <p className="text-center text-sm text-amber-200">Герой у поході — переодягнути його можна вдома.</p>}
+      {!atHome && <p className="text-center text-sm text-amber-200">{t("heroes:gear.away")}</p>}
 
       <div className="flex justify-center gap-3">
         <GameButton onClick={() => onUnequipAll(worn.map((piece) => piece.id))} disabled={busy || !atHome || worn.length === 0}>
-          Зняти все
+          {t("heroes:gear.unequipAll")}
         </GameButton>
         <GameButton
           onClick={onEquipBest}
           disabled={busy || !atHome}
           variant="secondary"
-          title="Найкраще вільне спорядження в кожен слот"
+          title={t("heroes:gear.quickEquipHint")}
           tutorial="equip-best"
         >
-          Швидке використання
+          {t("heroes:gear.quickEquip")}
         </GameButton>
       </div>
 
@@ -178,15 +179,15 @@ export default function HeroGearTab({
                 disabled={busy || !atHome}
                 variant="accent"
               >
-                Зняти
+                {t("heroes:gear.unequip")}
               </GameButton>
               <GameButton onClick={choose} disabled={busy || !atHome || slotCandidates(piece).length === 0}>
-                Замінити
+                {t("heroes:gear.replace")}
               </GameButton>
             </>
           )}
           choice={{
-            title: "Замінити спорядження",
+            title: t("heroes:gear.replaceTitle"),
             render: (piece, done) => (
               <div className="grid grid-cols-5 gap-2">
                 {slotCandidates(piece).map((candidate) => (
@@ -198,8 +199,8 @@ export default function HeroGearTab({
                       done();
                     }}
                     dimmed={busy}
-                    title={`Вдягнути: ${catalog.itemName(candidate.itemKey)} · ⚔ ${Math.round(candidate.power)}`}
-                    top={candidate.level > 0 ? `Рів. ${candidate.level}` : undefined}
+                    title={t("heroes:gear.equipCandidate", { item: catalog.itemName(candidate.itemKey), power: Math.round(candidate.power) })}
+                    top={candidate.level > 0 ? t("heroes:gear.level", { level: candidate.level }) : undefined}
                     bottomRight={candidate.mastery > 0 ? `+${candidate.mastery}` : undefined}
                   >
                     <ItemIcon itemKey={candidate.itemKey} type="equipment" rarity={candidate.rarity} size={44} bare />
@@ -208,7 +209,7 @@ export default function HeroGearTab({
               </div>
             ),
           }}
-          note={!atHome && <p className="text-xs text-amber-700">Герой у поході: зняти чи замінити можна вдома, качати — вже зараз.</p>}
+          note={!atHome && <p className="text-xs text-amber-700">{t("heroes:gear.awayNote")}</p>}
           onClose={() => setInfoSlot(null)}
         />
       )}
@@ -248,7 +249,7 @@ function SlotDetails({
   return (
     <div className="space-y-3 rounded-xl bg-[#16305e]/80 p-3 ring-1 ring-[#335c9a]">
       <p className="text-sm font-semibold">
-        {slot.label}: {candidates.length === 0 ? "вільного спорядження немає" : "вільне, що підходить"}
+        {slot.label}: {candidates.length === 0 ? t("heroes:gear.noneFree") : t("heroes:gear.freeFitting")}
       </p>
       {candidates.length > 0 && (
         <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
@@ -258,7 +259,7 @@ function SlotDetails({
                 rarity={piece.rarity}
                 onClick={() => onEquip(piece.id)}
                 dimmed={disabled}
-                top={piece.level > 0 ? `Рів. ${piece.level}` : undefined}
+                top={piece.level > 0 ? t("heroes:gear.level", { level: piece.level }) : undefined}
                 bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
               >
                 <ItemIcon itemKey={piece.itemKey} type="equipment" rarity={piece.rarity} size={44} bare />
@@ -268,7 +269,7 @@ function SlotDetails({
         </div>
       )}
       {foreign > 0 && (
-        <p className="text-xs text-sky-200/80">Ще {foreign} — з наборів іншого класу: цей герой їх не вдягне.</p>
+        <p className="text-xs text-sky-200/80">{t("heroes:gear.foreign", { count: foreign })}</p>
       )}
     </div>
   );

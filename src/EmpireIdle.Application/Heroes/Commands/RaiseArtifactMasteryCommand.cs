@@ -74,7 +74,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             if (!village.HasBuilding(equipment.ForgeBuildingKey))
                 throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
-                    $"Mastery requires the {equipment.ForgeBuildingKey}.", _catalog.Building(equipment.ForgeBuildingKey).DisplayName);
+                    $"Mastery requires the {equipment.ForgeBuildingKey}.", equipment.ForgeBuildingKey);
 
             await PayWithStonesAsync(request.PlayerId, _rules.Cost(item.Mastery), cancellationToken);
 
@@ -113,7 +113,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (stack is null || have < stones)
                 throw new RequirementNotMetException(RefusalReasons.ItemNotEnough,
                     $"Mastery needs {stones} '{key}', the player has {have}.",
-                    _catalog.FindItem(key)?.DisplayName ?? key, stones, have);
+                    key, stones, have);
 
             stack.Consume(stones);
 

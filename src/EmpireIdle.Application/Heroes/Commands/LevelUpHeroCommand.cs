@@ -21,7 +21,6 @@ namespace EmpireIdle.Application.Heroes.Commands
         private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly HeroProgression _progression;
-        private readonly GameCatalog _catalog;
         private readonly TrainingCampService _camps;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<LevelUpHeroCommandHandler> _logger;
@@ -30,7 +29,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             IHeroRepository heroRepository,
             IUnitOfWork unitOfWork,
             HeroProgression progression,
-            GameCatalog catalog,
             TrainingCampService camps,
             TimeProvider timeProvider,
             ILogger<LevelUpHeroCommandHandler> logger)
@@ -38,7 +36,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             _heroRepository = heroRepository;
             _unitOfWork = unitOfWork;
             _progression = progression;
-            _catalog = catalog;
             _camps = camps;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -55,8 +52,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
             // До списання досвіду і тим самим правилом, що й підйом: табір і стеля рівня
-            hero.EnsureCanGainLevels(request.Levels, _progression.MaxLevel,
-                _catalog.FindHero(hero.HeroKey)?.DisplayName ?? hero.HeroKey);
+            hero.EnsureCanGainLevels(request.Levels, _progression.MaxLevel);
 
             var cost = _progression.ExperienceBetween(hero.Level, hero.Level + request.Levels);
 

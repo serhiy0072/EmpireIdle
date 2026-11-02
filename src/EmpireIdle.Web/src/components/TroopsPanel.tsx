@@ -1,5 +1,7 @@
 import { useCatalog } from "../lib/queries/catalog";
 import { useGarrison } from "../lib/queries/garrison";
+import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -30,13 +32,13 @@ export default function TroopsPanel({ playerId, buildingType }: Props) {
           <div key={type.key} className="flex flex-wrap items-baseline justify-between gap-x-2">
             <span className="font-medium text-slate-700">{catalog.unitName(type.key)}</span>
             <span className="text-slate-800">
-              <span className="font-semibold">{total.toLocaleString("uk-UA")}</span>
+              <span className="font-semibold">{formatNumber(total)}</span>
               {stacks.length > 1 && (
                 <span className="ml-1 text-xs text-slate-500">
-                  ({stacks.map((unit) => `${unit.level} рів.: ${unit.count.toLocaleString("uk-UA")}`).join(", ")})
+                  ({stacks.map((unit) => t("village:troops.stack", { level: unit.level, count: formatNumber(unit.count) })).join(", ")})
                 </span>
               )}
-              {stacks.length === 1 && <span className="ml-1 text-xs text-slate-500">· {stacks[0]?.level} рів.</span>}
+              {stacks.length === 1 && <span className="ml-1 text-xs text-slate-500">· {t("village:troops.level", { level: stacks[0]?.level })}</span>}
             </span>
           </div>
         );

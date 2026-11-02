@@ -64,6 +64,7 @@ namespace EmpireIdle.Application.Marches.Services
         /// </summary>
         /// <param name="targetName">Що бачитиме гравець у списку звітів.</param>
         /// <param name="targetLevel">Рівень монстра або ратуші захисника.</param>
+        /// <param name="monsterType">Тип монстра-цілі; null — ціль не монстр.</param>
         /// <returns>Id створеного звіту.</returns>
         public async Task<Guid> RecordAttackerAsync(
             March march,
@@ -78,7 +79,8 @@ namespace EmpireIdle.Application.Marches.Services
             DateTime utcNow,
             CancellationToken cancellationToken,
             string? tamedBeastKey = null,
-            long heroExperience = 0)
+            long heroExperience = 0,
+            string? monsterType = null)
         {
             var result = outcome.Battle;
             var split = outcome.AttackerCasualties;
@@ -90,6 +92,9 @@ namespace EmpireIdle.Application.Marches.Services
                 march.TargetX, march.TargetY, terrain,
                 targetName, targetLevel,
                 result.AttackerWon, result.AttackerPower, result.DefenderPower, seed, utcNow);
+
+            if (monsterType is not null)
+                report.RecordMonster(monsterType);
 
             if (tamedBeastKey is not null)
                 report.RecordTaming(tamedBeastKey);

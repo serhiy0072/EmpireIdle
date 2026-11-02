@@ -4,6 +4,7 @@ using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Territory.Services;
+using EmpireIdle.Application.Wallets.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -47,6 +48,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly GameCatalog _catalog;
         private readonly BeastTamer _tamer;
         private readonly EffectResolver _effects;
+        private readonly PlayerVip _vip;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
         public SendMarchCommandHandler(
@@ -66,8 +68,10 @@ namespace EmpireIdle.Application.Marches.Commands
             GameCatalog catalog,
             BeastTamer tamer,
             EffectResolver effects,
+            PlayerVip vip,
             ILogger<SendMarchCommandHandler> logger)
         {
+            _vip = vip;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
@@ -125,15 +129,17 @@ namespace EmpireIdle.Application.Marches.Commands
 
             var active = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
 
-            // Похід без вільного героя не вийде (перевірка вище), тож вільних тут щонайменше один
-            // і герої межу не звужують — фактично стримує стеля MaxMarches. Активні марші рахуються
+            // Похід без вільного героя не вийде (перевірка вище), тож вільних тут щонайменше один;
+            // межу тримають базові марші й VIP (рішення 28.10.2026). Активні марші рахуються
             // всі, з розвідкою включно, а героїв у марші буває до трьох (GDD §6.1)
             var availableHeroes = await _heroRepository.CountAvailableAsync(
                 request.PlayerId, garrison.Id, cancellationToken);
 
-            if (_progression.MarchesLeft(availableHeroes, active.Count) == 0)
+            var extraMarches = await _vip.ExtraMarchesAsync(request.PlayerId, cancellationToken);
+
+            if (_progression.MarchesLeft(availableHeroes, active.Count, extraMarches) == 0)
             {
-                var capacity = _progression.MarchCapacity(availableHeroes + active.Count);
+                var capacity = _progression.MarchCapacity(availableHeroes + active.Count, extraMarches);
                 throw new RequirementNotMetException(RefusalReasons.MarchCapacity,
                     $"Cannot send more than {capacity} marches at once.", capacity);
             }

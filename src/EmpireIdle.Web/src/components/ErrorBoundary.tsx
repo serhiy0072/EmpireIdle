@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { t } from "i18next";
 
 interface Props {
   children: ReactNode;
@@ -31,14 +32,14 @@ export default class ErrorBoundary extends Component<Props, State> {
 
     return (
       <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-        <p className="font-medium">Цей екран не вдалося показати.</p>
-        <p className="mt-1">Перейдіть на іншу вкладку або оновіть сторінку. Прогрес збережено на сервері.</p>
+        <p className="font-medium">{t("errors:boundary.title")}</p>
+        <p className="mt-1">{t("errors:boundary.text")}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
           className="mt-3 rounded-lg border border-rose-300 bg-white px-3 py-1 text-rose-800 hover:bg-rose-100"
         >
-          Оновити сторінку
+          {t("errors:boundary.reload")}
         </button>
       </div>
     );

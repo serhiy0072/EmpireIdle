@@ -19,10 +19,12 @@ namespace EmpireIdle.Application.Quests.Queries
         private readonly QuestThresholds _thresholds;
         private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
+        private readonly LocaleTexts _texts;
 
         public GetQuestsQueryHandler(IQuestRepository questRepository, QuestThresholds thresholds,
-            TimeProvider timeProvider, GameCatalog catalog)
+            TimeProvider timeProvider, GameCatalog catalog, LocaleTexts texts)
         {
+            _texts = texts;
             _questRepository = questRepository;
             _thresholds = thresholds;
             _timeProvider = timeProvider;
@@ -41,7 +43,7 @@ namespace EmpireIdle.Application.Quests.Queries
             return QuestBoard.Visible(_catalog.Quests.Values, progressByKey, levels, now)
                 .Select(entry => new QuestView(
                     entry.Config.Key,
-                    entry.Config.DisplayName,
+                    _texts.Name("quest", entry.Config.Key, entry.Config.DisplayName),
                     entry.Config.Scope,
                     entry.Config.Window,
                     entry.State,

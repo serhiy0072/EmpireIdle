@@ -3,6 +3,7 @@ import { api } from "../api";
 import type { DungeonRunView, DungeonsOverview } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
+import { t } from "i18next";
 
 /** Вітрина данжів: енергія відновлюється часом, тож дані швидко старіють. */
 export function useDungeons(playerId: string): UseQueryResult<DungeonsOverview> {
@@ -108,26 +109,16 @@ export function useAbandonDungeonRun(playerId: string) {
   });
 }
 
-const RARITY_LABELS: Record<string, string> = {
-  common: "звичайний",
-  rare: "рідкісний",
-  unique: "унікальний",
-};
+const RARITIES = ["common", "rare", "unique"] as const;
 
 export function artifactRarityLabel(rarity: string): string {
-  return RARITY_LABELS[rarity] ?? rarity;
+  return (RARITIES as readonly string[]).includes(rarity)
+    ? t(`battle:artifactRarity.${rarity as (typeof RARITIES)[number]}`)
+    : rarity;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  Poison: "отрута",
-  Stun: "оглушення",
-  AttackUp: "атака ↑",
-  DefenseUp: "захист ↑",
-  DefenseDown: "захист ↓",
-  Shield: "щит",
-  Taunt: "провокація",
-};
+const STATUSES = ["Poison", "Stun", "AttackUp", "DefenseUp", "DefenseDown", "Shield", "Taunt"] as const;
 
 export function statusLabel(kind: string): string {
-  return STATUS_LABELS[kind] ?? kind;
+  return (STATUSES as readonly string[]).includes(kind) ? t(`battle:status.${kind as (typeof STATUSES)[number]}`) : kind;
 }

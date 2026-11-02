@@ -16,6 +16,7 @@ import {
   tileDetail,
   tilePath,
 } from "./worldTiles";
+import { t } from "i18next";
 
 interface Props {
   area: MapAreaResponse;
@@ -310,7 +311,7 @@ export default function WorldMap({
       ref={containerRef}
       {...handlers}
       role="img"
-      aria-label="Мапа світу"
+      aria-label={t("map:world.label")}
       className="relative h-full w-full touch-none select-none overflow-hidden bg-[#bfd9a0]"
     >
       {transform !== null && (
@@ -359,12 +360,12 @@ export default function WorldMap({
                 const p = project(origin.x, origin.y);
                 const isHome = occupant.x === home.x && occupant.y === home.y;
                 const text = isHome
-                  ? "Ваше село"
+                  ? t("map:cell.home")
                   : occupant.occupantType === "Monster"
-                    ? `${occupant.name ?? "Монстр"}${occupant.monsterLevel == null ? "" : ` · ${occupant.monsterLevel}`}`
+                    ? `${occupant.name ?? t("map:cell.monster")}${occupant.monsterLevel == null ? "" : ` · ${occupant.monsterLevel}`}`
                     : occupant.occupantType === "ClanStructure"
-                      ? `[${occupant.name ?? "?"}]${isStructureBuilding(occupant, now) ? " · будується" : ""}`
-                      : (occupant.name ?? "Село");
+                      ? `[${occupant.name ?? "?"}]${isStructureBuilding(occupant, now) ? ` · ${t("map:world.building")}` : ""}`
+                      : (occupant.name ?? t("map:cell.village"));
                 const width = text.length * 5.5 + 12;
 
                 return (
@@ -385,7 +386,7 @@ export default function WorldMap({
               camps.map((camp) => {
                 const origin = cellOrigin(camp.x, camp.y);
                 const p = project(origin.x, origin.y);
-                const text = `⛺ ${camp.own ? "Ваш табір" : camp.names.join(", ")}`;
+                const text = `⛺ ${camp.own ? t("map:cell.ownCamp") : camp.names.join(", ")}`;
                 const width = text.length * 5.5 + 12;
 
                 return (

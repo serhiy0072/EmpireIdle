@@ -17,6 +17,12 @@ namespace EmpireIdle.Domain.Entities
         public string Name { get; private set; } = null!;
 
         /// <summary>
+        /// Ключ вбудованої ролі («leader», «member»…): за ним клієнт показує назву мовою гравця.
+        /// null — роль створив клан або перейменував, і тоді її назва — та, яку дав клан.
+        /// </summary>
+        public string? Key { get; private set; }
+
+        /// <summary>
         /// Старшинство, 0..100. Порівнюється, не додається — конкретні
         /// значення довільні, важливий лише порядок.
         /// </summary>
@@ -37,10 +43,11 @@ namespace EmpireIdle.Domain.Entities
         public bool IsDefaultRole { get; private set; }
 
         public ClanRole(Guid id, Guid clanId, string name, int rank, ClanPermission permissions,
-            bool isLeaderRole = false, bool isDefaultRole = false) : base(id)
+            bool isLeaderRole = false, bool isDefaultRole = false, string? key = null) : base(id)
         {
             ClanId = clanId;
             Name = name;
+            Key = key;
             Rank = rank;
             Permissions = permissions;
             IsLeaderRole = isLeaderRole;
@@ -53,6 +60,10 @@ namespace EmpireIdle.Domain.Entities
 
         internal void Update(string name, int rank, ClanPermission permissions)
         {
+            // Нова назва — вже не вбудована роль: клієнт мусить показати те, що написав клан
+            if (name != Name)
+                Key = null;
+
             Name = name;
             Rank = rank;
             Permissions = permissions;

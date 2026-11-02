@@ -54,14 +54,12 @@ namespace EmpireIdle.Application.Heroes.Commands
             var cost = _progression.NextStarPartCost(hero.StarParts)
                 ?? throw new RequirementNotMetException(RefusalReasons.HeroMaxStars,
                     $"Hero {hero.Id} already has every star.", settings.MaxStarParts);
-
-            var name = _catalog.FindHero(hero.HeroKey)?.DisplayName ?? hero.HeroKey;
             var shards = await _heroRepository.GetShardsAsync(request.PlayerId, hero.HeroKey, cancellationToken);
 
             // Осколки списуються до заповнення: зворотний порядок лишив би частинку, якби списання впало
             if (shards is null || !shards.TryConsume(cost))
                 throw new RequirementNotMetException(RefusalReasons.HeroNotEnoughShards,
-                    $"The next star part of '{hero.HeroKey}' needs {cost} shards.", name, cost, shards?.Count ?? 0);
+                    $"The next star part of '{hero.HeroKey}' needs {cost} shards.", hero.HeroKey, cost, shards?.Count ?? 0);
 
             hero.FillStarPart(settings.MaxStarParts, now);
 

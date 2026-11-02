@@ -36,7 +36,7 @@ public class GetMapCellQueryTests
         return new GetMapCellQueryHandler(_map, _monsters, Substitute.For<IVillageRepository>(),
             new MonsterArmyBuilder(catalog), new FakeTimeProvider(), Substitute.For<IClanStructureRepository>(),
             Substitute.For<IClanRepository>(), _serverContext, new TerrainGenerator(Config.Map), catalog,
-            new CombatCalculator(Config.Combat, catalog));
+            new CombatCalculator(Config.Combat, catalog), new LocaleTexts(Config, "uk"));
     }
 
     [Fact]

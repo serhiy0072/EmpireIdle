@@ -25,6 +25,10 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Navigation(r => r.Helpers).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            // Кап допомог перевіряє агрегат, тож і токен на ньому: xmin будівлі
+            // не рятує — помічник міг прочитати запит до чужого коміту, а будівлю після
+            builder.Property<uint>("Version").IsRowVersion();
         }
     }
 }

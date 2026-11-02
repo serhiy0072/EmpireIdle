@@ -2,6 +2,8 @@ import type { ReactElement } from "react";
 import type { BattleReplay } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { EventKind } from "./battleReplay";
+import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface HeroLine {
   index: number;
@@ -64,16 +66,16 @@ export default function BattleSummary({ replay }: { replay: BattleReplay }): Rea
   const catalog = useCatalog();
   const lines = summarize(replay);
   const best = lines.reduce<HeroLine | null>((top, line) => (top === null || line.dealt > top.dealt ? line : top), null);
-  const format = (value: number) => Math.round(value).toLocaleString("uk-UA");
+  const format = (value: number) => formatNumber(Math.round(value));
 
   return (
     <table className="w-full text-left text-xs">
       <thead className="text-sky-200">
         <tr>
-          <th className="py-1">Герой</th>
-          <th className="text-right">Завдав</th>
-          <th className="text-right">Прийняв</th>
-          <th className="text-right">Вилікував</th>
+          <th className="py-1">{t("battle:summary.hero")}</th>
+          <th className="text-right">{t("battle:summary.dealt")}</th>
+          <th className="text-right">{t("battle:summary.taken")}</th>
+          <th className="text-right">{t("battle:summary.healed")}</th>
         </tr>
       </thead>
       <tbody>
@@ -81,7 +83,7 @@ export default function BattleSummary({ replay }: { replay: BattleReplay }): Rea
           <tr key={line.index} className={line === best ? "font-semibold text-amber-200" : ""}>
             <td className="py-0.5">
               {catalog.heroName(line.heroKey)}
-              {line === best && " · найкращий"}
+              {line === best && ` · ${t("battle:summary.best")}`}
             </td>
             <td className="text-right">{format(line.dealt)}</td>
             <td className="text-right">{format(line.taken)}</td>

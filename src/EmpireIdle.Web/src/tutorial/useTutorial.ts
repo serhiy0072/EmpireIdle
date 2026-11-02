@@ -13,7 +13,7 @@ import { useQuests } from "../lib/queries/quests";
 import { useMarkStepSeen, useSkipTutorial, useTutorialProgress } from "../lib/queries/tutorial";
 import { useVillage } from "../lib/queries/village";
 import { useWallet } from "../lib/queries/wallet";
-import { activeStep, INTRO_STEPS, type TutorialSnapshot, type TutorialStep } from "./steps";
+import { activeStep, introSteps, isIntroStep, type TutorialSnapshot, type TutorialStep } from "./steps";
 
 /** Скільки контекстна підказка чекає після закритої, якщо гравець лишився на тому самому екрані. */
 const HINT_PAUSE_MS = 90_000;
@@ -106,7 +106,7 @@ export function useTutorial(playerId: string): TutorialController {
     () =>
       snapshot === null
         ? []
-        : INTRO_STEPS.filter((s) => s.done !== undefined && s.available(snapshot) && s.done(snapshot) && !snapshot.seen.has(s.key)),
+        : introSteps().filter((s) => s.done !== undefined && s.available(snapshot) && s.done(snapshot) && !snapshot.seen.has(s.key)),
     [snapshot],
   );
 
@@ -130,7 +130,7 @@ export function useTutorial(playerId: string): TutorialController {
       if (step === null) return;
 
       mark(step.key);
-      if (!INTRO_STEPS.includes(step)) setPause({ route, until: Date.now() + HINT_PAUSE_MS });
+      if (!isIntroStep(step)) setPause({ route, until: Date.now() + HINT_PAUSE_MS });
     },
     skip: () => skipTutorial.mutate(),
   };

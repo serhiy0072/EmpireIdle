@@ -1,3 +1,4 @@
+import { currentLanguage } from "./i18n";
 import { ApiError, type ProblemDetails } from "./problem";
 import { fromAuthResponse, getSession, setSession, syncSessionFromStorage, type AuthResponse } from "./session";
 
@@ -9,7 +10,7 @@ export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   /**
-   * Команди з IIdempotentRequest: один ключ на виклик, і повтор після обриву
+   * Команди з IIdempotentRequest: один ключ на намір гравця, і повтор після обриву
    * мережі йде з ним же — сервер віддає той самий результат, а не виконує вдруге.
    */
   idempotent?: boolean;
@@ -64,7 +65,49 @@ const RETRY_DELAYS_MS = [500, 1_500];
 /** Проксі не дочекався сервера — команда могла виконатись, а відповідь загубитись. */
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
 
-export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+/** Коди 409, після яких сервер зняв резерв ключа і повтор має сенс (див. isRetryable). */
+const RETRYABLE_CONFLICTS = new Set(["OperationInProgress", "ConcurrencyConflict", "AlreadyExists"]);
+
+/**
+ * Скільки після відповіді однакова команда ще вважається тим самим наміром.
+ * Стільки ж ОС дає на подвійний клік.
+ */
+const SAME_INTENT_WINDOW_MS = 500;
+
+/** Команди в дорозі й щойно завершені — за методом, шляхом і тілом. */
+const recentCommands = new Map<string, Promise<unknown>>();
+
+/**
+ * Подвійний клік — це один намір, а не дві дії. Кнопка вимикається лише після
+ * рендеру, тож другий клік устигає викликати мутацію ще раз, а новий виклик
+ * дав би новий ключ: сервер виконав би команду вдруге або відмовив би, і
+ * гравець побачив би «Це вже існує» замість результату. Тому однакова команда
+ * в дорозі чи щойно завершена отримує той самий результат. Запит із signal не
+ * склеюємо: скасування одного виклику не має зачепити інший.
+ */
+export function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  if (options.idempotent !== true || options.signal !== undefined) {
+    return execute<T>(path, options);
+  }
+
+  const intent = `${options.method ?? "GET"} ${path} ${JSON.stringify(options.body ?? null)}`;
+  const recent = recentCommands.get(intent);
+
+  if (recent !== undefined) return recent as Promise<T>;
+
+  const command = execute<T>(path, options);
+  recentCommands.set(intent, command);
+
+  const forget = () =>
+    window.setTimeout(() => {
+      if (recentCommands.get(intent) === command) recentCommands.delete(intent);
+    }, SAME_INTENT_WINDOW_MS);
+
+  command.then(forget, forget);
+  return command;
+}
+
+async function execute<T>(path: string, options: RequestOptions): Promise<T> {
   // Ключ на дію гравця, а не на HTTP-запит: повтор після обриву має прийти
   // з тим самим ключем, щоб сервер віддав збережений результат, а не списав
   // вдруге. Новий ключ на кожен запит робив би ідемпотентність декорацією
@@ -119,7 +162,10 @@ async function sendWithRetry(path: string, options: RequestOptions, idempotencyK
  * детермінований. 409 OperationInProgress — той самий ключ ще виконується,
  * тож чекаємо на його результат. 409 ConcurrencyConflict — команду відкотила
  * паралельна зміна (автозбір щохвилини торкається села), резерв ключа знято,
- * і повтор виконає її на свіжому стані.
+ * і повтор виконає її на свіжому стані. 409 AlreadyExists — гонку за унікальністю
+ * програно (два перші кроки навчання створюють один рядок прогресу): повтор знайде
+ * рядок переможця, а справжній дубль на свіжому стані відмовить доменною причиною.
+ * AlreadyExists з 400 — відмова, а не гонка, її не повторюємо.
  */
 async function isRetryable(response: Response): Promise<boolean> {
   if (RETRYABLE_STATUSES.has(response.status)) return true;
@@ -128,12 +174,13 @@ async function isRetryable(response: Response): Promise<boolean> {
 
   const problem = parseJson(await response.clone().text()) as ProblemDetails | null;
 
-  return problem?.errorCode === "OperationInProgress" || problem?.errorCode === "ConcurrencyConflict";
+  return problem?.errorCode !== undefined && RETRYABLE_CONFLICTS.has(problem.errorCode);
 }
 
 async function send(path: string, options: RequestOptions, idempotencyKey: string | null): Promise<Response> {
   const token = await freshAccessToken();
-  const headers = new Headers({ Accept: "application/json" });
+  // Мову views визначає інтерфейс, а не браузер: інакше екран і дані говорили б різними мовами
+  const headers = new Headers({ Accept: "application/json", "Accept-Language": currentLanguage() });
 
   if (token !== null) {
     headers.set("Authorization", `Bearer ${token}`);

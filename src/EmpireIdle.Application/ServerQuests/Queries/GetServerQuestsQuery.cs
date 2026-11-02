@@ -14,12 +14,15 @@ namespace EmpireIdle.Application.ServerQuests.Queries
         private readonly IServerQuestRepository _questRepository;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly LocaleTexts _texts;
 
         public GetServerQuestsQueryHandler(
             IServerQuestRepository questRepository,
             GameCatalog catalog,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            LocaleTexts texts)
         {
+            _texts = texts;
             _questRepository = questRepository;
             _catalog = catalog;
             _timeProvider = timeProvider;
@@ -50,7 +53,7 @@ namespace EmpireIdle.Application.ServerQuests.Queries
 
                 views.Add(new ServerQuestView(
                     config.Key,
-                    config.DisplayName,
+                    _texts.Name("quest", config.Key, config.DisplayName),
                     progress?.Total ?? 0,
                     target,
                     progress?.State ?? QuestState.InProgress,

@@ -15,7 +15,8 @@ namespace EmpireIdle.Application.Dungeons.Services
     public static class DungeonRunProjection
     {
         public static DungeonRunView Project(Guid runId, string dungeonKey, int level, DungeonRunState state,
-            BattleState battle, int waveCount, IReadOnlyList<TurnLog> turns, DungeonRewardView? reward, GameCatalog catalog)
+            BattleState battle, int waveCount, IReadOnlyList<TurnLog> turns, DungeonRewardView? reward, GameCatalog catalog,
+            LocaleTexts texts)
         {
             var dungeon = catalog.Dungeons.GetValueOrDefault(dungeonKey);
 
@@ -30,19 +31,25 @@ namespace EmpireIdle.Application.Dungeons.Services
                         {
                             var config = hero?.Skills.FirstOrDefault(x => x.Key == s.Key);
 
-                            return new CombatSkillView(s.Key, config?.DisplayName ?? s.Key, config?.Description ?? string.Empty,
+                            var name = config is null ? s.Key : texts.Name("skill", s.Key, config.DisplayName);
+                            var description = texts.Field("skill", s.Key, LocaleTexts.DescriptionField, config?.Description) ?? string.Empty;
+
+                            return new CombatSkillView(s.Key, name, description,
                                 s.Kind.ToString(), s.Target.ToString(), s.Cooldown, s.CooldownLeft, s.Ready, s.IgnoresLine);
                         })
                         .ToList();
 
-                    var enemyName = dungeon?.Waves.Concat(dungeon.Boss).FirstOrDefault(e => e.Key == c.Key)?.DisplayName;
+                    var enemy = dungeon?.Waves.Concat(dungeon.Boss).FirstOrDefault(e => e.Key == c.Key);
+                    var displayName = hero is not null ? texts.Name("hero", hero.Key, hero.DisplayName)
+                        : enemy is not null ? texts.Name("dungeonEnemy", enemy.Key, enemy.DisplayName)
+                        : c.Key;
 
                     return new CombatantView(
                         c.Index,
                         c.Side.ToString(),
                         c.Line.ToString(),
                         c.Key,
-                        hero?.DisplayName ?? enemyName ?? c.Key,
+                        displayName,
                         c.HeroId,
                         c.Attack,
                         c.Defense,

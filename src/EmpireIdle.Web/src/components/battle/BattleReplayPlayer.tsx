@@ -7,6 +7,7 @@ import { heroArtUrl } from "../heroes/heroArt";
 import { GameButton } from "../game/GameUi";
 import BattleHeroBar from "./BattleHeroBar";
 import { advance, marchedLines, startPlayback, type Playback } from "./battleReplay";
+import { t } from "i18next";
 
 const HEIGHT = 320;
 const LANES = 5;
@@ -303,20 +304,20 @@ export default function BattleReplayPlayer({ replay: initial, bossLane = null, o
     <div className="space-y-2">
       <div className="relative">
         <canvas ref={canvasRef} className="block w-full rounded-xl ring-1 ring-white/20" style={{ height: HEIGHT }} />
-        <p className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs">{seconds} с</p>
+        <p className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs">{t("battle:replay.seconds", { count: seconds })}</p>
       </div>
 
       <BattleHeroBar replay={replay} tick={cards.tick} health={cards.health} manual={manual && !auto} onCast={(hero) => void order(hero)} />
 
       <div className="flex justify-end gap-2">
         <GameButton variant={auto ? "accent" : "secondary"} onClick={changeAuto}>
-          Авто
+          {t("battle:replay.auto")}
         </GameButton>
         <GameButton variant={speed === 2 ? "accent" : "secondary"} onClick={changeSpeed}>
           x2
         </GameButton>
         <GameButton variant="secondary" onClick={onFinished}>
-          Пропустити
+          {t("battle:replay.skip")}
         </GameButton>
       </div>
     </div>

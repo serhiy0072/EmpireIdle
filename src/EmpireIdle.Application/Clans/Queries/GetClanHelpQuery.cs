@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
@@ -15,6 +16,7 @@ namespace EmpireIdle.Application.Clans.Queries
         private readonly IClanRepository _clanRepository;
         private readonly IClanHelpRepository _helpRepository;
         private readonly IPlayerRepository _playerRepository;
+        private readonly IPlayerResearchRepository _researchRepository;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
 
@@ -22,12 +24,14 @@ namespace EmpireIdle.Application.Clans.Queries
             IClanRepository clanRepository,
             IClanHelpRepository helpRepository,
             IPlayerRepository playerRepository,
+            IPlayerResearchRepository researchRepository,
             GameCatalog catalog,
             TimeProvider timeProvider)
         {
             _clanRepository = clanRepository;
             _helpRepository = helpRepository;
             _playerRepository = playerRepository;
+            _researchRepository = researchRepository;
             _catalog = catalog;
             _timeProvider = timeProvider;
         }
@@ -47,10 +51,22 @@ namespace EmpireIdle.Application.Clans.Queries
             if (requests.Count == 0)
                 return [];
 
-            var maxHelpers = _catalog.Config.Clan.MaxHelpers;
+            // У досліджень свій ліміт допомог (рішення 28.10.2026)
+            int MaxHelpers(ClanHelpTarget target) => target == ClanHelpTarget.Research
+                ? _catalog.Config.Technologies.Personal.MaxHelps
+                : _catalog.Config.Clan.MaxHelpers;
 
             var names = await _playerRepository.GetNamesAsync(
                 requests.Select(r => r.PlayerId).Distinct().ToList(), cancellationToken);
+
+            // Соклановець має бачити, яку саме технологію прискорює, а не просто «дослідження»
+            var researchIds = requests
+                .Where(r => r.TargetType == ClanHelpTarget.Research)
+                .Select(r => r.TargetId)
+                .ToList();
+            var researchKeys = researchIds.Count == 0
+                ? []
+                : await _researchRepository.GetActiveKeysAsync(researchIds, cancellationToken);
 
             return requests
                 .Select(r => new ClanHelpItem(
@@ -60,11 +76,12 @@ namespace EmpireIdle.Application.Clans.Queries
                     r.TargetType,
                     r.TargetId,
                     r.HelpCount,
-                    maxHelpers,
+                    MaxHelpers(r.TargetType),
                     r.Helpers.Any(h => h.HelperId == request.PlayerId),
                     r.PlayerId == request.PlayerId,
                     r.CreatedAt,
-                    r.ExpiresAt))
+                    r.ExpiresAt,
+                    r.TargetType == ClanHelpTarget.Research ? researchKeys.GetValueOrDefault(r.TargetId) : null))
                 .ToList();
         }
     }

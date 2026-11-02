@@ -1,11 +1,12 @@
 import { useRef, useState, type PointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useChatConversations, useChatHistory, type ChatChannelName } from "../../lib/queries/chat";
+import { t } from "i18next";
 
-const CHANNELS: { channel: ChatChannelName; label: string }[] = [
-  { channel: "Server", label: "Світ" },
-  { channel: "Clan", label: "Клан" },
-  { channel: "Private", label: "Особисті" },
+const CHANNELS: { channel: ChatChannelName; label: "world" | "clan" | "private" }[] = [
+  { channel: "Server", label: "world" },
+  { channel: "Clan", label: "clan" },
+  { channel: "Private", label: "private" },
 ];
 
 /** Скільки пікселів по горизонталі — уже свайп, а не тап. */
@@ -39,7 +40,7 @@ export default function ChatTicker({ playerId }: { playerId: string }) {
   const fromHistory = (messages: typeof server.data): Line[] =>
     (messages ?? []).slice(-LINES).map((message) => ({
       id: message.id,
-      name: message.isOwn ? "ви" : message.senderName,
+      name: message.isOwn ? t("social:chat.you") : message.senderName,
       text: message.translatedText ?? message.text,
     }));
 
@@ -51,7 +52,7 @@ export default function ChatTicker({ playerId }: { playerId: string }) {
         : (conversations.data ?? []).slice(0, LINES).map((conversation) => ({
             id: conversation.partnerId,
             name: conversation.partnerName,
-            text: `${conversation.lastMessage.isOwn ? "ви: " : ""}${conversation.lastMessage.translatedText ?? conversation.lastMessage.text}`,
+            text: `${conversation.lastMessage.isOwn ? `${t("social:chat.you")}: ` : ""}${conversation.lastMessage.translatedText ?? conversation.lastMessage.text}`,
           }));
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -91,16 +92,16 @@ export default function ChatTicker({ playerId }: { playerId: string }) {
   return (
     <div
       role="button"
-      aria-label={`Чат: ${current.label}. Торкніться, щоб розкрити; гортайте вбік, щоб змінити канал`}
+      aria-label={t("social:chat.tickerHint", { channel: t(`social:chat.channel.${current.label}`) })}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
       onPointerCancel={() => (start.current = null)}
       className="pointer-events-auto flex w-[min(26rem,calc(100vw-6rem))] touch-pan-y select-none items-center gap-1 rounded-t-xl bg-[#0f2147]/55 px-1 py-1 text-white shadow-lg backdrop-blur-sm [text-shadow:0_1px_1px_#000a]"
     >
-      {arrow(-1, "Попередній канал", "‹")}
+      {arrow(-1, t("social:chat.previousChannel"), "‹")}
       <div className="min-w-0 flex-1 cursor-pointer">
         <div className="flex items-center gap-2 text-[11px] font-bold text-amber-200">
-          {current.label}
+          {t(`social:chat.channel.${current.label}`)}
           <span className="flex gap-1">
             {CHANNELS.map((item, i) => (
               <span key={item.channel} className={`h-1.5 w-1.5 rounded-full ${i === index ? "bg-amber-200" : "bg-white/35"}`} />
@@ -109,7 +110,7 @@ export default function ChatTicker({ playerId }: { playerId: string }) {
         </div>
         {lines.length === 0 ? (
           <p className="truncate text-xs text-sky-100/70">
-            {current.channel === "Private" ? "Особистих розмов ще немає" : "Поки тиша — торкніться, щоб написати"}
+            {current.channel === "Private" ? t("social:chat.noPrivate") : t("social:chat.quiet")}
           </p>
         ) : (
           lines.map((line) => (
@@ -119,7 +120,7 @@ export default function ChatTicker({ playerId }: { playerId: string }) {
           ))
         )}
       </div>
-      {arrow(1, "Наступний канал", "›")}
+      {arrow(1, t("social:chat.nextChannel"), "›")}
     </div>
   );
 }

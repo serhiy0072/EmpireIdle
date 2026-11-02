@@ -9,6 +9,8 @@ import { useGarrison } from "../lib/queries/garrison";
 import { useVillage } from "../lib/queries/village";
 import { formatRemaining } from "../lib/time";
 import { roman } from "../lib/unitTiers";
+import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 /**
  * Військо: увесь гарнізон в одному місці. Тренування й прокачка живуть у таборах — по одному
@@ -23,7 +25,7 @@ export default function ArmyPage() {
   const garrison = useGarrison(playerId);
 
   if (garrison.isPending || village.isPending) {
-    return <p className="text-slate-500">Завантаження війська…</p>;
+    return <p className="text-slate-500">{t("army:page.loading")}</p>;
   }
 
   if (garrison.isError) {
@@ -46,8 +48,8 @@ export default function ArmyPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Військо</h1>
-        <p className="text-sm text-slate-500">Разом у гарнізоні: {total.toLocaleString("uk-UA")}</p>
+        <h1 className="text-xl font-medium text-slate-800">{t("army:page.title")}</h1>
+        <p className="text-sm text-slate-500">{t("army:page.total", { count: formatNumber(total) })}</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -68,12 +70,12 @@ export default function ArmyPage() {
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold">{catalog.buildingName(camp.type)}</span>
                 <span className="block text-xs text-sky-100">
-                  {unit?.displayName ?? "—"}: {owned.toLocaleString("uk-UA")}
+                  {unit?.displayName ?? "—"}: {formatNumber(owned)}
                 </span>
                 <span className="block text-xs text-lime-300">
                   {training === undefined
-                    ? "Черга вільна"
-                    : `${roman(training.level)} ×${training.count} — ${formatRemaining(training.completesAt, now)}`}
+                    ? t("army:page.queueFree")
+                    : t("army:page.queue", { level: roman(training.level), count: training.count, remaining: formatRemaining(training.completesAt, now) })}
                 </span>
               </span>
             </Link>
@@ -82,10 +84,10 @@ export default function ArmyPage() {
       </div>
 
       <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-medium text-slate-700">Гарнізон</h2>
+        <h2 className="text-sm font-medium text-slate-700">{t("army:page.garrison")}</h2>
 
         {units.length === 0 ? (
-          <p className="text-sm text-slate-500">Армія порожня — навчіть перших юнітів у таборах.</p>
+          <p className="text-sm text-slate-500">{t("army:page.empty")}</p>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
             {units.map((unit) => (
@@ -96,7 +98,7 @@ export default function ArmyPage() {
                 <span className="text-slate-800">
                   {catalog.unitName(unit.unitType)} {roman(unit.level)}
                 </span>
-                <span className="font-medium text-slate-700">{unit.count.toLocaleString("uk-UA")}</span>
+                <span className="font-medium text-slate-700">{formatNumber(unit.count)}</span>
               </div>
             ))}
           </div>

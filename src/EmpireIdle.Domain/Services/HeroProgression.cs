@@ -168,20 +168,20 @@ namespace EmpireIdle.Domain.Services
         }
 
         /// <summary>
-        /// Скільки маршів гравець може вести одночасно.
-        ///
-        /// Окремого лічильника слотів немає навмисно: один герой веде один марш,
-        /// тож межа й так дорівнює кількості героїв. Конфіг лише накриває її
-        /// стелею, щоб зібраний ростер не давав необмежену карту.
+        /// Скільки маршів гравець може вести одночасно (рішення 28.10.2026): базові марші плюс ті,
+        /// що дає VIP-рівень, під стелею конфіга. Один герой веде щонайменше один марш,
+        /// тож більше, ніж героїв, маршів не буває.
         /// </summary>
-        public int MarchCapacity(int heroCount) => Math.Min(heroCount, _config.MaxMarches);
+        /// <param name="extraMarches">Марші понад базові — від VIP-рівня.</param>
+        public int MarchCapacity(int heroCount, int extraMarches)
+            => Math.Min(heroCount, Math.Min(_config.BaseMarches + Math.Max(extraMarches, 0), _config.MaxMarches));
 
         /// <summary>
         /// Скільки маршів ще можна відправити: межа рахується з вільних героїв разом із тими, що вже в поході,
         /// мінус активні марші (розвідка теж марш).
         /// </summary>
-        public int MarchesLeft(int availableHeroes, int activeMarches)
-            => Math.Max(MarchCapacity(availableHeroes + activeMarches) - activeMarches, 0);
+        public int MarchesLeft(int availableHeroes, int activeMarches, int extraMarches)
+            => Math.Max(MarchCapacity(availableHeroes + activeMarches, extraMarches) - activeMarches, 0);
 
         /// <summary>
         /// Вартість лікування героя. Лінійна від рівня: сильніший герой

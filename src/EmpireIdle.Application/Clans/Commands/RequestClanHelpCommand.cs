@@ -22,6 +22,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IClanHelpRepository _helpRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
+        private readonly IPlayerResearchRepository _researchRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
@@ -33,6 +34,7 @@ namespace EmpireIdle.Application.Clans.Commands
             IClanHelpRepository helpRepository,
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
+            IPlayerResearchRepository researchRepository,
             IUnitOfWork unitOfWork,
             IServerContext serverContext,
             GameCatalog catalog,
@@ -43,6 +45,7 @@ namespace EmpireIdle.Application.Clans.Commands
             _helpRepository = helpRepository;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
+            _researchRepository = researchRepository;
             _unitOfWork = unitOfWork;
             _serverContext = serverContext;
             _catalog = catalog;
@@ -124,6 +127,18 @@ namespace EmpireIdle.Application.Clans.Commands
                         ?? throw new EntityNotFoundException("Training order", request.TargetId);
 
                     return (TimerDurations.Training(_catalog.Unit(order.UnitType), order.Level, order.Count), order.CompletesAt);
+
+                case ClanHelpTarget.Research:
+                    // Ціль — запис досліджень гравця; повна тривалість — та, що була на старті дослідження
+                    var research = await _researchRepository.GetByPlayerAsync(request.PlayerId, cancellationToken);
+
+                    if (research is null || research.Id != request.TargetId)
+                        throw new EntityNotFoundException("Research", request.TargetId);
+
+                    if (research.CompletesAt is not { } researchEnds || researchEnds <= now)
+                        throw new InvalidStateException(RefusalReasons.ClanHelpNotNeeded, "Nothing is being researched.");
+
+                    return (research.PlannedDuration, researchEnds);
 
                 default:
                     throw new RequirementNotMetException($"Unsupported help target '{request.TargetType}'.");

@@ -586,7 +586,19 @@
             "Type": "Item",
             "Key": "speedup_5m",
             "Amount": 1,
-            "Weight": 200
+            "Weight": 160
+          },
+          {
+            "Type": "Item",
+            "Key": "chest_books_rare",
+            "Amount": 1,
+            "Weight": 20
+          },
+          {
+            "Type": "Item",
+            "Key": "chest_books_common",
+            "Amount": 1,
+            "Weight": 20
           },
           {
             "Type": "Item",
@@ -690,7 +702,13 @@
             "Type": "Item",
             "Key": "speedup_10m",
             "Amount": 2,
-            "Weight": 120
+            "Weight": 60
+          },
+          {
+            "Type": "Item",
+            "Key": "chest_books_unique",
+            "Amount": 1,
+            "Weight": 60
           },
           {
             "Type": "Item",

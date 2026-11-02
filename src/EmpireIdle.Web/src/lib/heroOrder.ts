@@ -5,16 +5,11 @@ const RANK_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
 /** За чим сортувати ростер — перемикач над сіткою героїв. */
 export type RosterSort = "power" | "tier" | "level" | "rarity";
 
-export const ROSTER_SORTS: { key: RosterSort; label: string }[] = [
-  { key: "power", label: "Сила" },
-  { key: "tier", label: "Тір" },
-  { key: "level", label: "Рівень" },
-  { key: "rarity", label: "Рідкість" },
-];
+export const ROSTER_SORTS: RosterSort[] = ["power", "tier", "level", "rarity"];
 
 /** Значення з адреси сторінки; невідоме — сортування за силою. */
 export function parseRosterSort(value: string | null): RosterSort {
-  return ROSTER_SORTS.some((sort) => sort.key === value) ? (value as RosterSort) : "power";
+  return ROSTER_SORTS.some((sort) => sort === value) ? (value as RosterSort) : "power";
 }
 
 /**

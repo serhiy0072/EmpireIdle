@@ -1,6 +1,20 @@
 import { isApiError } from "./problem";
-import { refusalText } from "./refusals";
+import { refusalText, type RefusalNames } from "./refusals";
 import { resourceGenitive } from "./resourceNames";
+import { formatNumber } from "./format";
+import { t } from "i18next";
+
+/**
+ * Чого бракує, у родовому відмінку. Предмет чи воїнів сервер шле ключем, а родового
+ * відмінка каталог не дає — тоді назва в лапках.
+ */
+function shortfallName(key: string, names: RefusalNames | undefined): string {
+  const genitive = resourceGenitive(key);
+  if (genitive !== key || names === undefined) return genitive;
+
+  const item = names.itemName(key);
+  return t("errors:quoted", { name: item !== key ? item : names.unitName(key) });
+}
 
 export interface ErrorMessage {
   text: string;
@@ -15,11 +29,13 @@ export interface ErrorMessage {
  * Розгалуження за errorCode, а не за Detail: текст беку англійський.
  * Невідомий код і помилки валідації запиту — це дефект клієнта, а не дія
  * гравця, тож назовні йде нейтральне повідомлення, а деталі в консоль.
+ *
+ * names — каталог: відмови несуть ключі записів конфігу, назви дає він.
  */
-export function explainError(error: unknown): ErrorMessage {
+export function explainError(error: unknown, names?: RefusalNames): ErrorMessage {
   if (!isApiError(error)) {
     console.error("Мережева помилка", error);
-    return { text: "Не вдалося з'єднатися з сервером", actionable: true };
+    return { text: t("errors:network"), actionable: true };
   }
 
   const traceId = error.problem.traceId;
@@ -27,13 +43,17 @@ export function explainError(error: unknown): ErrorMessage {
 
   if (shortfall !== null) {
     return {
-      text: `Не вистачає ${resourceGenitive(shortfall.resource)}: потрібно ${shortfall.need.toLocaleString("uk-UA")}, є ${shortfall.have.toLocaleString("uk-UA")}`,
+      text: t("errors:shortfall", {
+        what: shortfallName(shortfall.resource, names),
+        need: formatNumber(shortfall.need),
+        have: formatNumber(shortfall.have),
+      }),
       actionable: true,
     };
   }
 
   // Причина з сервера — власний текст для гравця з підставленими параметрами
-  const refusal = refusalText(error.problem.reason, error.problem.args);
+  const refusal = refusalText(error.problem.reason, error.problem.args, names);
 
   if (refusal !== null) {
     return { text: refusal, actionable: true };
@@ -42,37 +62,37 @@ export function explainError(error: unknown): ErrorMessage {
   // Відмова без відомої причини: англійський Detail гравцю не показуємо — лише в консоль
   if (error.is("RequirementNotMet")) {
     console.warn("Відмова без тексту для гравця", error.problem);
-    return { text: "Зараз це недоступно", actionable: true };
+    return { text: t("errors:unavailable"), actionable: true };
   }
 
   if (error.is("OperationInProgress")) {
-    return { text: "Дія вже виконується", actionable: true };
+    return { text: t("errors:inProgress"), actionable: true };
   }
 
   if (error.is("StaleTurn")) {
-    return { text: "Бій уже пішов далі — оновіть сторінку", actionable: true };
+    return { text: t("errors:staleTurn"), actionable: true };
   }
 
   if (error.is("ConcurrencyConflict")) {
-    return { text: "Дані щойно змінились, спробуйте ще раз", actionable: true };
+    return { text: t("errors:conflict"), actionable: true };
   }
 
   if (error.is("AlreadyExists")) {
-    return { text: "Це вже існує", actionable: true };
+    return { text: t("errors:alreadyExists"), actionable: true };
   }
 
   if (error.is("NotFound")) {
-    return { text: "Об'єкт не знайдено", actionable: true };
+    return { text: t("errors:notFound"), actionable: true };
   }
 
   if (error.is("AuthenticationFailed")) {
-    return { text: "Невірна пошта або пароль", actionable: true };
+    return { text: t("errors:badCredentials"), actionable: true };
   }
 
   // Валідація запиту — помилка в клієнті: гравець її виправити не може
   console.error("Запит відхилено сервером", error.problem);
 
-  return { text: "Щось пішло не так. Спробуйте ще раз", actionable: false, traceId };
+  return { text: t("errors:unknown"), actionable: false, traceId };
 }
 
 /** Короткий варіант для місць, де потрібен лише рядок. */

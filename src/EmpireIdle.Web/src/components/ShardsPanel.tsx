@@ -1,6 +1,7 @@
 import { rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
 import type { HeroShardSummary } from "../lib/queries/heroes";
 import HeroPortrait from "./heroes/HeroPortrait";
+import { t } from "i18next";
 
 interface Props {
   shards: HeroShardSummary[];
@@ -13,7 +14,7 @@ export default function ShardsPanel({ shards, busy, onSummon }: Props) {
   const catalog = useCatalog();
 
   if (shards.length === 0) {
-    return <p className="text-sm text-slate-500">Осколків нових героїв поки немає — їх дають банери й скриньки.</p>;
+    return <p className="text-sm text-slate-500">{t("heroes:shards.empty")}</p>;
   }
 
   return (
@@ -65,7 +66,7 @@ export default function ShardsPanel({ shards, busy, onSummon }: Props) {
                 disabled={busy || !ready}
                 className="ml-auto rounded-lg bg-amber-500 px-3 py-1 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
               >
-                Призвати
+                {t("heroes:shards.summon")}
               </button>
             </div>
           </div>

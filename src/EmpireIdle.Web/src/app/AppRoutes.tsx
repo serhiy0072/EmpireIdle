@@ -14,6 +14,7 @@ import HeroCodexPage from "../pages/HeroCodexPage";
 import HeroesPage from "../pages/HeroesPage";
 import HeroPage from "../pages/HeroPage";
 import InventoryPage from "../pages/InventoryPage";
+import LaboratoryPage from "../pages/LaboratoryPage";
 import LoginPage from "../pages/LoginPage";
 import MailPage from "../pages/MailPage";
 import MapPage from "../pages/MapPage";
@@ -53,6 +54,7 @@ export default function AppRoutes() {
             <Route path="/tower" element={<TowerPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/inventory/sets" element={<ArtifactSetsPage />} />
+            <Route path="/laboratory" element={<LaboratoryPage />} />
             <Route path="/beasts" element={<BeastPenPage />} />
             <Route path="/beasts/:beastKey" element={<BeastPage />} />
             <Route path="/banners" element={<BannersPage />} />

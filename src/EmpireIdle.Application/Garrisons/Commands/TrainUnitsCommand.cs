@@ -75,12 +75,12 @@ namespace EmpireIdle.Application.Garrisons.Commands
                                      && _status.IsUnlocked(village, b.Type))
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.",
-                    _catalog.Building(config.RequiresBuilding).DisplayName);
+                    config.RequiresBuilding);
 
             if (trainingBuilding.Level.Value < config.RequiresBuildingLevel)
                 throw new RequirementNotMetException(RefusalReasons.BuildingLevelRequired,
                     $"Training '{request.UnitType}' requires '{config.RequiresBuilding}' at level {config.RequiresBuildingLevel}.",
-                    _catalog.Building(config.RequiresBuilding).DisplayName, config.RequiresBuildingLevel);
+                    config.RequiresBuilding, config.RequiresBuildingLevel);
 
             if (request.Level < 1 || request.Level > _catalog.Config.MaxUnitLevel)
                 throw new RequirementNotMetException($"Unit level must be between 1 and {_catalog.Config.MaxUnitLevel}.");

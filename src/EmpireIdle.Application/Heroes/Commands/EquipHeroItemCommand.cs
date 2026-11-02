@@ -82,7 +82,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 var set = _catalog.Config.Equipment.FindArtifactSet(itemConfig.SetKey)!;
 
                 throw new RequirementNotMetException(RefusalReasons.EquipmentWrongClass,
-                    $"Set '{set.Key}' is for {set.Class}, hero {hero.Id} is {heroConfig.Class}.", set.DisplayName, set.Class!);
+                    $"Set '{set.Key}' is for {set.Class}, hero {hero.Id} is {heroConfig.Class}.", set.Key, set.Class!);
             }
 
             var slotIndex = _fit.SlotIndexOf(itemConfig);

@@ -16,6 +16,7 @@ export type PlayerScope =
   | "lootboxPity"
   | "keyChests"
   | "beasts"
+  | "research"
   | "banners"
   | "clan"
   | "clanHelp"

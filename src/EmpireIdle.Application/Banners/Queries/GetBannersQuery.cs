@@ -37,10 +37,12 @@ namespace EmpireIdle.Application.Banners.Queries
         private readonly IServerRepository _serverRepository;
         private readonly IServerContext _serverContext;
         private readonly TimeProvider _timeProvider;
+        private readonly LocaleTexts _texts;
 
         public GetBannersQueryHandler(GameCatalog catalog, BannerRoller roller, IBannerRepository banners,
-            IServerRepository serverRepository, IServerContext serverContext, TimeProvider timeProvider)
+            IServerRepository serverRepository, IServerContext serverContext, TimeProvider timeProvider, LocaleTexts texts)
         {
+            _texts = texts;
             _catalog = catalog;
             _roller = roller;
             _banners = banners;
@@ -77,7 +79,7 @@ namespace EmpireIdle.Application.Banners.Queries
 
                 views.Add(new BannerView(
                     banner.Key,
-                    banner.DisplayName,
+                    _texts.Name("banner", banner.Key, banner.DisplayName),
                     banner.Kind,
                     banner.PityGroup,
                     banner.PriceGems,
@@ -89,7 +91,7 @@ namespace EmpireIdle.Application.Banners.Queries
                     state.UniqueSince,
                     state.FeaturedGuaranteed,
                     banner.Drops
-                        .Select(d => new BannerDropView(d.Key, d.DisplayName, d.Rarity, d.Kind, odds.GetValueOrDefault(d.Key)))
+                        .Select(d => new BannerDropView(d.Key, _texts.Name("bannerDrop", d.Key, d.DisplayName), d.Rarity, d.Kind, odds.GetValueOrDefault(d.Key)))
                         .ToList()));
             }
 

@@ -5,6 +5,7 @@ import { useCatalog } from "../../lib/queries/catalog";
 import { rarityLabel, rarityStyle } from "../../lib/rarity";
 import GiftPanel from "./GiftPanel";
 import ItemIcon from "./ItemIcon";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -13,17 +14,11 @@ interface Props {
   onUse: (request: UseItemRequest) => void;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  resources: "Ресурси",
-  boost: "Буст",
-  teleport: "Телепорт",
-  evolution: "Еволюція",
-  feed: "Ласощі",
-  scoutveil: "Захист від розвідки",
-  energy: "Енергія данжів",
-  heroxp: "Досвід героїв",
-  chestkey: "Ключ скрині",
-};
+const TYPES = ["resources", "boost", "teleport", "evolution", "feed", "scoutveil", "energy", "heroxp", "chestkey"] as const;
+
+function typeLabel(type: string): string {
+  return (TYPES as readonly string[]).includes(type) ? t(`items:type.${type as (typeof TYPES)[number]}`) : type;
+}
 
 /**
  * Стаковий предмет. Ящики й бусти вживаються відразу, телепорт веде на мапу —
@@ -60,7 +55,7 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
 
           <div className="mt-1 flex items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(item.rarity)}`}>{rarityLabel(item.rarity)}</span>
-            <span className="text-slate-500">{TYPE_LABELS[item.type] ?? item.type}</span>
+            <span className="text-slate-500">{typeLabel(item.type)}</span>
           </div>
         </div>
       </div>
@@ -80,7 +75,7 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
                 className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-sm"
               />
               <button type="button" onClick={() => setCount(limit)} className="text-sm text-sky-700 hover:underline">
-                усі
+                {t("items:item.all")}
               </button>
             </>
           )}
@@ -91,7 +86,7 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
             disabled={busy}
             className="ml-auto rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            Використати
+            {t("items:item.use")}
           </button>
         </div>
       )}
@@ -103,7 +98,7 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
             confirming ? (
               // Переїзд не скасувати, а місце обирає гра — тож другий клік, а не випадковий перший
               <div className="flex w-full flex-wrap items-center justify-end gap-2 text-sm">
-                <span className="text-slate-600">Переїхати? Усе військо одразу повернеться додому.</span>
+                <span className="text-slate-600">{t("items:item.teleportConfirm")}</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -113,14 +108,14 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
                   disabled={busy}
                   className="rounded-lg bg-emerald-600 px-3 py-1 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
-                  Так
+                  {t("items:item.yes")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirming(false)}
                   className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50"
                 >
-                  Ні
+                  {t("items:item.no")}
                 </button>
               </div>
             ) : (
@@ -130,7 +125,7 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
                 disabled={busy}
                 className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
               >
-                {teleportScope === "ClanLeader" ? "Переселитись до лідера" : "Переселитись навмання"}
+                {teleportScope === "ClanLeader" ? t("items:item.teleportLeader") : t("items:item.teleportRandom")}
               </button>
             )
           ) : (
@@ -138,19 +133,19 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
               to={`/map?teleport=${encodeURIComponent(item.itemKey)}`}
               className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700"
             >
-              Обрати місце на мапі →
+              {t("items:item.pickOnMap")}
             </Link>
           )}
         </div>
       )}
 
       {item.type === "evolution" && (
-        <p className="mt-2 text-xs text-slate-500">Витрачається під час еволюції героя.</p>
+        <p className="mt-2 text-xs text-slate-500">{t("items:item.evolutionHint")}</p>
       )}
 
       {item.type === "feed" && (
         <Link to="/beasts" className="mt-2 block text-xs text-emerald-700 hover:underline">
-          Нагодувати звірів у звіринці
+          {t("items:item.feedHint")}
         </Link>
       )}
     </div>

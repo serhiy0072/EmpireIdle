@@ -32,6 +32,12 @@ namespace EmpireIdle.Domain.Services.Config
         public double ImpassableMoveMultiplier { get; set; } = 3.0;
 
         /// <summary>
+        /// Загальний множник швидкості в дорозі (рішення 29.10.2026): ділить час кожного переходу —
+        /// марші, розвідники, підкріплення, повернення. Стати швидкості юнітів і героїв не чіпає.
+        /// </summary>
+        public double TravelSpeedMultiplier { get; set; } = 1.0;
+
+        /// <summary>
         /// Рівень світу, на якому туман і кільця досягають повного розміру. Сам рівень світу
         /// стелі не має (GDD §2.7): далі світ росте контентом, а не площею.
         /// </summary>

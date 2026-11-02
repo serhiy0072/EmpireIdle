@@ -76,7 +76,7 @@ public class StartDungeonRunCommandTests
 
         var dungeon = _config.Dungeons.Dungeons.Single();
         Assert.Equal(RefusalReasons.DungeonTownHallRequired.Key, refusal.Reason);
-        Assert.Equal(dungeon.DisplayName, refusal.Args["dungeon"]);
+        Assert.Equal(dungeon.Key, refusal.Args["dungeon"]);
         Assert.Equal(dungeon.RequiresMainBuildingLevel, refusal.Args["level"]);
     }
 
@@ -119,6 +119,6 @@ public class StartDungeonRunCommandTests
             handler.Handle(Start(hero), CancellationToken.None));
 
         Assert.Equal(RefusalReasons.DungeonHeroWounded.Key, refusal.Reason);
-        Assert.Equal(new GameCatalog(_config).FindHero(TestKeys.CommonHero)!.DisplayName, refusal.Args["hero"]);
+        Assert.Equal(TestKeys.CommonHero, refusal.Args["hero"]);
     }
 }

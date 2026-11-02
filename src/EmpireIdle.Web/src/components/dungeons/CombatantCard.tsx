@@ -2,6 +2,7 @@ import HeroPortrait from "../heroes/HeroPortrait";
 import type { CombatantView } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { statusLabel } from "../../lib/queries/dungeons";
+import { t } from "i18next";
 
 interface Props {
   combatant: CombatantView;
@@ -66,7 +67,7 @@ export default function CombatantCard({ combatant, active, targetable, selected,
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-1">
             <span className="truncate text-xs font-medium text-slate-800">{combatant.displayName}</span>
-            <span className="shrink-0 text-[10px] text-slate-500">{combatant.line === "Front" ? "перед" : "тил"}</span>
+            <span className="shrink-0 text-[10px] text-slate-500">{combatant.line === "Front" ? t("battle:line.front") : t("battle:line.back")}</span>
           </div>
 
           <div className="mt-1 space-y-1">
@@ -84,7 +85,7 @@ export default function CombatantCard({ combatant, active, targetable, selected,
             <span>
               {Math.round(combatant.health)}/{Math.round(combatant.maxHealth)}
             </span>
-            {combatant.shield > 0 && <span className="text-sky-700">щит {Math.round(combatant.shield)}</span>}
+            {combatant.shield > 0 && <span className="text-sky-700">{t("battle:combatant.shield", { value: Math.round(combatant.shield) })}</span>}
             {combatant.statuses.map((status) => (
               <span key={status.kind} className="rounded bg-slate-100 px-1 text-slate-600">
                 {statusLabel(status.kind)} {status.turnsLeft}

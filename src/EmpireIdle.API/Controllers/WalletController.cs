@@ -17,14 +17,14 @@ namespace EmpireIdle.API.Controllers
         public WalletController(IMediator mediator) => _mediator = mediator;
 
         /// <summary>
-        /// Отримати баланс gems гравця.
+        /// Отримати баланс gems гравця і його VIP-рівень.
         /// </summary>
         [HttpGet("{playerId:guid}")]
         [ProducesResponseType(typeof(WalletResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetWallet(Guid playerId, CancellationToken cancellationToken)
         {
             var wallet = await _mediator.Send(new GetWalletQuery(playerId), cancellationToken);
-            return Ok(new WalletResponse(wallet.GemBalance));
+            return Ok(new WalletResponse(wallet.GemBalance, wallet.PurchasedGems, wallet.VipLevel, wallet.NextVipThreshold));
         }
     }
 }

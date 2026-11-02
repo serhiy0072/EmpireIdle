@@ -66,12 +66,12 @@ namespace EmpireIdle.API.Controllers
                 return Ok(null);
 
             var roles = clan.Roles
-                .Select(r => new ClanRoleResponse(r.Id, r.Name, r.Rank,
+                .Select(r => new ClanRoleResponse(r.Id, r.Name, r.Key, r.Rank,
                     PermissionNames(r.Permissions), r.IsLeaderRole, r.IsDefaultRole))
                 .ToList();
 
             var members = clan.Members
-                .Select(m => new ClanMemberResponse(m.PlayerId, m.PlayerName, m.RoleId, m.RoleName,
+                .Select(m => new ClanMemberResponse(m.PlayerId, m.PlayerName, m.RoleId, m.RoleName, m.RoleKey,
                     m.Rank, m.Power, m.JoinedAt, m.LastActiveAt))
                 .ToList();
 
@@ -91,7 +91,7 @@ namespace EmpireIdle.API.Controllers
             var response = items
                 .Select(h => new ClanHelpItemResponse(h.RequestId, h.PlayerId, h.PlayerName,
                     h.TargetType.ToString(), h.TargetId, h.HelpCount, h.MaxHelpers,
-                    h.AlreadyHelped, h.IsMine, h.CreatedAt, h.ExpiresAt))
+                    h.AlreadyHelped, h.IsMine, h.CreatedAt, h.ExpiresAt, h.Subject))
                 .ToList();
 
             return Ok(response);

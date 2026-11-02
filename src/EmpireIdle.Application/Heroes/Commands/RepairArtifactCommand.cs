@@ -82,7 +82,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             if (stack is null || stack.Count < 1)
                 throw new RequirementNotMetException(RefusalReasons.ItemNotEnough, $"No '{key}' to repair with.",
-                    _catalog.FindItem(key)?.DisplayName ?? key, 1, 0);
+                    key, 1, 0);
 
             stack.Consume(1);
 

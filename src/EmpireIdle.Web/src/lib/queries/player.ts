@@ -7,9 +7,6 @@ import { queryKeys } from "../queryKeys";
 export type PlayerSettingsView = components["schemas"]["PlayerSettingsView"];
 export type CheckInView = components["schemas"]["CheckInView"];
 
-/** Мова, поки налаштування не приїхали: мова, якою написані конфіги. */
-export const DEFAULT_LANGUAGE = "uk";
-
 export function usePlayerSettings(playerId: string): UseQueryResult<PlayerSettingsView> {
   return useQuery({
     queryKey: queryKeys.settings(playerId),

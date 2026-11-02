@@ -37,6 +37,13 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime CreatedAt { get; private set; }
 
+        /// <summary>
+        /// Змінюється з кожною допомогою. Допомога додає лише дочірній рядок, а
+        /// токен паралелізму живе на корені: без цього двоє помічників, що
+        /// прочитали 19 допомог, обидва прийняли б двадцяту.
+        /// </summary>
+        public DateTime UpdatedAt { get; private set; }
+
         public IReadOnlyCollection<ClanHelpContribution> Helpers => _helpers.AsReadOnly();
 
         /// <summary>Скільки допомог уже прийнято.</summary>
@@ -54,6 +61,7 @@ namespace EmpireIdle.Domain.Entities
             FullDuration = fullDuration;
             ExpiresAt = expiresAt;
             CreatedAt = utcNow;
+            UpdatedAt = utcNow;
         }
 
         protected ClanHelpRequest() { } // для EF Core
@@ -81,8 +89,11 @@ namespace EmpireIdle.Domain.Entities
                     $"The request already received all {maxHelpers} helps.", maxHelpers);
 
             _helpers.Add(new ClanHelpContribution(Guid.NewGuid(), Id, helperId, utcNow));
+            Touch(utcNow);
 
             return FullDuration * sharePerHelp;
         }
+
+        private void Touch(DateTime utcNow) => UpdatedAt = utcNow;
     }
 }

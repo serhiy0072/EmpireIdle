@@ -980,7 +980,7 @@
             },
             {
               "Key": "loot_hero_xp_small",
-              "DisplayName": "Мала баночка досвіду ×2",
+              "DisplayName": "Баночка досвіду (500) ×2",
               "Rarity": "Common",
               "Weight": 1632,
               "Rewards": [
@@ -993,7 +993,7 @@
             },
             {
               "Key": "loot_hero_xp_1k",
-              "DisplayName": "Баночка досвіду ×1",
+              "DisplayName": "Баночка досвіду (1 000) ×1",
               "Rarity": "Common",
               "Weight": 1202,
               "Rewards": [
@@ -1110,7 +1110,7 @@
             },
             {
               "Key": "loot_wrench_common",
-              "DisplayName": "Гайковий ключ ×3",
+              "DisplayName": "Різець гравера ×3",
               "Rarity": "Common",
               "Weight": 429,
               "Rewards": [
@@ -2138,7 +2138,7 @@
             },
             {
               "Key": "loot_hero_xp_small",
-              "DisplayName": "Мала баночка досвіду ×2",
+              "DisplayName": "Баночка досвіду (500) ×2",
               "Rarity": "Common",
               "Weight": 1632,
               "Rewards": [
@@ -2151,7 +2151,7 @@
             },
             {
               "Key": "loot_hero_xp_1k",
-              "DisplayName": "Баночка досвіду ×1",
+              "DisplayName": "Баночка досвіду (1 000) ×1",
               "Rarity": "Common",
               "Weight": 1202,
               "Rewards": [
@@ -2268,7 +2268,7 @@
             },
             {
               "Key": "loot_wrench_common",
-              "DisplayName": "Гайковий ключ ×3",
+              "DisplayName": "Різець гравера ×3",
               "Rarity": "Common",
               "Weight": 429,
               "Rewards": [
@@ -3453,7 +3453,7 @@
             },
             {
               "Key": "loot_hero_xp_small",
-              "DisplayName": "Мала баночка досвіду ×2",
+              "DisplayName": "Баночка досвіду (500) ×2",
               "Rarity": "Common",
               "Weight": 1632,
               "Rewards": [
@@ -3466,7 +3466,7 @@
             },
             {
               "Key": "loot_hero_xp_1k",
-              "DisplayName": "Баночка досвіду ×1",
+              "DisplayName": "Баночка досвіду (1 000) ×1",
               "Rarity": "Common",
               "Weight": 1202,
               "Rewards": [
@@ -3583,7 +3583,7 @@
             },
             {
               "Key": "loot_wrench_common",
-              "DisplayName": "Гайковий ключ ×3",
+              "DisplayName": "Різець гравера ×3",
               "Rarity": "Common",
               "Weight": 429,
               "Rewards": [

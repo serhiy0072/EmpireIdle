@@ -28,12 +28,15 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly IClanRepository _clanRepository;
         private readonly GameCatalog _catalog;
         private readonly CombatCalculator _combat;
+        private readonly LocaleTexts _texts;
 
         public GetMapCellQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
             IVillageRepository villageRepository, MonsterArmyBuilder armyBuilder, TimeProvider timeProvider,
             IClanStructureRepository structureRepository, IClanRepository clanRepository,
-            IServerContext serverContext, TerrainGenerator terrain, GameCatalog catalog, CombatCalculator combat)
+            IServerContext serverContext, TerrainGenerator terrain, GameCatalog catalog, CombatCalculator combat,
+            LocaleTexts texts)
         {
+            _texts = texts;
             _catalog = catalog;
             _combat = combat;
             _serverContext = serverContext;
@@ -82,7 +85,7 @@ namespace EmpireIdle.Application.Map.Queries
                     DefenceStacks.FromArmy(army.ToDictionary(kv => new UnitStackKey(kv.Key, 1), kv => kv.Value)), terrain);
 
                 // Ім'я — з довідника, як у звіті й поході; ключ іде окремим полем
-                return new MapCellOccupant("Monster", monster.Id, _catalog.MonsterName(monster.Type), monster.Level,
+                return new MapCellOccupant("Monster", monster.Id, _texts.Name("monster", monster.Type, _catalog.MonsterName(monster.Type)), monster.Level,
                     army, MonsterType: monster.Type, MonsterPower: Math.Round(power));
             }
 

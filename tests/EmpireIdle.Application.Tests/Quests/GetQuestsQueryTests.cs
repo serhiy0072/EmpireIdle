@@ -79,7 +79,7 @@ public class GetQuestsQueryTests
 
     private GetQuestsQueryHandler Handler() => new(
         _quests, new QuestThresholds(_quests, _villages, Substitute.For<IServerContext>()),
-        new FakeTimeProvider(Now), new GameCatalog(Config()));
+        new FakeTimeProvider(Now), new GameCatalog(Config()), new LocaleTexts(Config(), "uk"));
 
     private void GivenTownHall(int level)
     {

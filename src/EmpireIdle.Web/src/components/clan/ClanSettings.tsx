@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ClanJoinPolicy, MyClanResponse } from "../../lib/apiTypes";
 import { JOIN_POLICIES, joinPolicyLabel } from "../../lib/queries/clans";
+import { t } from "i18next";
 
 interface Props {
   clan: MyClanResponse;
@@ -19,8 +20,8 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
   if (!canEdit) {
     return (
       <div className="space-y-1 text-sm">
-        <p className="text-slate-700">{clan.description === "" ? "Опису немає." : clan.description}</p>
-        <p className="text-slate-500">Вступ: {joinPolicyLabel(clan.joinPolicy)}</p>
+        <p className="text-slate-700">{clan.description === "" ? t("social:settings.noDescription") : clan.description}</p>
+        <p className="text-slate-500">{t("social:settings.joinPolicy", { policy: joinPolicyLabel(clan.joinPolicy) })}</p>
       </div>
     );
   }
@@ -30,7 +31,7 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
   return (
     <div className="space-y-3">
       <label className="block text-sm text-slate-600">
-        Опис
+        {t("social:settings.description")}
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
@@ -41,7 +42,7 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
       </label>
 
       <label className="block text-sm text-slate-600">
-        Вступ
+        {t("social:settings.join")}
         <select
           value={policy}
           onChange={(event) => setPolicy(Number(event.target.value) as ClanJoinPolicy)}
@@ -61,7 +62,7 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
         disabled={busy || !dirty}
         className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
       >
-        Зберегти
+        {t("social:settings.save")}
       </button>
     </div>
   );

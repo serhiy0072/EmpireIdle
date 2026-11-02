@@ -35,6 +35,7 @@ public class RegisterPlayerCommandTests
     {
         DefaultServerId = 1,
         ActiveServerIds = [1],
+        Localization = new LocalizationConfig { DefaultLanguage = "uk", Languages = ["uk", "en"] },
         StartingResources = new Dictionary<string, int> { ["food"] = 500, ["wood"] = 300 },
         Resources =
         [
@@ -173,6 +174,21 @@ public class RegisterPlayerCommandTests
         await Handler().Handle(Create("  Player@Example.COM  "), CancellationToken.None);
 
         Assert.Equal("player@example.com", created!.Email);
+    }
+
+    /// <summary>Мова, яку гравець бачив до входу, стає мовою акаунта; невідома — мова за замовчуванням.</summary>
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData("de", "uk")]
+    [InlineData(null, "uk")]
+    public async Task Handle_ShouldKeepTheLanguageChosenBeforeSignUp(string? chosen, string expected)
+    {
+        Player? created = null;
+        await _players.AddAsync(Arg.Do<Player>(p => created = p), Arg.Any<CancellationToken>());
+
+        await Handler().Handle(Create() with { Language = chosen }, CancellationToken.None);
+
+        Assert.Equal(expected, created!.Language);
     }
 
     /// <summary>Село ставиться в межах туману поточного рівня світу.</summary>

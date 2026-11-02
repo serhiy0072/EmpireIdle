@@ -1,6 +1,8 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Wallets.Queries;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 using NSubstitute;
 
@@ -18,7 +20,9 @@ public class GetWalletQueryTests
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
     private readonly ICurrentPlayer _currentPlayer = Substitute.For<ICurrentPlayer>();
 
-    private GetWalletQueryHandler Handler() => new(_wallets, _currentPlayer);
+    private readonly VipProgression _vip = new(new MonetizationConfig { VipThresholds = [100, 300, 600] });
+
+    private GetWalletQueryHandler Handler() => new(_wallets, _currentPlayer, _vip);
 
     [Fact]
     public async Task Handle_ShouldReturnTheWalletsGemBalance()
@@ -32,6 +36,22 @@ public class GetWalletQueryTests
         var response = await Handler().Handle(new GetWalletQuery(PlayerId), CancellationToken.None);
 
         Assert.Equal(250, response.GemBalance);
+    }
+
+    /// <summary>VIP рахується від куплених gems: 350 куплених — другий рівень, до третього треба 600.</summary>
+    [Fact]
+    public async Task Handle_ShouldReportTheVipLevelOfPurchasedGems()
+    {
+        var wallet = new PlayerWallet(Guid.NewGuid(), UserId);
+        wallet.AddGems(new GemAmount(350), "cs_1", DateTime.UtcNow);
+        wallet.GrantGems(new GemAmount(5000), "quest:big", DateTime.UtcNow);
+
+        _currentPlayer.UserId.Returns(UserId);
+        _wallets.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(wallet);
+
+        var response = await Handler().Handle(new GetWalletQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal((350L, 2, (long?)600), (response.PurchasedGems, response.VipLevel, response.NextVipThreshold));
     }
 
     /// <summary>Без автентифікованого акаунта питати баланс нізвідки.</summary>

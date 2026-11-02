@@ -1,5 +1,6 @@
 import type { BuildingResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
+import { t } from "i18next";
 
 interface Props {
   building: BuildingResponse;
@@ -13,7 +14,7 @@ export default function LockedBuildingCard({ building }: Props) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-1">
       <h3 className="font-medium text-slate-500">🔒 {catalog.buildingName(building.type)}</h3>
-      <p className="text-sm text-slate-500">Відкриється, коли ратуша досягне рівня {gateLevel}.</p>
+      <p className="text-sm text-slate-500">{t("village:card.locked", { level: gateLevel })}</p>
     </div>
   );
 }

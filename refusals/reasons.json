@@ -107,11 +107,13 @@
     "tag"
   ],
   "clan.noPermission": [
-    "role"
+    "role",
+    "roleKey"
   ],
   "clan.notMember": [],
   "clan.permissionsExceedOwn": [
-    "role"
+    "role",
+    "roleKey"
   ],
   "clan.requestExpired": [],
   "clan.requestResolved": [],
@@ -322,6 +324,23 @@
     "level"
   ],
   "reinforce.targetShielded": [],
+  "research.busy": [],
+  "research.laboratoryLocked": [
+    "level"
+  ],
+  "research.maxed": [],
+  "research.notActive": [],
+  "research.prerequisites": [
+    "nodes"
+  ],
+  "research.previousTier": [
+    "tier"
+  ],
+  "research.tierLocked": [
+    "tier",
+    "level",
+    "worldLevel"
+  ],
   "scout.alreadyUnderway": [],
   "scout.blocked": [],
   "scout.ownTarget": [],

@@ -547,6 +547,53 @@ const beastpen: Art = (cx, cy, _s, tier) => ({
   ),
 });
 
+/** Зелене світло реторт у вікнах і на подвір'ї лабораторії. */
+const ALCHEMY = "#86efac";
+const FLASK = faces("#bbf7d0", "#4ade80", "#16a34a");
+
+/**
+ * Лабораторія: кам'яний корпус із зеленим світлом реторт, позаду — обсерваторна
+ * вежа з куполом і телескопом. Будівля без рівнів (29.10.2026) — tier не росте.
+ */
+const laboratory: Art = (cx, cy) => {
+  const h = 18;
+  const towerH = h + 32;
+  // Вежа за правим заднім кутом корпусу, а не в ньому: інакше дах ховає її до купола
+  const tower = { x: cx + 2.6, y: cy - 2.4 };
+  const body = { x: cx - 1, y: cy + 1 };
+  const eyepiece = at(tower.x, tower.y, towerH + 10);
+  const lens = at(tower.x + 3, tower.y - 3, towerH + 24);
+
+  return {
+    foot: 4.5,
+    height: towerH + 32,
+    node: (
+      <g>
+        <Box cx={cx} cy={cy} hx={4.6} hy={4.6} h={2} faces={ROOF_SLATE} />
+        {/* Обсерваторна вежа позаду — малюється до корпусу, щоб той її перекрив */}
+        <Cylinder cx={tower.x} cy={tower.y} r={1.7} z={2} h={towerH - 2} faces={STONE} />
+        <Windows cx={tower.x} cy={tower.y} hx={1.7} hy={1.7} z={2} h={towerH - 2} side="left" rows={3} cols={1} glass={ALCHEMY} />
+        <Cylinder cx={tower.x} cy={tower.y} r={2.1} z={towerH} h={2} faces={ROOF_SLATE} />
+        <Cone cx={tower.x} cy={tower.y} r={2} z={towerH + 2} h={30} faces={ROOF_PURPLE} />
+        <line x1={eyepiece.x} y1={eyepiece.y} x2={lens.x} y2={lens.y} stroke="#e2e8f0" strokeWidth={3} strokeLinecap="round" />
+        <circle cx={lens.x} cy={lens.y} r={2} fill="#bfdbfe" stroke="#475569" strokeWidth={0.8} />
+        <Box cx={body.x} cy={body.y} hx={3} hy={2.8} h={h} z={2} faces={STONE} />
+        <Windows cx={body.x} cy={body.y} hx={3} hy={2.8} z={2} h={h} side="left" cols={2} glass={ALCHEMY} />
+        <Windows cx={body.x} cy={body.y} hx={3} hy={2.8} z={2} h={h} side="right" cols={1} glass={ALCHEMY} />
+        <Door cx={body.x} cy={body.y} hx={3} hy={2.8} z={2} side="left" t={0.5} h={10} arched color="#4c1d95" />
+        <Gable cx={body.x} cy={body.y} hx={3.4} hy={3.2} z={h + 2} h={9} faces={ROOF_SLATE} />
+        <Tiles cx={body.x} cy={body.y} hx={3.4} hy={3.2} z={h + 2} h={9} kind="gable" />
+        <Chimney x={body.x - 2} y={body.y - 1} z={h + 4} h={7} faces={BRICK} />
+        {/* Реторти на подвір'ї */}
+        <Crate x={cx + 3.8} y={cy + 1.2} s={0.8} />
+        <Cylinder cx={cx + 3.4} cy={cy + 3.2} r={0.55} z={2} h={1.6} faces={FLASK} />
+        <Cone cx={cx + 3.4} cy={cy + 3.2} r={0.55} z={3.6} h={2.2} faces={FLASK} />
+        <Lantern x={cx - 3.2} y={cy + 4.6} h={9} />
+      </g>
+    ),
+  };
+};
+
 const fallback: Art = (cx, cy, s) => {
   const h = 20 * s;
   return {
@@ -607,6 +654,7 @@ const ART: Record<string, Art> = {
   forge,
   fishinghut,
   beastpen,
+  laboratory,
 };
 
 /** Нова будівля в конфізі без власного силуету отримує типовий будинок, а не падіння. */

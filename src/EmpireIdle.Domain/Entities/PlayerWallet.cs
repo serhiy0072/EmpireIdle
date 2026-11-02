@@ -34,6 +34,12 @@ public class PlayerWallet : Entity
     /// </summary>
     public DateTime UpdatedAt { get; private set; }
 
+    /// <summary>
+    /// Скільки gems акаунт купив за весь час — від цього числа рахується VIP-рівень.
+    /// Окремо від балансу: витрати й нагороди його не змінюють.
+    /// </summary>
+    public long PurchasedGems { get; private set; }
+
     public PlayerWallet(Guid id, string userId) : base(id)
     {
         UserId = userId;
@@ -50,6 +56,7 @@ public class PlayerWallet : Entity
     public void AddGems(GemAmount amount, string reference, DateTime utcNow)
     {
         GemBalance = GemBalance.Add(amount);
+        PurchasedGems += amount.Value;
         _transactions.Add(new WalletTransaction( Guid.NewGuid(), Id, TransactionType.GemPurchase, amount.Value, reference, utcNow));
 
         Touch(utcNow);

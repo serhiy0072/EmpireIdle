@@ -24,6 +24,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IClanHelpRepository _helpRepository;
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
+        private readonly IPlayerResearchRepository _researchRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
@@ -34,6 +35,7 @@ namespace EmpireIdle.Application.Clans.Commands
             IClanHelpRepository helpRepository,
             IVillageRepository villageRepository,
             IGarrisonRepository garrisonRepository,
+            IPlayerResearchRepository researchRepository,
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
             TimeProvider timeProvider,
@@ -43,6 +45,7 @@ namespace EmpireIdle.Application.Clans.Commands
             _helpRepository = helpRepository;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
+            _researchRepository = researchRepository;
             _unitOfWork = unitOfWork;
             _catalog = catalog;
             _timeProvider = timeProvider;
@@ -69,11 +72,15 @@ namespace EmpireIdle.Application.Clans.Commands
                 throw new InvalidStateException(RefusalReasons.ClanHelpNotNeeded, "The requester has left the clan.");
 
             var clanConfig = _catalog.Config.Clan;
-            var maxHelpers = clanConfig.MaxHelpers;
+            var research = _catalog.Config.Technologies.Personal;
+
+            // Дослідження мають свій ліміт і частку (рішення 28.10.2026): 50 допомог по 0,5% проти 20 по 2%
+            var (maxHelpers, share) = helpRequest.TargetType == ClanHelpTarget.Research
+                ? (research.MaxHelps, research.HelpShare)
+                : (clanConfig.MaxHelpers, clanConfig.HelpSharePerPlayer);
 
             // Агрегат перевіряє повтор, кап і строк — і повертає, скільки зрізати
-            var reduction = helpRequest.AcceptHelp(
-                request.PlayerId, clanConfig.HelpSharePerPlayer, maxHelpers, now);
+            var reduction = helpRequest.AcceptHelp(request.PlayerId, share, maxHelpers, now);
 
             await ApplyReductionAsync(helpRequest, reduction, now, cancellationToken);
 
@@ -114,6 +121,15 @@ namespace EmpireIdle.Application.Clans.Commands
                         ?? throw new EntityNotFoundException("Garrison for village", village.Id);
 
                     garrison.ReduceTrainingTime(helpRequest.TargetId, reduction, now);
+                    break;
+
+                case ClanHelpTarget.Research:
+                    var research = await _researchRepository.GetByPlayerAsync(helpRequest.PlayerId, cancellationToken);
+
+                    if (research is null || research.Id != helpRequest.TargetId || !research.IsResearching)
+                        throw new InvalidStateException(RefusalReasons.ClanHelpNotNeeded, "That research is already finished.");
+
+                    research.Shorten(reduction, now);
                     break;
 
                 default:

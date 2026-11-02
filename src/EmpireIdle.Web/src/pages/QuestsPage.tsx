@@ -6,12 +6,13 @@ import { useSession } from "../hooks/useSession";
 import type { QuestView, QuestWindow } from "../lib/apiTypes";
 import { nextDailyResetAt, QUEST_STATE, QUEST_WINDOW, useClaimAllQuests, useClaimQuest, useQuests, useServerQuests } from "../lib/queries/quests";
 import { formatRemaining } from "../lib/time";
+import { t } from "i18next";
 
 /** Порядок секцій: спершу те, що обнуляється, — щоденні горять. */
-const SECTIONS: { window: QuestWindow; title: string }[] = [
-  { window: QUEST_WINDOW.daily, title: "Щоденні" },
-  { window: QUEST_WINDOW.event, title: "Події" },
-  { window: QUEST_WINDOW.chain, title: "Історія" },
+const SECTIONS: { window: QuestWindow; title: "daily" | "events" | "story" }[] = [
+  { window: QUEST_WINDOW.daily, title: "daily" },
+  { window: QUEST_WINDOW.event, title: "events" },
+  { window: QUEST_WINDOW.chain, title: "story" },
 ];
 
 /** Готові до отримання — нагорі: за ними гравець і прийшов. Далі активні, отримані — в кінці. */
@@ -33,7 +34,7 @@ export default function QuestsPage() {
   const claimAll = useClaimAllQuests(playerId);
 
   if (quests.isPending) {
-    return <p className="text-slate-500">Завантаження квестів…</p>;
+    return <p className="text-slate-500">{t("social:quests.loading")}</p>;
   }
 
   if (quests.isError) {
@@ -45,11 +46,11 @@ export default function QuestsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Квести</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("social:quests.title")}</h1>
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm text-slate-500">
-            {claimable > 0 ? `Готово до отримання: ${claimable} · ` : ""}
-            щоденні оновляться за {formatRemaining(nextDailyResetAt(now), now)}
+            {claimable > 0 ? `${t("social:quests.claimable", { count: claimable })} · ` : ""}
+            {t("social:quests.dailyReset", { remaining: formatRemaining(nextDailyResetAt(now), now) })}
           </p>
           {claimable > 1 && (
             <button
@@ -58,7 +59,7 @@ export default function QuestsPage() {
               disabled={claim.isPending || claimAll.isPending}
               className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              Зібрати все
+              {t("social:quests.claimAll")}
             </button>
           )}
         </div>
@@ -73,7 +74,7 @@ export default function QuestsPage() {
 
         return (
           <section key={section.window} className="space-y-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{section.title}</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t(`social:quests.section.${section.title}`)}</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {items.map((quest) => (
                 <QuestCard
@@ -88,17 +89,17 @@ export default function QuestsPage() {
         );
       })}
 
-      {quests.data.length === 0 && <p className="text-sm text-slate-500">Наразі завдань немає.</p>}
+      {quests.data.length === 0 && <p className="text-sm text-slate-500">{t("social:quests.none")}</p>}
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Серверні</h2>
+        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:quests.server")}</h2>
 
         {serverQuests.isPending ? (
-          <p className="text-sm text-slate-500">Завантаження…</p>
+          <p className="text-sm text-slate-500">{t("social:quests.serverLoading")}</p>
         ) : serverQuests.isError ? (
           <ErrorBanner error={serverQuests.error} />
         ) : serverQuests.data.length === 0 ? (
-          <p className="text-sm text-slate-500">Спільних цілей сервера зараз немає.</p>
+          <p className="text-sm text-slate-500">{t("social:quests.serverNone")}</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {serverQuests.data.map((quest) => (

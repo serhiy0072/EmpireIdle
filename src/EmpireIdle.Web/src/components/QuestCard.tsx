@@ -2,6 +2,8 @@ import type { QuestView } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { QUEST_STATE } from "../lib/queries/quests";
 import { objectiveIsThreshold, objectiveLabel, rewardLabel } from "../lib/questLabels";
+import { formatNumber } from "../lib/format";
+import { t } from "i18next";
 
 interface Props {
   quest: QuestView;
@@ -24,7 +26,7 @@ export default function QuestCard({ quest, busy, onClaim }: Props) {
     >
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="font-medium text-slate-800">{quest.displayName}</h3>
-        {claimed && <span className="text-xs text-slate-500">Отримано</span>}
+        {claimed && <span className="text-xs text-slate-500">{t("social:quests.claimed")}</span>}
       </div>
 
       <ul className="space-y-2">
@@ -41,8 +43,8 @@ export default function QuestCard({ quest, busy, onClaim }: Props) {
                 </span>
                 {!objectiveIsThreshold(objective) && (
                   <span className="text-xs text-slate-500">
-                    {Math.min(objective.amount, objective.required).toLocaleString("uk-UA")} /{" "}
-                    {objective.required.toLocaleString("uk-UA")}
+                    {formatNumber(Math.min(objective.amount, objective.required))} /{" "}
+                    {formatNumber(objective.required)}
                   </span>
                 )}
               </div>
@@ -71,7 +73,7 @@ export default function QuestCard({ quest, busy, onClaim }: Props) {
             disabled={busy}
             className="ml-auto rounded-lg bg-amber-500 px-3 py-1 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
           >
-            Забрати
+            {t("social:quests.claim")}
           </button>
         )}
       </div>

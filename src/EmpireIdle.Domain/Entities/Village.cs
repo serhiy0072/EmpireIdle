@@ -200,7 +200,7 @@ namespace EmpireIdle.Domain.Entities
             // Функціональна будівля рівнів не має (GDD §3.1) — ціну й час їй і не рахуємо
             if (!config.Upgradable)
                 throw new InvalidStateException(RefusalReasons.BuildingNotUpgradable,
-                    $"'{building.Type}' has no levels.", config.DisplayName);
+                    $"'{building.Type}' has no levels.", building.Type);
 
             EnsureTierAllows(building, config, buildingConfigs, mainBuildingKey, serverLevel, levelsPerTier, maxBuildingLevel);
 
@@ -751,7 +751,7 @@ namespace EmpireIdle.Domain.Entities
             if (!isMainBuilding && targetLevel > townhall.Level.Value)
                 throw new RequirementNotMetException(RefusalReasons.BuildingTownHallCeiling,
                     $"'{building.Type}' cannot exceed main building level {townhall.Level.Value}.",
-                    config.DisplayName, townhall.Level.Value);
+                    building.Type, townhall.Level.Value);
 
             // B — лише на межі тіру
             if (!isMainBuilding || building.Level.Value % levelsPerTier != 0)
@@ -771,7 +771,7 @@ namespace EmpireIdle.Domain.Entities
             if (lagging.Count > 0)
                 throw new RequirementNotMetException(RefusalReasons.BuildingVillageLagging,
                     $"Raise the whole village to level {required} first: {string.Join(", ", lagging)}.",
-                    required, string.Join(", ", lagging.Select(type => buildingConfigs[type].DisplayName)));
+                    required, string.Join(",", lagging));
         }
 
         #endregion

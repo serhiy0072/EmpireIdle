@@ -47,7 +47,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             var hero = await _heroRepository.GetByKeyAsync(request.PlayerId, request.HeroKey, cancellationToken)
                 ?? throw new RequirementNotMetException(RefusalReasons.HeroNotOwned,
-                    $"Universal shards go only into an unlocked hero, and '{request.HeroKey}' is not.", config.DisplayName);
+                    $"Universal shards go only into an unlocked hero, and '{request.HeroKey}' is not.", request.HeroKey);
 
             // Прокачаному героєві осколки нічого не дадуть — і повернулись би універсальними ж
             if (hero.StarParts >= _catalog.Config.HeroSettings.MaxStarParts)

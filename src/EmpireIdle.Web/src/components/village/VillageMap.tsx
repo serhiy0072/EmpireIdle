@@ -6,6 +6,7 @@ import { overlaps, snap, unproject, type PlanPoint } from "../../lib/villageLayo
 import type { Catalog } from "../../lib/queries/catalog";
 import IsoBuilding from "./IsoBuilding";
 import IsoWall from "./IsoWall";
+import BuildingActionRing, { type RingAction } from "./BuildingActionRing";
 import { buildingArt } from "./buildingArt";
 import IsoBuildingOverlay from "./IsoBuildingOverlay";
 import VillageTerrain from "./VillageTerrain";
@@ -22,6 +23,8 @@ interface Props {
   editing?: boolean;
   /** Будівлю відпущено на допустимому новому місці. */
   onMove?: (buildingId: string, x: number, y: number) => void;
+  /** Дії вибраної будівлі — кільцем під нею (референс 29.10.2026). */
+  actions?: readonly RingAction[];
 }
 
 /** Будівля, яку зараз тягнуть: де вона на сітці й чи можна її там поставити. */
@@ -32,7 +35,7 @@ interface Drag {
   valid: boolean;
 }
 
-export default function VillageMap({ buildings, catalog, selectedId, onSelect, editing = false, onMove }: Props) {
+export default function VillageMap({ buildings, catalog, selectedId, onSelect, editing = false, onMove, actions = [] }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { transform, handlers, wasDragged, moving } = usePanZoom(containerRef, WORLD);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -199,11 +202,20 @@ export default function VillageMap({ buildings, catalog, selectedId, onSelect, e
                   gateLevel={locked ? gateLevel : null}
                   zoom={transform.k}
                   // Таблички — лише поки камера рухається або на будівлю навели; статичне село без написів
-                  labelled={moving || building.id === hoveredId}
+                  labelled={moving || building.id === hoveredId || building.id === selectedId}
                   onSelect={tap(() => onSelect(building.id))}
                 />
               );
             })}
+
+            {/* Кільце — над табличками: інакше підпис сусідньої будівлі перекриє кнопку */}
+            {!editing &&
+              actions.length > 0 &&
+              placed
+                .filter(({ building }) => building.id === selectedId)
+                .map(({ building, position, art }) => (
+                  <BuildingActionRing key={`ring-${building.id}`} art={art} x={position.x} y={position.y} zoom={transform.k} actions={actions} />
+                ))}
           </g>
         </svg>
       )}

@@ -4,6 +4,7 @@ import { classLabel } from "../../lib/heroClasses";
 import { useCatalog } from "../../lib/queries/catalog";
 import { rewardLabel } from "../../lib/questLabels";
 import HeroPortrait from "../heroes/HeroPortrait";
+import { t } from "i18next";
 
 /** Нагороди рядком: «270 золота · 5 💎». */
 export function RewardLine({ rewards }: { rewards: RewardConfig[] }): ReactElement {
@@ -23,11 +24,11 @@ export function TowerFloorPanel({ floor }: { floor: TowerFloorView }): ReactElem
     <div className="space-y-3 rounded-xl bg-[#1d3b6f] p-3 ring-1 ring-[#335c9a]">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-base font-semibold">
-          Поверх {floor.number}
-          {floor.isBoss && <span className="ml-2 rounded bg-rose-600 px-1.5 py-0.5 text-xs">бос</span>}
+          {t("battle:tower.floor", { floor: floor.number })}
+          {floor.isBoss && <span className="ml-2 rounded bg-rose-600 px-1.5 py-0.5 text-xs">{t("battle:tower.boss")}</span>}
         </h2>
         <p className="text-xs text-sky-200">
-          {floor.archetypeName} · герої {floor.heroLevel} рів. · юніти {floor.unitLevel} рів. · {floor.setName}
+          {t("battle:tower.floorInfo", { archetype: floor.archetypeName, heroes: floor.heroLevel, units: floor.unitLevel, set: floor.setName })}
         </p>
       </div>
 
@@ -43,7 +44,7 @@ export function TowerFloorPanel({ floor }: { floor: TowerFloorView }): ReactElem
       </ol>
 
       <p className="text-sm">
-        <span className="text-sky-200">Нагорода: </span>
+        <span className="text-sky-200">{t("battle:tower.reward")} </span>
         <RewardLine rewards={floor.rewards} />
       </p>
     </div>
@@ -63,7 +64,7 @@ export function TowerStrip({ floors }: { floors: TowerUpcomingFloor[] }): ReactE
         >
           <span className="font-semibold">
             {floor.number}
-            {floor.isBoss && " · бос"}
+            {floor.isBoss && ` · ${t("battle:tower.boss")}`}
           </span>
           <span className="truncate text-right text-xs text-sky-100">
             <RewardLine rewards={floor.rewards} />
@@ -76,7 +77,7 @@ export function TowerStrip({ floors }: { floors: TowerUpcomingFloor[] }): ReactE
 
 /** Рейтинг сервера: поверх і хто дійшов раніше; власний рядок — і поза топом. */
 export function TowerLeaderboardPanel({ board, playerId }: { board: TowerLeaderboard; playerId: string }): ReactElement {
-  if (board.entries.length === 0) return <p className="text-sm text-sky-200">Ще ніхто не пройшов жодного поверху — будьте першим.</p>;
+  if (board.entries.length === 0) return <p className="text-sm text-sky-200">{t("battle:tower.noRating")}</p>;
 
   const mineInTop = board.entries.some((entry) => entry.playerId === playerId);
 
@@ -85,8 +86,8 @@ export function TowerLeaderboardPanel({ board, playerId }: { board: TowerLeaderb
       <thead className="text-left text-xs text-sky-200">
         <tr>
           <th className="py-1">#</th>
-          <th>Гравець</th>
-          <th className="text-right">Поверх</th>
+          <th>{t("battle:tower.player")}</th>
+          <th className="text-right">{t("battle:tower.floorColumn")}</th>
         </tr>
       </thead>
       <tbody>

@@ -1,12 +1,15 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import LanguagePicker from "../components/LanguagePicker";
 import { register } from "../lib/auth";
 import { describeError } from "../lib/errorMessages";
 import { passwordIsValid, passwordRules } from "../lib/passwordRules";
 import { userNameIsValid, userNameRules } from "../lib/userNameRules";
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,11 +38,14 @@ export default function RegisterPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm space-y-5 rounded-xl border border-slate-200 bg-white p-8 shadow-sm"
       >
-        <h1 className="text-xl font-medium text-slate-800">Реєстрація в EmpireIdle</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-medium text-slate-800">{t("register.title")}</h1>
+          <LanguagePicker />
+        </div>
 
         <div>
           <label htmlFor="userName" className="mb-1 block text-sm text-slate-600">
-            Ім'я
+            {t("register.userName")}
           </label>
           <input
             id="userName"
@@ -47,7 +53,7 @@ export default function RegisterPage() {
             onChange={(event) => setUserName(event.target.value)}
             required
             maxLength={50}
-            placeholder="Як вас називати"
+            placeholder={t("register.userNamePlaceholder")}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
 
@@ -58,11 +64,11 @@ export default function RegisterPage() {
 
               return (
                 <li
-                  key={rule.label}
+                  key={rule.key}
                   className={`flex items-center gap-2 text-xs ${passed ? "text-emerald-700" : "text-slate-500"}`}
                 >
                   <span aria-hidden>{passed ? "✓" : "•"}</span>
-                  {rule.label}
+                  {t(`register.userNameRules.${rule.key}`)}
                 </li>
               );
             })}
@@ -71,7 +77,7 @@ export default function RegisterPage() {
 
         <div>
           <label htmlFor="email" className="mb-1 block text-sm text-slate-600">
-            Email
+            {t("auth.email")}
           </label>
           <input
             id="email"
@@ -79,14 +85,14 @@ export default function RegisterPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
-            placeholder="Введіть ваш email"
+            placeholder={t("auth.emailPlaceholder")}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div>
           <label htmlFor="password" className="mb-1 block text-sm text-slate-600">
-            Пароль
+            {t("auth.password")}
           </label>
           <input
             id="password"
@@ -104,11 +110,11 @@ export default function RegisterPage() {
 
               return (
                 <li
-                  key={rule.label}
+                  key={rule.key}
                   className={`flex items-center gap-2 text-xs ${passed ? "text-emerald-700" : "text-slate-500"}`}
                 >
                   <span aria-hidden>{passed ? "✓" : "•"}</span>
-                  {rule.label}
+                  {t(`register.passwordRules.${rule.key}`)}
                 </li>
               );
             })}
@@ -117,7 +123,7 @@ export default function RegisterPage() {
 
         <div>
           <label htmlFor="confirm" className="mb-1 block text-sm text-slate-600">
-            Повторіть пароль
+            {t("register.confirm")}
           </label>
           <input
             id="confirm"
@@ -129,11 +135,11 @@ export default function RegisterPage() {
               mismatch ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:ring-emerald-500"
             }`}
           />
-          {mismatch && <p className="mt-1 text-xs text-red-600">Паролі не збігаються</p>}
+          {mismatch && <p className="mt-1 text-xs text-red-600">{t("register.mismatch")}</p>}
         </div>
 
         {touched && !ready && !mismatch && (
-          <p className="text-sm text-slate-500">Заповніть усі поля й виконайте вимоги до імені та пароля.</p>
+          <p className="text-sm text-slate-500">{t("register.incomplete")}</p>
         )}
 
         {mutation.isError && <p className="text-sm text-red-600">{describeError(mutation.error)}</p>}
@@ -143,13 +149,13 @@ export default function RegisterPage() {
           disabled={mutation.isPending}
           className="w-full rounded-lg bg-emerald-600 py-2 font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {mutation.isPending ? "Створюємо…" : "Створити акаунт"}
+          {mutation.isPending ? t("register.submitting") : t("register.submit")}
         </button>
 
         <p className="text-center text-sm text-slate-500">
-          Уже маєте акаунт?{" "}
+          {t("register.haveAccount")}{" "}
           <Link to="/login" className="font-medium text-emerald-700 hover:underline">
-            Увійти
+            {t("register.login")}
           </Link>
         </p>
       </form>

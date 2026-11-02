@@ -38,7 +38,7 @@ public class FlatBuildingTests
                 locationMultiplier: 1.0));
 
         Assert.Equal(RefusalReasons.BuildingNotUpgradable.Key, refusal.Reason);
-        Assert.Equal("Ринок", refusal.Args["building"]);
+        Assert.Equal(Market, refusal.Args["building"]);
         Assert.Equal(1, market.Level.Value);
         Assert.False(market.IsUnderConstruction);
         Assert.Equal(before, village.Resources.ToDictionary(r => r.ResourceType, r => r.Amount));

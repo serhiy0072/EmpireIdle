@@ -5,6 +5,8 @@ import type { HeroSummary } from "../../lib/queries/heroes";
 import { strongestSquad } from "../../lib/squad";
 import { GameButton } from "../game/GameUi";
 import HeroPortrait from "../heroes/HeroPortrait";
+import { formatNumber } from "../../lib/format";
+import { t } from "i18next";
 
 interface Props {
   heroes: HeroSummary[];
@@ -35,9 +37,9 @@ export default function SquadPicker({ heroes, lanes, onChange }: Props): ReactEl
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold">Загін</h3>
+        <h3 className="text-sm font-semibold">{t("battle:squad.title")}</h3>
         <GameButton variant="secondary" onClick={() => onChange(strongestSquad(heroes, lanes.length, (hero) => catalog.hero(hero.heroKey)?.class))}>
-          Найсильніші
+          {t("battle:squad.strongest")}
         </GameButton>
       </div>
 
@@ -54,7 +56,7 @@ export default function SquadPicker({ heroes, lanes, onChange }: Props): ReactEl
                 className="flex h-24 w-full flex-col items-center justify-center gap-1 rounded-lg bg-white/5 text-xs ring-1 ring-white/20 hover:bg-white/10"
               >
                 {hero === undefined ? (
-                  <span className="text-sky-300">доріжка {lane + 1}</span>
+                  <span className="text-sky-300">{t("battle:squad.lane", { lane: lane + 1 })}</span>
                 ) : (
                   <>
                     <HeroPortrait heroKey={hero.heroKey} heroClass={config?.class} rank={config?.rank} tier={hero.tier} size={44} />
@@ -84,7 +86,7 @@ export default function SquadPicker({ heroes, lanes, onChange }: Props): ReactEl
                 <span className="text-sky-200">
                   {classLabel(config?.class)} · {hero.effectiveLevel}
                 </span>
-                <span className="text-amber-200">⚔ {Math.round(hero.power).toLocaleString("uk-UA")}</span>
+                <span className="text-amber-200">⚔ {formatNumber(Math.round(hero.power))}</span>
               </button>
             </li>
           );

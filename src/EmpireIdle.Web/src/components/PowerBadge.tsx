@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { VillageResponse } from "../lib/apiTypes";
 import { useCatalog } from "../lib/queries/catalog";
 import { compactPower, usePower } from "../lib/queries/rating";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -20,8 +21,12 @@ export default function PowerBadge({ playerId, village }: Props) {
   const total = power.data?.total;
   const breakdown =
     power.data === undefined
-      ? "Сила рахується…"
-      : `Армія ${compactPower(power.data.army)} · герої ${compactPower(power.data.hero)} · спорядження ${compactPower(power.data.equipment)}`;
+      ? t("village:power.loading")
+      : t("village:power.breakdown", {
+          army: compactPower(power.data.army),
+          heroes: compactPower(power.data.hero),
+          gear: compactPower(power.data.equipment),
+        });
 
   return (
     <Link

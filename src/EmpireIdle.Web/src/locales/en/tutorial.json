@@ -1,0 +1,248 @@
+{
+  "intro": {
+    "welcome": {
+      "title": "Welcome to EmpireIdle",
+      "text": "You've got a village, a mine and a stock of gold and wood. A few quick steps will show you how it all works — or skip the tutorial and figure it out yourself."
+    },
+    "upgrade": {
+      "title": "Upgrade the Town Hall",
+      "text": "The Town Hall unlocks new buildings, resources and heroes. Click it and press Upgrade — your starting stock is enough."
+    },
+    "timers": {
+      "title": "Construction underway",
+      "text": "Every upgrade takes time. Meanwhile, train troops or speed it up with gems 💎 — you earn them from quests."
+    },
+    "collect": {
+      "title": "Gold flows in",
+      "text": "The Gold Mine digs on its own, even while you're away, and stores gold every minute. Wait a little — 50 gold collected completes your first quest."
+    },
+    "claim": {
+      "title": "Claim your reward",
+      "text": "First quest done. Rewards don't arrive by themselves — open Quests and press Claim."
+    },
+    "train": {
+      "title": "Train your first troops",
+      "text": "The Barracks is already up. Tap it in the village, open Camp and train 5 Infantry — 15 gold each. No army, no marches."
+    },
+    "townhall3": {
+      "title": "Town Hall level 3",
+      "text": "Town Hall level 3 unlocks the Farm, Hospital, Market and the Tower, and the quest \"Heart of the Settlement\" brings your first hero. Gather resources and upgrade."
+    },
+    "claim-hero": {
+      "title": "Claim your rewards",
+      "text": "Town Hall quests complete. Claim your rewards — your first hero waits at level 3."
+    },
+    "hero": {
+      "title": "Your first hero",
+      "text": "Heroes lead armies: no march sets out without one. Each hero leads troops of their role: warriors lead Infantry, knights lead Spearmen, archers lead Archers. See their skills in the Heroes tab."
+    },
+    "march": {
+      "title": "First march",
+      "text": "Open the map, pick a monster near your village and press Attack. The form picks your strongest free heroes (one per role) and the most troops, and shows a battle forecast — just press Send."
+    },
+    "report": {
+      "title": "Battle report",
+      "text": "The battle is over. The report shows who survived and who was wounded: the wounded rest in the Hospital and heal for resources or 💎. Some of the fallen can be bought back for 10 💎 each, but only within 24 hours."
+    },
+    "next": {
+      "title": "On your own now",
+      "text": "Quests will lead the way: Town Hall 5, your first dungeons, the Beast Pen. We'll explain new features as soon as they unlock."
+    }
+  },
+  "hint": {
+    "incoming-attack": {
+      "title": "You're under attack",
+      "text": "An enemy march is on its way — its arrival time is on the map. Spend whatever is above your protected amount, train more troops or speed up the Wall."
+    },
+    "tower": {
+      "title": "Thousand Tower",
+      "text": "Each floor is a battle of your heroes against a tower squad. Each floor gives 20 💎 and hero XP, every 5th a Rare Key, every 10th an artifact and a Unique Key too."
+    },
+    "banners": {
+      "title": "Hero banners",
+      "text": "A summon costs 1000 💎 (standard: 1200). A rare reward is guaranteed by the 10th pull, a unique one by the 50th (60th on the standard banner). All odds are under Odds."
+    },
+    "market": {
+      "title": "Player market",
+      "text": "Buy and sell with other players. A listing stays up for 48 hours, the tax is 5%, up to 10 listings at once; bought items can be resold only after 72 hours."
+    },
+    "dungeons": {
+      "title": "Dungeons",
+      "text": "A party of 4 heroes fights through waves of enemies; warriors and knights stand in front. A run costs 10 of 100 energy, and the full bar refills in 20 hours. Each dungeon drops artifacts of its own set and hero XP."
+    },
+    "beastpen": {
+      "title": "Beast Pen",
+      "text": "Beasts are tamed on the map: Tame on a monster of that kind is a normal battle, and a win may bring the beast. By the 10th win it's guaranteed. Find shows the nearest one."
+    },
+    "clan": {
+      "title": "Clan",
+      "text": "Clanmates cut your timers: each helper takes 2%, up to 40% in total. On clan territory your troops fight 10% harder."
+    },
+    "rating": {
+      "title": "Rating",
+      "text": "Rating counts power (55%), growth (25%) and activity (20%)."
+    },
+    "codex": {
+      "title": "Hero Codex",
+      "text": "The Codex lists every hero in the game and where to find them."
+    },
+    "scout": {
+      "title": "Scouting",
+      "text": "Scout a village before attacking it: the report arrives in your mail. A Veil of Mist hides your village from scouting for 24 hours."
+    },
+    "key-chests": {
+      "title": "Key chests",
+      "text": "A Rare Chest opens free 5 times a day, 5 min apart; a Unique Chest once every 48 hours. Beyond that you need keys: the Tower gives them and the shop sells them."
+    },
+    "sets": {
+      "title": "Artifact sets",
+      "text": "2 and 4 items of one set on a hero of its class give extra bonuses. Sets drop in dungeons — each dungeon has its own."
+    },
+    "shield-end": {
+      "title": "Newcomer shield is down",
+      "text": "While your Town Hall was below level 3, no one could attack you. Now they can: 250 of each resource per Warehouse level is safe from raids, and gold is kept by the Bank. Invest the rest in building instead of hoarding it."
+    },
+    "city-damage": {
+      "title": "Village raided",
+      "text": "The defeat damaged your buildings: they produce half as much until they recover in 7 hours or get repaired. Several defeats in a row without recovering will force your village to relocate."
+    },
+    "hunger": {
+      "title": "Village is starving",
+      "text": "The Mess Hall is short of Meat: production of everything except Meat is down 25%, and defense 20%. Upgrade the Farm or restock Meat from a crate."
+    },
+    "hero-xp": {
+      "title": "Hero XP",
+      "text": "XP from monsters, the Tower and dungeons goes into a shared pool. Spend it to level up any hero on their screen."
+    },
+    "first-artifact": {
+      "title": "First artifact",
+      "text": "Heroes wear artifacts: necklace, crown, ring and belt. Open a hero → gear: Quick equip puts on the best free ones."
+    },
+    "mail": {
+      "title": "Mail",
+      "text": "Login rewards, quest rewards and scout reports arrive as letters. Login rewards expire once the next day or week begins — log in and claim them."
+    },
+    "chests": {
+      "title": "Chests",
+      "text": "Chests open in your backpack, even a whole stack at once. The guarantee in the description (\"by the Nth chest at the latest\") is honest: the counter carries over between openings."
+    },
+    "march-roles": {
+      "title": "Marches and columns",
+      "text": "A march takes 1 to 3 heroes, and each leads columns of troops of their role. A column is 100 troops; a level 1 hero leads 2, level 10 leads 3, and more later. Even split shares troops between the marches you can still send."
+    },
+    "type-advantage": {
+      "title": "Who beats whom",
+      "text": "Infantry beats Archers, Archers beat Spearmen, Spearmen beat Infantry: +35% damage to the weaker side. Terrain matters too: Infantry is stronger in forests, Archers in mountains."
+    },
+    "camp": {
+      "title": "Training Camp",
+      "text": "A hero in the camp instantly gets the level of the weakest of your 5 strongest heroes — no XP spent. Removing a hero frees the slot after 24 hours."
+    },
+    "stars": {
+      "title": "Hero stars",
+      "text": "Shards buy star pieces: 6 pieces make a star, up to 5 stars. Every piece strengthens the hero, and every star unlocks one more skill level."
+    },
+    "skill-books": {
+      "title": "Skill books",
+      "text": "A book raises a skill of a hero of its class and rarity: levels cost 5, 10, 20, 40 and 80 books. Each next level needs one more hero star."
+    },
+    "wrench": {
+      "title": "Engraver's chisels",
+      "text": "A chisel gives an artifact level XP — 100 or 300, the same as feeding it a common or rare artifact."
+    },
+    "forge": {
+      "title": "Enhancement",
+      "text": "The Forge enhances artifacts for Whetstones, up to +20. Up to +5 it always succeeds, then the chance drops to 40%, and from +11 a failure can break the artifact — a Repair Kit or 💎 fixes it."
+    },
+    "beast-tamed": {
+      "title": "Your beast",
+      "text": "Beast Treats raise your beast's level and boost its bonus. The bonus is switched on with Fodder and lasts a few hours, and the Beast Pen eats Fodder every hour."
+    },
+    "beasts-hungry": {
+      "title": "Beasts need Fodder",
+      "text": "Without Fodder, beast bonuses won't switch on. Upgrade the Fishing Hut."
+    },
+    "evolution": {
+      "title": "Evolution",
+      "text": "This hero has hit their tier's cap. Essence of the Second Circle takes them to the next tier (needs world level 2), Essence of the Third Circle even higher (world level 3)."
+    },
+    "weapon": {
+      "title": "Hero weapon",
+      "text": "Weapon pieces boost a hero's stats by a percentage, up to 5 levels. A Weapon Chest gives a piece of a banner hero's unique weapon — your pick."
+    },
+    "clan-help": {
+      "title": "Clan help",
+      "text": "Press Help — it's free and cuts your allies' timers."
+    },
+    "reinforce": {
+      "title": "Reinforcements",
+      "text": "The Embassy hosts allied troops to defend your village. To send your own troops to an ally, march with the Reinforce intent."
+    },
+    "teleport": {
+      "title": "Teleport",
+      "text": "A Teleport moves your village to a free tile. Nearby — up to 100 tiles, Clan — onto clan territory."
+    },
+    "speedup-items": {
+      "title": "Speed-ups",
+      "text": "Speed-ups cut time off any timer: construction, training, troop upgrades or marches."
+    },
+    "hotkeys": {
+      "title": "Hotkeys",
+      "text": "Esc — back or close a window, Enter — confirm, ←/→ — flip through tabs and neighbors."
+    },
+    "wounded": {
+      "title": "Wounded",
+      "text": "After a battle some troops don't die but go to the Hospital. Tap the Hospital in the village and heal them for resources or gems."
+    },
+    "recoverable": {
+      "title": "Units to buy back",
+      "text": "The fallen can be brought back for gems, but only until the deadline — after that they're gone. Check the Hospital in the village."
+    },
+    "shards": {
+      "title": "Hero shards",
+      "text": "Hero shards drop from banners and chests. 10 shards of a new hero summon them, and shards of a hero you have go into their stars. A Universal Shard becomes a shard of any unlocked hero of the same rarity."
+    },
+    "gems": {
+      "title": "Gems",
+      "text": "💎 speed up construction, training and marches, heal the wounded and buy back the fallen. Spend them on what holds you back most. Speed-up items from your backpack cut timers too — use those first."
+    },
+    "daily": {
+      "title": "Daily quests",
+      "text": "New tasks with rewards appear every day at 00:00 UTC. Log in once a day — it's the fastest source of gems."
+    },
+    "unit-level": {
+      "title": "Unit upgrades",
+      "text": "Trained troops can be raised to a higher level in their building's camp: +{{bonus}}% attack, defense and health per level. The cap is your Town Hall level, but no higher than {{max}}."
+    }
+  },
+  "townhall": {
+    "title": "Town Hall {{level}}: new in your village",
+    "lines": {
+      "heroeshall": "Hall of Heroes — where your heroes live and grow.",
+      "ironmine": "Iron Mine — iron for Spearmen, the Wall and healing heroes.",
+      "range": "Archery Range — Archers, strong against Spearmen.",
+      "farm": "Farm — Meat that feeds your village.",
+      "hospital": "Hospital — where the wounded rest after battles.",
+      "market": "Market — shop, hero banners, player trading and free chests every day.",
+      "spearyard": "Spear Yard — Spearmen, strong against Infantry.",
+      "messhall": "Mess Hall — eats Meat every hour, and the bigger the village, the more.",
+      "wall": "Wall — +3% village defense per level.",
+      "scouttower": "Scout Tower — scouting other villages and the way into dungeons.",
+      "embassy": "Embassy — hosts allied reinforcements, 50 slots per level.",
+      "forge": "Forge — enhances artifacts for Whetstones.",
+      "fishinghut": "Fishing Hut — Fodder for beasts.",
+      "beastpen": "Beast Pen — tamed beasts give bonuses."
+    },
+    "other": "{{name}} — click it in the village to see what it does.",
+    "features": {
+      "tower": "Thousand Tower — the Tower button at the bottom: floor after floor, a reward for each.",
+      "dungeons": "Dungeons — hero party runs for set artifacts; enter through the Scout Tower."
+    }
+  },
+  "overlay": {
+    "gotIt": "Got it",
+    "hide": "Hide",
+    "next": "Next",
+    "skip": "Skip tutorial"
+  }
+}

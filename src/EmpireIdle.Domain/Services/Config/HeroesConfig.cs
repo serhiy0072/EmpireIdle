@@ -154,6 +154,12 @@ namespace EmpireIdle.Domain.Services.Config
         public int MaxMarches { get; set; } = 8;
 
         /// <summary>
+        /// Скільки маршів має кожен гравець (рішення 28.10.2026). Понад це марші дає VIP-рівень
+        /// (Monetization.VipLevelsPerExtraMarch), але не вище за MaxMarches і не більше, ніж героїв.
+        /// </summary>
+        public int BaseMarches { get; set; } = 3;
+
+        /// <summary>
         /// Вартість лікування за один рівень героя. Множиться на рівень:
         /// десятий рівень коштує вдесятеро дорожче за перший.
         /// </summary>

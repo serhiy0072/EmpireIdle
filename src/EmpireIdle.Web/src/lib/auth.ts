@@ -1,4 +1,5 @@
 import { apiPost } from "./api";
+import { currentLanguage } from "./i18n";
 import { fromAuthResponse, getSession, setSession, type AuthResponse } from "./session";
 
 export type { AuthResponse, Session } from "./session";
@@ -16,7 +17,13 @@ export async function register(
   password: string,
   remember = true,
 ): Promise<AuthResponse> {
-  const auth = await apiPost<AuthResponse>("/api/auth/register", { userName, email, password });
+  const auth = await apiPost<AuthResponse>("/api/auth/register", {
+    userName,
+    email,
+    password,
+    // Акаунт одразу говорить тією мовою, яку гравець бачив до реєстрації
+    language: currentLanguage(),
+  });
 
   setSession(fromAuthResponse(auth), remember);
   return auth;

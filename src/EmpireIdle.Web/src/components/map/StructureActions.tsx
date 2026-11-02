@@ -4,6 +4,7 @@ import type { ClanStructureResponse, ClanTerritoryResponse } from "../../lib/api
 import { useDemolishStructure, useRecallFromStructure } from "../../lib/queries/territory";
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
+import { t } from "i18next";
 
 interface Props {
   playerId: string;
@@ -30,16 +31,17 @@ export default function StructureActions({ playerId, territory, structure, onRei
 
       {building ? (
         <p className="text-amber-800">
-          Будується: ще {formatRemaining(structure.readyAt, now)}
-          {structure.acceleratedShare > 0 && ` · марші зрізали ${Math.round(structure.acceleratedShare * 100)}%`}
+          {t("map:structure.building", { remaining: formatRemaining(structure.readyAt, now) })}
+          {structure.acceleratedShare > 0 &&
+            ` · ${t("map:structure.accelerated", { percent: Math.round(structure.acceleratedShare * 100) })}`}
         </p>
       ) : (
-        <p className="text-emerald-700">Діє: бонус клану в радіусі {territory.radius} клітин.</p>
+        <p className="text-emerald-700">{t("map:structure.active", { radius: territory.radius })}</p>
       )}
 
       <p className="text-slate-600">
-        Гарнізон {structure.garrisonUnits} / {territory.garrisonCapacity}
-        {structure.myUnits > 0 && ` · ваших ${structure.myUnits}`}
+        {t("map:structure.garrison", { units: structure.garrisonUnits, capacity: territory.garrisonCapacity })}
+        {structure.myUnits > 0 && ` · ${t("map:structure.yours", { count: structure.myUnits })}`}
       </p>
 
       <div className="flex flex-wrap gap-2">
@@ -48,7 +50,7 @@ export default function StructureActions({ playerId, territory, structure, onRei
           onClick={onReinforce}
           className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700"
         >
-          {building ? "Допомогти будувати" : "Відправити гарнізон"}
+          {building ? t("map:structure.helpBuild") : t("map:structure.sendGarrison")}
         </button>
         {structure.myUnits > 0 && (
           <button
@@ -57,7 +59,7 @@ export default function StructureActions({ playerId, territory, structure, onRei
             disabled={recall.isPending}
             className="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            {recall.isPending ? "Кличемо…" : "Забрати своїх"}
+            {recall.isPending ? t("map:structure.recalling") : t("map:structure.recall")}
           </button>
         )}
       </div>
@@ -65,22 +67,22 @@ export default function StructureActions({ playerId, territory, structure, onRei
       {territory.canBuild &&
         (confirming ? (
           <div className="flex items-center gap-2 rounded-lg bg-rose-50 px-3 py-2">
-            <span className="flex-1 text-rose-900">Знести? Гарнізон піде додому, очки не повернуться.</span>
+            <span className="flex-1 text-rose-900">{t("map:structure.demolishConfirm")}</span>
             <button
               type="button"
               onClick={() => demolish.mutate(structure.id, { onSettled: () => setConfirming(false) })}
               disabled={demolish.isPending}
               className="rounded-lg bg-rose-600 px-3 py-1 font-medium text-white hover:bg-rose-700 disabled:opacity-50"
             >
-              Знести
+              {t("map:structure.demolish")}
             </button>
             <button type="button" onClick={() => setConfirming(false)} className="px-1 text-rose-900 hover:underline">
-              Ні
+              {t("map:structure.no")}
             </button>
           </div>
         ) : (
           <button type="button" onClick={() => setConfirming(true)} className="text-xs text-rose-700 hover:underline">
-            Знести споруду
+            {t("map:structure.demolishStructure")}
           </button>
         ))}
     </div>

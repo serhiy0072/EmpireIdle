@@ -51,6 +51,7 @@ namespace EmpireIdle.Application.Banners.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<RollBannerCommandHandler> _logger;
+        private readonly LocaleTexts _texts;
 
         public RollBannerCommandHandler(
             IPlayerRepository playerRepository,
@@ -63,8 +64,10 @@ namespace EmpireIdle.Application.Banners.Commands
             IServerRepository serverRepository,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
-            ILogger<RollBannerCommandHandler> logger)
+            ILogger<RollBannerCommandHandler> logger,
+            LocaleTexts texts)
         {
+            _texts = texts;
             _playerRepository = playerRepository;
             _walletRepository = walletRepository;
             _banners = banners;
@@ -158,7 +161,7 @@ namespace EmpireIdle.Application.Banners.Commands
 
                 await _dispatcher.GrantAllAsync(request.PlayerId, roll.Drop.Rewards, $"banner:{banner.Key}", utcNow, cancellationToken);
 
-                drops.Add(new BannerDropResult(roll.Drop.Key, roll.Drop.DisplayName, roll.Drop.Rarity, roll.WasPity, roll.LostFiftyFifty));
+                drops.Add(new BannerDropResult(roll.Drop.Key, _texts.Name("bannerDrop", roll.Drop.Key, roll.Drop.DisplayName), roll.Drop.Rarity, roll.WasPity, roll.LostFiftyFifty));
             }
 
             // Одна транзакція на списання, стан pity, журнал і видачу всієї серії:

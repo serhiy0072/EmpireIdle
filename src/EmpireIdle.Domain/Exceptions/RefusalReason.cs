@@ -5,6 +5,10 @@
     /// і назви параметрів. Текст для гравця живе на клієнті за цим ключем —
     /// Message винятку лишається англійським і йде лише в логи.
     ///
+    /// Записи конфігу (будівля, герой, предмет, вміння, набір, юніт, данж) йдуть
+    /// у параметрах ключами, кілька — через кому без пробілу: назву мовою гравця
+    /// підставляє клієнт із каталогу, бо домен мови запиту не знає.
+    ///
     /// Не кожна відмова має причину: та, до якої веде лише баг клієнта
     /// (невідомий ключ предмета, чужий id), обходиться без неї, і гравець
     /// бачить нейтральний текст.
@@ -34,7 +38,7 @@
     {
         // ---------- Спільні ----------
 
-        /// <summary>Дія вимагає добудованої будівлі; building — її назва для гравця.</summary>
+        /// <summary>Дія вимагає добудованої будівлі; building — її ключ.</summary>
         public static readonly RefusalReason BuildingRequired = new("common.buildingRequired", "building");
 
         /// <summary>Будівля є, але замалого рівня.</summary>
@@ -72,13 +76,13 @@
         /// <summary>Будівля на абсолютній стелі; рівень світу її вже не підніме (GDD §2.7).</summary>
         public static readonly RefusalReason BuildingMaxLevel = new("building.maxLevel", "maxLevel");
 
-        /// <summary>Функціональна будівля без рівнів (GDD §3.1); building — її назва для гравця.</summary>
+        /// <summary>Функціональна будівля без рівнів (GDD §3.1); building — її ключ.</summary>
         public static readonly RefusalReason BuildingNotUpgradable = new("building.notUpgradable", "building");
 
         /// <summary>Правило C: будівля не переростає ратушу.</summary>
         public static readonly RefusalReason BuildingTownHallCeiling = new("building.townHallCeiling", "building", "level");
 
-        /// <summary>Правило B: ратуша не переходить тір, поки відкриті будівлі відстають; buildings — їхні назви через кому.</summary>
+        /// <summary>Правило B: ратуша не переходить тір, поки відкриті будівлі відстають; buildings — їхні ключі.</summary>
         public static readonly RefusalReason BuildingVillageLagging = new("building.villageLagging", "level", "buildings");
 
         public static readonly RefusalReason BuildingUnderConstruction = new("building.underConstruction");
@@ -170,8 +174,8 @@
 
         public static readonly RefusalReason ClanLeaderMustTransfer = new("clan.leaderMustTransfer");
 
-        /// <summary>Роль гравця не дозволяє дію; role — назва цієї ролі в клані.</summary>
-        public static readonly RefusalReason ClanNoPermission = new("clan.noPermission", "role");
+        /// <summary>Роль гравця не дозволяє дію; role — назва цієї ролі в клані, roleKey — ключ вбудованої ролі або порожньо.</summary>
+        public static readonly RefusalReason ClanNoPermission = new("clan.noPermission", "role", "roleKey");
 
         public static readonly RefusalReason ClanLeaderOnly = new("clan.leaderOnly");
 
@@ -180,8 +184,8 @@
 
         public static readonly RefusalReason ClanRoleNameTaken = new("clan.roleNameTaken", "name");
 
-        /// <summary>Роль видає дозволи, яких сама не має; role — назва ролі виконавця.</summary>
-        public static readonly RefusalReason ClanPermissionsExceedOwn = new("clan.permissionsExceedOwn", "role");
+        /// <summary>Роль видає дозволи, яких сама не має; role — назва ролі виконавця, roleKey — ключ вбудованої ролі або порожньо.</summary>
+        public static readonly RefusalReason ClanPermissionsExceedOwn = new("clan.permissionsExceedOwn", "role", "roleKey");
 
         public static readonly RefusalReason ClanRequestResolved = new("clan.requestResolved");
 
@@ -301,10 +305,10 @@
         /// <summary>Бракує шматків зброї героя на наступний рівень; need — скільки треба, have — скільки є.</summary>
         public static readonly RefusalReason HeroWeaponShards = new("hero.weaponShards", "need", "have");
 
-        /// <summary>Скриня зброї не дає шматків зброї цього героя — він не з поточної трійки; hero — ім'я.</summary>
+        /// <summary>Скриня зброї не дає шматків зброї цього героя — він не з поточної трійки; hero — ключ.</summary>
         public static readonly RefusalReason HeroWeaponNotInChest = new("hero.weaponNotInChest", "hero");
 
-        /// <summary>Шматки зброї цього героя не продаються — унікальні лише зі скринь; hero — ім'я.</summary>
+        /// <summary>Шматки зброї цього героя не продаються — унікальні лише зі скринь; hero — ключ.</summary>
         public static readonly RefusalReason HeroWeaponNotSold = new("hero.weaponNotSold", "hero");
 
         /// <summary>Універсальні осколки йдуть лише в уже відкритого героя (GDD §6.1).</summary>
@@ -333,7 +337,7 @@
         /// <summary>Вміння вже на найвищому рівні; level — стеля рівня вмінь.</summary>
         public static readonly RefusalReason HeroSkillMaxed = new("hero.skillMaxed", "level");
 
-        /// <summary>Жоден герой маршу не веде цей тип юнітів (GDD §6.1); unit — тип, hero — імена героїв маршу.</summary>
+        /// <summary>Жоден герой маршу не веде цей тип юнітів (GDD §6.1); unit — тип, hero — ключі героїв маршу.</summary>
         public static readonly RefusalReason MarchWrongUnits = new("march.wrongUnits", "unit", "hero");
 
         /// <summary>Юнітів більше, ніж конвоїв у героя; capacity — скільки він веде, sent — скільки відправлено, hero — хто.</summary>
@@ -373,7 +377,7 @@
         /// <summary>Слот не перезаряджається — пропускати нічого; slot — його номер від 1.</summary>
         public static readonly RefusalReason CampSlotReady = new("camp.slotReady", "slot");
 
-        /// <summary>Немає книги для цього вміння (GDD §6.1); book — назва потрібної книги.</summary>
+        /// <summary>Немає книги для цього вміння (GDD §6.1); book — ключ потрібної книги.</summary>
         public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book", "need", "have");
 
         // ---------- Спорядження ----------
@@ -390,13 +394,13 @@
         /// <summary>Ремонтувати нічого: предмет цілий.</summary>
         public static readonly RefusalReason EquipmentNotBroken = new("equipment.notBroken");
 
-        /// <summary>Рідкість без досвіду згодовування в конфігу не годується; item — назва.</summary>
+        /// <summary>Рідкість без досвіду згодовування в конфігу не годується; item — ключ.</summary>
         public static readonly RefusalReason EquipmentUniqueFood = new("equipment.uniqueFood", "item");
 
         /// <summary>Згодувати вдягнене не можна — спершу зняти з героя.</summary>
         public static readonly RefusalReason EquipmentFoodEquipped = new("equipment.foodEquipped");
 
-        /// <summary>Набір лише для свого класу героїв (рішення 15.10.2026); set — назва набору, class — його клас.</summary>
+        /// <summary>Набір лише для свого класу героїв (рішення 15.10.2026); set — ключ родини набору, class — його клас.</summary>
         public static readonly RefusalReason EquipmentWrongClass = new("equipment.wrongClass", "set", "class");
 
         // ---------- Ринок ----------
@@ -510,5 +514,28 @@
 
         /// <summary>Телепорт до лідера — довкола його села не лишилось вільної придатної клітини.</summary>
         public static readonly RefusalReason TeleportNoFreeCell = new("teleport.noFreeCell");
+
+        // ---------- Дослідження (особисті технології) ----------
+
+        /// <summary>Лабораторія ще закрита ратушею; level — потрібний рівень ратуші.</summary>
+        public static readonly RefusalReason ResearchLaboratoryLocked = new("research.laboratoryLocked", "level");
+
+        /// <summary>Лабораторія вже досліджує інший вузол — одне дослідження за раз.</summary>
+        public static readonly RefusalReason ResearchBusy = new("research.busy");
+
+        /// <summary>Тір закритий ратушею або рівнем світу.</summary>
+        public static readonly RefusalReason ResearchTierLocked = new("research.tierLocked", "tier", "level", "worldLevel");
+
+        /// <summary>Попередній тір цієї вкладки ще не закрито до кінця.</summary>
+        public static readonly RefusalReason ResearchPreviousTier = new("research.previousTier", "tier");
+
+        /// <summary>Не вивчено жодного рівня потрібних вузлів; nodes — ключі через кому.</summary>
+        public static readonly RefusalReason ResearchPrerequisites = new("research.prerequisites", "nodes");
+
+        /// <summary>Вузол уже на найвищому рівні.</summary>
+        public static readonly RefusalReason ResearchMaxed = new("research.maxed");
+
+        /// <summary>Прискорювати чи просити допомоги нема чого: Лабораторія вільна.</summary>
+        public static readonly RefusalReason ResearchNotActive = new("research.notActive");
     }
 }

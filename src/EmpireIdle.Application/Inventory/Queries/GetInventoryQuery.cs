@@ -18,10 +18,12 @@ namespace EmpireIdle.Application.Inventory.Queries
         private readonly TimeProvider _timeProvider;
         private readonly ArtifactProgression _progression;
         private readonly ArtifactStats _artifacts;
+        private readonly LocaleTexts _texts;
 
         public GetInventoryQueryHandler(IInventoryRepository repository, IActiveEffectRepository effectRepository,
-            GameCatalog catalog, TimeProvider timeProvider, ArtifactProgression progression)
+            GameCatalog catalog, TimeProvider timeProvider, ArtifactProgression progression, LocaleTexts texts)
         {
+            _texts = texts;
             _progression = progression;
             _repository = repository;
             _effectRepository = effectRepository;
@@ -56,7 +58,10 @@ namespace EmpireIdle.Application.Inventory.Queries
         {
             var config = _catalog.Items.GetValueOrDefault(item.ItemKey);
 
-            return new InventoryItemView(item.ItemKey, config?.DisplayName ?? item.ItemKey, config?.Description ?? string.Empty,
+            var name = config is null ? item.ItemKey : _texts.Name("item", item.ItemKey, config.DisplayName);
+            var description = _texts.Field("item", item.ItemKey, LocaleTexts.DescriptionField, config?.Description) ?? string.Empty;
+
+            return new InventoryItemView(item.ItemKey, name, description,
                 config?.Rarity ?? Rarity.Common, config?.Type ?? "unknown", item.Count);
         }
     }

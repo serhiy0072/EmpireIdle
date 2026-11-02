@@ -1,4 +1,5 @@
 import { explainError } from "../lib/errorMessages";
+import { useCatalog } from "../lib/queries/catalog";
 
 interface Props {
   error: unknown;
@@ -6,9 +7,11 @@ interface Props {
 
 /** Єдиний вигляд відмов на всіх екранах. null і undefined нічого не малюють. */
 export default function ErrorBanner({ error }: Props) {
+  const catalog = useCatalog();
+
   if (error === null || error === undefined) return null;
 
-  const message = explainError(error);
+  const message = explainError(error, catalog);
 
   return (
     <div

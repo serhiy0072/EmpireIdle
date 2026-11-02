@@ -5,8 +5,10 @@ import HeroPortrait from "../components/heroes/HeroPortrait";
 import { useSession } from "../hooks/useSession";
 import { rankLabel, rankStyle, skillEffect, skillHalfLabel, skillKindLabel, useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
-import { CLASS_LABELS } from "../lib/heroClasses";
+import { classLabel, HERO_CLASSES } from "../lib/heroClasses";
+import { currentLanguage } from "../lib/i18n";
 import { statLabel } from "../lib/statNames";
+import { t } from "i18next";
 
 const RANK_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
 
@@ -15,7 +17,7 @@ const RANK_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
 
 /** Звідки береться герой (GDD §6.1): усі — з осколків, що падають із банерів і скриньок. */
 function source(summonShards: number): string {
-  return `осколки · ${summonShards} для призову`;
+  return t("heroes:codex.source", { count: summonShards });
 }
 
 /**
@@ -42,12 +44,12 @@ export default function HeroCodexPage() {
       [...catalog.allHeroes]
         .filter((hero) => rank === "all" || hero.rank === rank)
         .filter((hero) => heroClass === "all" || hero.class === heroClass)
-        .sort((a, b) => (RANK_ORDER[a.rank] ?? 9) - (RANK_ORDER[b.rank] ?? 9) || a.displayName.localeCompare(b.displayName, "uk")),
+        .sort((a, b) => (RANK_ORDER[a.rank] ?? 9) - (RANK_ORDER[b.rank] ?? 9) || a.displayName.localeCompare(b.displayName, currentLanguage())),
     [catalog.allHeroes, rank, heroClass],
   );
 
   if (!catalog.loaded) {
-    return <p className="text-slate-500">Гортаємо кодекс…</p>;
+    return <p className="text-slate-500">{t("heroes:codex.loading")}</p>;
   }
 
   if (heroes.isError) {
@@ -61,27 +63,27 @@ export default function HeroCodexPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">Кодекс героїв</h1>
+        <h1 className="text-xl font-medium text-slate-800">{t("heroes:codex.title")}</h1>
         <p className="text-sm text-slate-500">
-          Зібрано {ownedCount} з {catalog.allHeroes.length} ·{" "}
+          {t("heroes:codex.collected", { owned: ownedCount, total: catalog.allHeroes.length })}{" "}
           <Link to="/heroes" className="text-emerald-700 hover:underline">
-            мої герої
+            {t("heroes:codex.myHeroes")}
           </Link>
         </p>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <select value={rank} onChange={(event) => setRank(event.target.value)} aria-label="Ранг" className={select}>
-          <option value="all">Усі ранги</option>
-          <option value="Unique">Унікальні</option>
-          <option value="Rare">Рідкісні</option>
-          <option value="Common">Звичайні</option>
+        <select value={rank} onChange={(event) => setRank(event.target.value)} aria-label={t("heroes:codex.rank")} className={select}>
+          <option value="all">{t("heroes:codex.allRanks")}</option>
+          <option value="Unique">{t("heroes:codex.unique")}</option>
+          <option value="Rare">{t("heroes:codex.rare")}</option>
+          <option value="Common">{t("heroes:codex.common")}</option>
         </select>
-        <select value={heroClass} onChange={(event) => setHeroClass(event.target.value)} aria-label="Клас" className={select}>
-          <option value="all">Усі класи</option>
-          {Object.entries(CLASS_LABELS).map(([key, label]) => (
+        <select value={heroClass} onChange={(event) => setHeroClass(event.target.value)} aria-label={t("heroes:codex.class")} className={select}>
+          <option value="all">{t("heroes:codex.allClasses")}</option>
+          {HERO_CLASSES.map((key) => (
             <option key={key} value={key}>
-              {label}
+              {classLabel(key)}
             </option>
           ))}
         </select>
@@ -114,14 +116,14 @@ export default function HeroCodexPage() {
                   <div className="truncate text-sm font-medium text-slate-800">{hero.displayName}</div>
                   <div className="flex flex-wrap gap-1 text-xs">
                     <span className={`rounded px-1.5 ${rankStyle(hero.rank)}`}>{rankLabel(hero.rank)}</span>
-                    <span className="text-slate-500">{CLASS_LABELS[hero.class] ?? hero.class}</span>
-                    {mine !== undefined && <span className="text-emerald-700">рів. {mine.effectiveLevel}</span>}
+                    <span className="text-slate-500">{classLabel(hero.class)}</span>
+                    {mine !== undefined && <span className="text-emerald-700">{t("heroes:codex.level", { level: mine.effectiveLevel })}</span>}
                   </div>
                 </div>
               </button>
             );
           })}
-          {all.length === 0 && <p className="text-sm text-slate-500">За цим фільтром героїв немає.</p>}
+          {all.length === 0 && <p className="text-sm text-slate-500">{t("heroes:codex.none")}</p>}
         </div>
 
         {selected !== null && (
@@ -139,11 +141,11 @@ export default function HeroCodexPage() {
                 <h2 className="text-lg font-medium text-slate-800">{selected.displayName}</h2>
                 <div className="mt-1 flex flex-wrap gap-1 text-xs">
                   <span className={`rounded px-2 py-0.5 ${rankStyle(selected.rank)}`}>{rankLabel(selected.rank)}</span>
-                  <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{CLASS_LABELS[selected.class] ?? selected.class}</span>
-                  <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">швидкість {selected.speed}</span>
+                  <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{classLabel(selected.class)}</span>
+                  <span className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">{t("heroes:codex.speed", { speed: selected.speed })}</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">
-                  {owned.has(selected.key) ? "У вашій залі героїв" : `Ще не зібрано · ${source(catalog.summonShards)}`}
+                  {owned.has(selected.key) ? t("heroes:codex.owned") : t("heroes:codex.missing", { source: source(catalog.summonShards) })}
                 </p>
               </div>
             </div>
@@ -164,14 +166,14 @@ export default function HeroCodexPage() {
                   <dt className="text-xs text-slate-500">{statLabel(stat)}</dt>
                   <dd className="font-medium text-slate-800">
                     {value}
-                    <span className="text-xs text-slate-400"> +{selected.statGrowth[stat] ?? 0}/рів.</span>
+                    <span className="text-xs text-slate-400"> {t("heroes:codex.growth", { value: selected.statGrowth[stat] ?? 0 })}</span>
                   </dd>
                 </div>
               ))}
             </dl>
 
             <section className="space-y-1">
-              <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Вміння</h3>
+              <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">{t("heroes:codex.skills")}</h3>
               {/* Кодекс показує перший рівень вміння й поріг відкриття — без прив'язки до власного героя */}
               <ul className="space-y-1 text-sm">
                 {selected.skills.map((skill) => (
@@ -183,7 +185,7 @@ export default function HeroCodexPage() {
                           {skillHalfLabel(skill.half)} · {skillKindLabel(skill.kind)}
                         </span>
                       </span>
-                      <span className="whitespace-nowrap text-xs text-slate-500">з {skill.unlockLevel} рівня</span>
+                      <span className="whitespace-nowrap text-xs text-slate-500">{t("heroes:codex.unlockLevel", { level: skill.unlockLevel })}</span>
                     </div>
                     <p className="text-xs text-slate-500">{skillEffect(skill, 1)}</p>
                   </li>

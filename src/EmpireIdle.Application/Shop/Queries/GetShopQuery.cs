@@ -32,10 +32,12 @@ namespace EmpireIdle.Application.Shop.Queries
         private readonly IServerRepository _serverRepository;
         private readonly IServerContext _serverContext;
         private readonly TimeProvider _timeProvider;
+        private readonly LocaleTexts _texts;
 
         public GetShopQueryHandler(GameCatalog catalog, IServerRepository serverRepository, IServerContext serverContext,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider, LocaleTexts texts)
         {
+            _texts = texts;
             _catalog = catalog;
             _serverRepository = serverRepository;
             _serverContext = serverContext;
@@ -51,7 +53,7 @@ namespace EmpireIdle.Application.Shop.Queries
                 ?? throw new InvalidOperationException($"Server {_serverContext.ServerId} not found.");
 
             var packs = shop.GemPacks
-                .Select(p => new GemPackView(p.Key, p.DisplayName, p.Gems, p.PriceCents, p.BonusPercent))
+                .Select(p => new GemPackView(p.Key, _texts.Name("gemPack", p.Key, p.DisplayName), p.Gems, p.PriceCents, p.BonusPercent))
                 .ToList();
 
             // Валідатор конфіга гарантує, що кожен товар є в Items
@@ -62,8 +64,8 @@ namespace EmpireIdle.Application.Shop.Queries
                     var item = _catalog.Item(offer.ItemKey);
                     return new ShopItemView(
                         offer.ItemKey,
-                        item.DisplayName,
-                        item.Description,
+                        _texts.Name("item", item.Key, item.DisplayName),
+                        _texts.Field("item", item.Key, LocaleTexts.DescriptionField, item.Description),
                         item.Rarity.ToString().ToLowerInvariant(),
                         item.Type,
                         offer.PriceGems,

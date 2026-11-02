@@ -54,7 +54,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
             if (stack is null || stack.Count < request.Count)
                 throw new RequirementNotMetException(RefusalReasons.ItemNotEnough,
                     $"Not enough '{box.Key}': {stack?.Count ?? 0} of {request.Count}.",
-                    _catalog.Item(box.Key).DisplayName, request.Count, stack?.Count ?? 0);
+                    box.Key, request.Count, stack?.Count ?? 0);
 
             stack.Consume(request.Count);
 

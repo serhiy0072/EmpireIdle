@@ -25,10 +25,12 @@ namespace EmpireIdle.Application.Tower.Queries
         private readonly EffectResolver _effects;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly LocaleTexts _texts;
 
         public GetTowerQueryHandler(ITowerRepository tower, IVillageRepository villages, TowerFloors floors, TowerRewards rewards,
-            EffectResolver effects, GameCatalog catalog, TimeProvider timeProvider)
+            EffectResolver effects, GameCatalog catalog, TimeProvider timeProvider, LocaleTexts texts)
         {
+            _texts = texts;
             _tower = tower;
             _villages = villages;
             _floors = floors;
@@ -71,12 +73,15 @@ namespace EmpireIdle.Application.Tower.Queries
         {
             var floor = _floors.Describe(number);
 
+            // Кроки наборів не мають ключа — локаль адресує їх номером у списку
+            var step = _catalog.Config.Tower.SetSteps.IndexOf(floor.SetStep).ToString();
+
             return new TowerFloorView(
                 floor.Number,
                 floor.IsBoss,
                 floor.Archetype.Key,
-                floor.Archetype.DisplayName,
-                floor.SetStep.DisplayName,
+                _texts.Name("towerArchetype", floor.Archetype.Key, floor.Archetype.DisplayName),
+                _texts.Name("towerSetStep", step, floor.SetStep.DisplayName),
                 floor.HeroLevel,
                 floor.UnitLevel,
                 floor.Enemies.Select(e => new TowerEnemyView(e.Lane, e.Hero.Key, e.Hero.Class, e.Boss)).ToList(),

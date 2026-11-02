@@ -26,10 +26,13 @@ namespace EmpireIdle.Application.Payments.Commands
         private readonly TimeProvider _timeProvider;
         private readonly GameCatalog _catalog;
         private readonly ILogger<CreateCheckoutSessionCommandHandler> _logger;
+        private readonly LocaleTexts _texts;
 
         public CreateCheckoutSessionCommandHandler(IPaymentProvider paymentProvider, IPaymentRepository paymentRepository, IUnitOfWork unitOfWork,
-                IServerContext serverContext, GameCatalog catalog, TimeProvider timeProvider, ILogger<CreateCheckoutSessionCommandHandler> logger)
+                IServerContext serverContext, GameCatalog catalog, TimeProvider timeProvider, ILogger<CreateCheckoutSessionCommandHandler> logger,
+                LocaleTexts texts)
         {
+            _texts = texts;
             _paymentProvider = paymentProvider;
             _paymentRepository = paymentRepository;
             _unitOfWork = unitOfWork;
@@ -47,7 +50,7 @@ namespace EmpireIdle.Application.Payments.Commands
                 ?? throw new EntityNotFoundException("Gem pack", request.PackKey);
 
             var session = await _paymentProvider.CreateSessionAsync(
-                pack.Key, pack.DisplayName, pack.PriceCents, _catalog.Config.Shop.Currency, request.PlayerId, cancellationToken);
+                pack.Key, _texts.Name("gemPack", pack.Key, pack.DisplayName), pack.PriceCents, _catalog.Config.Shop.Currency, request.PlayerId, cancellationToken);
 
             // Ціну, кількість gems і світ фіксуємо тут: конфіг може змінитись до оплати,
             // а вебхук приходить без токена й відновлює контекст саме з цього запису

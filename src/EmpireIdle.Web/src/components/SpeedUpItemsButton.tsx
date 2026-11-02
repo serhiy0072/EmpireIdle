@@ -6,6 +6,7 @@ import { useInventory, useSpeedUpWithItems } from "../lib/queries/inventory";
 import { speedUpMinutesLabel, suggestSpeedUps, type SpeedUpStock } from "../lib/speedUp";
 import ErrorBanner from "./ErrorBanner";
 import ItemIcon from "./inventory/ItemIcon";
+import { t } from "i18next";
 
 interface Props {
   timer: SpeedUpTimer;
@@ -65,22 +66,22 @@ export default function SpeedUpItemsButton({ timer, targetId, completesAt, label
           setOpen(!open);
           if (!open) setPicked(suggestSpeedUps(stock, Math.ceil(minutesLeft)));
         }}
-        title="Прискорити предметами"
+        title={t("common:speedUp.itemsHint")}
         className={className ?? "rounded-lg border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs text-sky-800 hover:bg-sky-100"}
       >
-        {label ?? "⏩ предмети"}
+        {label ?? t("common:speedUp.items")}
       </button>
 
       {open && (
         // Велика кнопка стоїть унизу екрана — список відкривається над нею
         <div className={`absolute right-0 z-20 w-72 ${className === undefined ? "mt-1" : "bottom-full mb-1"} space-y-2 rounded-xl bg-[#1d3b6f] p-3 text-left text-white shadow-xl ring-1 ring-[#335c9a]`}>
-          <p className="text-xs text-sky-100/80">Лишилось ≈ {Math.ceil(minutesLeft)} хв. Надлишок хвилин згорає.</p>
+          <p className="text-xs text-sky-100/80">{t("common:speedUp.left", { count: Math.ceil(minutesLeft) })}</p>
           <ul className="space-y-1">
             {stock.map((item) => (
               <li key={item.itemKey} className="flex items-center gap-2 text-sm">
                 <ItemIcon itemKey={item.itemKey} type="speedup" rarity={item.rarity} size={28} />
                 <span className="flex-1">
-                  {speedUpMinutesLabel(item.minutes)} <span className="text-xs text-sky-200/70">(є {item.count})</span>
+                  {speedUpMinutesLabel(item.minutes)} <span className="text-xs text-sky-200/70">{t("common:owned", { count: item.count })}</span>
                 </span>
                 <button type="button" onClick={() => change(item.itemKey, -1, item.count)} className="h-6 w-6 rounded bg-slate-700">
                   −
@@ -94,14 +95,17 @@ export default function SpeedUpItemsButton({ timer, targetId, completesAt, label
           </ul>
           <div className="flex items-center justify-between gap-2 text-sm">
             <span>
-              Разом: <span className={total >= minutesLeft ? "font-bold text-emerald-300" : "font-bold"}>{total} хв</span>
+              {t("common:speedUp.total")}{" "}
+              <span className={total >= minutesLeft ? "font-bold text-emerald-300" : "font-bold"}>
+                {t("common:duration.minutes", { count: total })}
+              </span>
             </span>
             <button
               type="button"
               onClick={() => setPicked(suggestSpeedUps(stock, Math.ceil(minutesLeft)))}
               className="text-xs text-sky-200 underline"
             >
-              підібрати
+              {t("common:speedUp.suggest")}
             </button>
           </div>
           <button
@@ -110,7 +114,7 @@ export default function SpeedUpItemsButton({ timer, targetId, completesAt, label
             disabled={speedUp.isPending || total === 0}
             className="w-full rounded-lg bg-gradient-to-b from-sky-400 to-blue-600 py-1.5 text-sm font-semibold disabled:opacity-50"
           >
-            Використати
+            {t("common:speedUp.use")}
           </button>
           <ErrorBanner error={speedUp.error} />
         </div>

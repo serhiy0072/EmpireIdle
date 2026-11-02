@@ -12,6 +12,7 @@ import { useSession } from "../hooks/useSession";
 import { FEED_ITEM, useActivateBeast, useBeastPen, useFeedBeast } from "../lib/queries/beasts";
 import { useCatalog } from "../lib/queries/catalog";
 import { useInventory } from "../lib/queries/inventory";
+import { t } from "i18next";
 
 /**
  * Екран звіра (референс 21.10.2026): звір на весь екран, стрілки між звірами загону, рівень і годування,
@@ -44,7 +45,7 @@ export default function BeastPage() {
     { priority: HOTKEY_PRIORITY.neighbours, enabled: beasts.length > 1 },
   );
 
-  if (pen.isPending) return <p className="text-sm text-slate-500">Завантаження…</p>;
+  if (pen.isPending) return <p className="text-sm text-slate-500">{t("village:beasts.loading")}</p>;
   if (pen.isError) return <ErrorBanner error={pen.error} />;
 
   const beast = beasts[position];
@@ -64,7 +65,7 @@ export default function BeastPage() {
       <GameScreen
         title={
           <span className="flex items-center gap-2">
-            <Link to="/beasts" className="text-2xl leading-none text-sky-200 hover:text-white" aria-label="До загону">
+            <Link to="/beasts" className="text-2xl leading-none text-sky-200 hover:text-white" aria-label={t("village:beasts.toEnclosure")}>
               ←
             </Link>
             {catalog.beastName(beast.beastKey)}
@@ -72,20 +73,20 @@ export default function BeastPage() {
         }
         actions={
           <button type="button" onClick={() => setList(true)} className="text-sm text-sky-200 hover:underline">
-            📋 Список звірів
+            📋 {t("village:beasts.listTitle")}
           </button>
         }
       >
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <button type="button" onClick={() => go(-1)} disabled={beasts.length < 2} className={arrow} aria-label="Попередній звір">
+            <button type="button" onClick={() => go(-1)} disabled={beasts.length < 2} className={arrow} aria-label={t("village:beasts.previous")}>
               ‹
             </button>
             <div className="relative flex h-56 flex-1 items-end justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-300 sm:h-72">
               <div className="absolute bottom-6 h-6 w-48 rounded-[50%] bg-black/20 blur-sm" />
               <img src={beastArtUrl(beast.beastKey)} alt={catalog.beastName(beast.beastKey)} className="relative mb-3 h-48 sm:h-64" />
             </div>
-            <button type="button" onClick={() => go(1)} disabled={beasts.length < 2} className={arrow} aria-label="Наступний звір">
+            <button type="button" onClick={() => go(1)} disabled={beasts.length < 2} className={arrow} aria-label={t("village:beasts.next")}>
               ›
             </button>
           </div>

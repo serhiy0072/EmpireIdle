@@ -18,14 +18,17 @@ namespace EmpireIdle.Application.Dungeons.Queries
         private readonly BattleBuilder _builder;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly LocaleTexts _texts;
 
         public GetDungeonsQueryHandler(
             IDungeonRepository dungeons,
             IVillageRepository villages,
             BattleBuilder builder,
             GameCatalog catalog,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            LocaleTexts texts)
         {
+            _texts = texts;
             _dungeons = dungeons;
             _villages = villages;
             _builder = builder;
@@ -75,8 +78,8 @@ namespace EmpireIdle.Application.Dungeons.Queries
 
                     return new DungeonView(
                         dungeon.Key,
-                        dungeon.DisplayName,
-                        dungeon.Description,
+                        _texts.Name("dungeon", dungeon.Key, dungeon.DisplayName),
+                        _texts.Field("dungeon", dungeon.Key, LocaleTexts.DescriptionField, dungeon.Description),
                         dungeon.ArtifactSetKey,
                         dungeon.RequiresMainBuildingLevel,
                         mainLevel >= dungeon.RequiresMainBuildingLevel,

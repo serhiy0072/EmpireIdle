@@ -259,8 +259,7 @@ namespace EmpireIdle.Domain.Entities
         /// Чи може герой піднятись на <paramref name="levels"/> — окремо від самого підйому, щоб викликач
         /// перевірив до списання досвіду тим самим правилом, а не своєю копією.
         /// </summary>
-        /// <param name="heroName">Ім'я для тексту відмови; null — ключ (лише коли викликач уже перевірив).</param>
-        public void EnsureCanGainLevels(int levels, int maxLevel, string? heroName = null)
+        public void EnsureCanGainLevels(int levels, int maxLevel)
         {
             if (levels < 1)
                 throw new ArgumentOutOfRangeException(nameof(levels), levels, "Levels to gain must be positive.");
@@ -269,7 +268,7 @@ namespace EmpireIdle.Domain.Entities
 
             if (Level + levels > maxLevel)
                 throw new RequirementNotMetException(RefusalReasons.HeroLevelCeiling,
-                    $"Hero {Id} cannot go above level {maxLevel}.", heroName ?? HeroKey, maxLevel);
+                    $"Hero {Id} cannot go above level {maxLevel}.", HeroKey, maxLevel);
         }
 
         /// <summary>

@@ -7,14 +7,15 @@
  * зміниться, правити треба обидва боки.
  */
 export interface UserNameRule {
-  label: string;
+  /** Ключ підпису в `register.userNameRules`. */
+  key: "length" | "charset";
   passed: (userName: string) => boolean;
 }
 
 export const userNameRules: UserNameRule[] = [
-  { label: "Від 3 до 50 символів", passed: (value) => value.length >= 3 && value.length <= 50 },
+  { key: "length", passed: (value) => value.length >= 3 && value.length <= 50 },
   {
-    label: "Латинські літери, цифри, крапка, дефіс або підкреслення",
+    key: "charset",
     passed: (value) => value.length > 0 && /^[A-Za-z0-9._-]+$/.test(value),
   },
 ];

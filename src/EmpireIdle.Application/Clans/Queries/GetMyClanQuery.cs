@@ -62,6 +62,7 @@ namespace EmpireIdle.Application.Clans.Queries
                         names.GetValueOrDefault(m.PlayerId, "—"),
                         role.Id,
                         role.Name,
+                        role.Key,
                         role.Rank,
                         powerByPlayer.GetValueOrDefault(m.PlayerId),
                         m.JoinedAt,
@@ -73,7 +74,7 @@ namespace EmpireIdle.Application.Clans.Queries
 
             var roles = clan.Roles
                 .OrderByDescending(r => r.Rank)
-                .Select(r => new ClanRoleView(r.Id, r.Name, r.Rank, r.Permissions, r.IsLeaderRole, r.IsDefaultRole))
+                .Select(r => new ClanRoleView(r.Id, r.Name, r.Key, r.Rank, r.Permissions, r.IsLeaderRole, r.IsDefaultRole))
                 .ToList();
 
             return new MyClan(

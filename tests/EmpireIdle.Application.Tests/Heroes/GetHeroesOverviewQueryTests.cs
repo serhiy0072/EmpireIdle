@@ -42,6 +42,8 @@ public class GetHeroesOverviewQueryTests
         _marches.GetActiveByGarrisonAsync(_garrison.Id, Arg.Any<CancellationToken>()).Returns(new List<March>());
     }
 
+    private EmpireIdle.Application.Wallets.Services.PlayerVip _vip = TestVip.None();
+
     private static GameConfig Config()
     {
         var config = HeroTestConfig.Create();
@@ -60,7 +62,7 @@ public class GetHeroesOverviewQueryTests
             _heroes, _inventory, new HeroStats(progression, catalog), progression,
             new HeroSkills(config.HeroSettings), new HeroConvoys(config.HeroSettings),
             new TrainingCampRules(config.HeroSettings.TrainingCamp), _villages, _garrisons, _marches, new VillageStatus(catalog),
-            catalog, new FakeTimeProvider(Now));
+            catalog, new FakeTimeProvider(Now), _vip);
     }
 
     /// <summary>
@@ -107,7 +109,8 @@ public class GetHeroesOverviewQueryTests
 
     /// <summary>
     /// Лишок маршів рахується так само, як перевіряє SendMarchCommand: вільні герої гарнізону
-    /// плюс активні марші під стелею, мінус активні — 7 вільних і 3 марші при стелі 8 дають ще 5.
+    /// плюс активні марші під базою з VIP, мінус активні: без VIP база 3 і 3 марші — більше нема;
+    /// VIP 4 дає ще два марші — 5, тобто ще 2.
     /// </summary>
     [Fact]
     public async Task Handle_ShouldReportMarchesLeft_TheWaySendMarchCountsThem()
@@ -124,8 +127,12 @@ public class GetHeroesOverviewQueryTests
 
         var overview = await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None);
 
-        Assert.Equal(8, overview.MarchCapacity);
-        Assert.Equal(5, overview.MarchesLeft);
+        Assert.Equal((3, 0), (overview.MarchCapacity, overview.MarchesLeft));
+
+        _vip = TestVip.Purchased(PlayerId, 400);
+        var vip = await Handler().Handle(new GetHeroesOverviewQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal((5, 2), (vip.MarchCapacity, vip.MarchesLeft));
     }
 
     /// <summary>Конвої — за рівнем героя, місткість — конвої × розмір конвою.</summary>

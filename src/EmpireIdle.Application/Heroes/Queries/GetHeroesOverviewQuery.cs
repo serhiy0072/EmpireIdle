@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Heroes.Contracts;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Wallets.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -27,6 +28,7 @@ namespace EmpireIdle.Application.Heroes.Queries
         private readonly VillageStatus _status;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly PlayerVip _vip;
 
         public GetHeroesOverviewQueryHandler(
             IHeroRepository heroRepository,
@@ -41,8 +43,10 @@ namespace EmpireIdle.Application.Heroes.Queries
             IMarchRepository marches,
             VillageStatus status,
             GameCatalog catalog,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            PlayerVip vip)
         {
+            _vip = vip;
             _heroRepository = heroRepository;
             _inventory = inventory;
             _heroStats = heroStats;
@@ -124,13 +128,14 @@ namespace EmpireIdle.Application.Heroes.Queries
 
             var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken);
             var (available, active) = await MarchLoadAsync(request.PlayerId, village, cancellationToken);
+            var extraMarches = await _vip.ExtraMarchesAsync(request.PlayerId, cancellationToken);
 
             return new HeroesOverview(
                 summaries,
                 shardSummaries,
                 experience?.Amount ?? 0,
-                _progression.MarchCapacity(available + active),
-                _progression.MarchesLeft(available, active),
+                _progression.MarchCapacity(available + active, extraMarches),
+                _progression.MarchesLeft(available, active, extraMarches),
                 await CampAsync(request.PlayerId, village, heroes, cancellationToken));
         }
 

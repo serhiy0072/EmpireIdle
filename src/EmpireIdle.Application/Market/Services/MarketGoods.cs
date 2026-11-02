@@ -67,7 +67,7 @@ namespace EmpireIdle.Application.Market.Services
 
                     if (!config.Tradeable)
                         throw new RequirementNotMetException(RefusalReasons.MarketNotTradeable,
-                            $"Item '{key}' is not tradeable.", config.DisplayName);
+                            $"Item '{key}' is not tradeable.", key);
 
                     return new MarketGoodsInfo(kind, null, key, quantity, quantity, MarketPricing.CategoryOfItem(key));
                 }
@@ -95,7 +95,7 @@ namespace EmpireIdle.Application.Market.Services
                     if (stack is null || have < goods.Quantity)
                         throw new RequirementNotMetException(RefusalReasons.MarketNotEnoughItems,
                             $"Player {playerId} has {have} of '{goods.ItemKey}', {goods.Quantity} needed.",
-                            _catalog.FindItem(goods.ItemKey)?.DisplayName ?? goods.ItemKey, goods.Quantity, have);
+                            goods.ItemKey, goods.Quantity, have);
 
                     stack.Consume(goods.Quantity);
                     break;

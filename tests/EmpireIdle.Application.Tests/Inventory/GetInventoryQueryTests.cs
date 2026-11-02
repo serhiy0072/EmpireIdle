@@ -29,12 +29,12 @@ public class GetInventoryQueryTests
         _effects.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns([]);
     }
 
-    private GetInventoryQueryHandler Handler()
+    private GetInventoryQueryHandler Handler(string language = "uk")
     {
         var config = Config();
 
         return new GetInventoryQueryHandler(_inventory, _effects, new GameCatalog(config), new FakeTimeProvider(Now),
-            new ArtifactProgression(config.Equipment));
+            new ArtifactProgression(config.Equipment), new LocaleTexts(config, language));
     }
 
     private static GameConfig Config()
@@ -46,7 +46,34 @@ public class GetInventoryQueryTests
             Key = "wood_crate", DisplayName = "Ящик дерева", Description = "+500 дерева", Rarity = Rarity.Rare, Type = "resource"
         });
 
+        config.Localization.Languages = ["uk", "en"];
+        config.Locales["en"] = new LocaleConfig
+        {
+            Texts = new Dictionary<string, string>
+            {
+                ["item.wood_crate"] = "Wood Crate",
+                ["item.wood_crate.description"] = "+500 wood"
+            }
+        };
+
         return config;
+    }
+
+    /// <summary>Назва й опис — мовою запиту; чого локаль не знає, лишається з конфіга.</summary>
+    [Fact]
+    public async Task Handle_ShouldNameItemsInTheRequestLanguage()
+    {
+        _inventory.GetItemsAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(
+        [
+            new PlayerItem(Guid.NewGuid(), PlayerId, "wood_crate", 3),
+            new PlayerItem(Guid.NewGuid(), PlayerId, "retired_item", 1)
+        ]);
+
+        var view = await Handler("en").Handle(new GetInventoryQuery(PlayerId), CancellationToken.None);
+
+        var crate = Assert.Single(view.Items, i => i.ItemKey == "wood_crate");
+        Assert.Equal(("Wood Crate", "+500 wood"), (crate.DisplayName, crate.Description));
+        Assert.Equal("retired_item", Assert.Single(view.Items, i => i.ItemKey == "retired_item").DisplayName);
     }
 
     [Fact]

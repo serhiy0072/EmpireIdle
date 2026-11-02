@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
 import type { SendScoutRequest } from "../apiTypes";
 import { invalidatePlayer } from "./invalidate";
+import { t } from "i18next";
 
 /** Розвідники йдуть без героя й юнітів — гарнізон і герої не змінюються, лише список маршів. */
 export function useSendScout(playerId: string) {
@@ -15,9 +16,10 @@ export function useSendScout(playerId: string) {
 }
 
 /** Підписи результатів розвідки для гравця. */
-export const SCOUT_OUTCOMES: Record<string, string> = {
-  Success: "Розвідано",
-  Blocked: "Село сховане від розвідки",
-  TargetMoved: "Ціль переселилась — на місці порожньо",
-  TargetGone: "Цілі вже немає",
-};
+const SCOUT_OUTCOMES = ["Success", "Blocked", "TargetMoved", "TargetGone"] as const;
+
+export function scoutOutcomeLabel(outcome: string): string {
+  return (SCOUT_OUTCOMES as readonly string[]).includes(outcome)
+    ? t(`map:scoutOutcome.${outcome as (typeof SCOUT_OUTCOMES)[number]}`)
+    : outcome;
+}

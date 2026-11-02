@@ -6,6 +6,8 @@ using EmpireIdle.Application.Common.Behaviors;
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Heroes.Services;
+using EmpireIdle.Application.Research.Services;
+using EmpireIdle.Application.Wallets.Services;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Effects;
@@ -25,6 +27,7 @@ using EmpireIdle.Application.Speedups.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Application.Tower.Services;
 using EmpireIdle.Domain.Events;
+using EmpireIdle.Domain.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,6 +57,14 @@ namespace EmpireIdle.Application
             services.AddSingleton<GameCatalogProjection>();
             services.AddScoped<NotificationBuffer>();
 
+            // Тексти конфігів мовою запиту; поза HTTP (джоби) — мовою за замовчуванням
+            services.AddScoped(provider =>
+            {
+                var config = provider.GetRequiredService<GameCatalog>().Config;
+                var language = config.Localization.Resolve(provider.GetRequiredService<IRequestContext>().AcceptedLanguages);
+                return new LocaleTexts(config, language);
+            });
+
             // Ефекти предметів — реєструються всі, диспетчер обирає за ключем
             services.AddScoped<IItemEffect, ResourceItemEffect>();
             services.AddScoped<IItemEffect, BoostItemEffect>();
@@ -69,6 +80,8 @@ namespace EmpireIdle.Application
             services.AddScoped<HeroGranter>();
             services.AddScoped<HeroShardBank>();
             services.AddScoped<TrainingCampService>();
+            services.AddScoped<PlayerVip>();
+            services.AddScoped<PlayerTechnologies>();
             services.AddScoped<MonsterExperienceReward>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<ClanSuccession>();
