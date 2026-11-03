@@ -27,6 +27,7 @@ namespace EmpireIdle.Application.Research.Commands
         private readonly VillageStatus _status;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly ResearchSettlement _settlement;
         private readonly ILogger<StartResearchCommandHandler> _logger;
 
         public StartResearchCommandHandler(
@@ -40,8 +41,10 @@ namespace EmpireIdle.Application.Research.Commands
             VillageStatus status,
             GameCatalog catalog,
             TimeProvider timeProvider,
+            ResearchSettlement settlement,
             ILogger<StartResearchCommandHandler> logger)
         {
+            _settlement = settlement;
             _villages = villages;
             _research = research;
             _servers = servers;
@@ -82,6 +85,7 @@ namespace EmpireIdle.Application.Research.Commands
                 await _research.AddAsync(research, cancellationToken);
             }
 
+            await _settlement.SettleAsync(research, now, cancellationToken);
             // Дозріле дослідження звільняє Лабораторію саме, без чекання сканера
             research.CompleteDue(now);
 

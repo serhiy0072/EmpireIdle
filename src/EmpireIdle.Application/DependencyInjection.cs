@@ -82,6 +82,7 @@ namespace EmpireIdle.Application
             services.AddScoped<TrainingCampService>();
             services.AddScoped<PlayerVip>();
             services.AddScoped<PlayerTechnologies>();
+            services.AddScoped<ResearchSettlement>();
             services.AddScoped<MonsterExperienceReward>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<ClanSuccession>();

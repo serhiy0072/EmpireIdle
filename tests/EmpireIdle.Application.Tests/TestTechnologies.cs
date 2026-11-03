@@ -25,6 +25,16 @@ internal static class TestTechnologies
     public static PlayerTechnologies For(TechnologiesConfig technologies, IPlayerResearchRepository? research = null)
         => new(research ?? Substitute.For<IPlayerResearchRepository>(), new PersonalTechnologies(technologies.Personal));
 
+    /// <summary>
+    /// Фіксація виробітку перед завершенням дослідження — з тими самими репозиторіями села й досліджень,
+    /// що й у тесті; бустів крамниці й звірів немає.
+    /// </summary>
+    public static ResearchSettlement Settlement(GameCatalog catalog, IVillageRepository villages,
+        IPlayerResearchRepository? research = null, IServerRepository? servers = null)
+        => new(villages, servers ?? Substitute.For<IServerRepository>(),
+            TestEffects.Resolver(Substitute.For<IActiveEffectRepository>(), catalog: catalog, research: research),
+            new WorldGeometry(catalog.Config.Map), catalog, new PersonalTechnologies(catalog.Config.Technologies.Personal));
+
     /// <summary>Дерево фікстури TestKit, де attack_infantry ще й дає цей стат за рівень.</summary>
     public static TechnologiesConfig TreeWith(TechnologyStat stat, double perLevel)
         => new GameConfigBuilder()

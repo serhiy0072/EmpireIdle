@@ -51,7 +51,7 @@ namespace EmpireIdle.Application.Common.Services
 
         /// <summary>
         /// Надбавка технологій до цілі. Атаку й захист технології дають через бонус стека (ArmyBuffs),
-        /// виробіток — множником поверх; тут лише ті, що стають в один пул із бустами й звірами.
+        /// виробіток — множником ставки в ProductionBoost; тут лише ті, що стають в один пул із бустами й звірами.
         /// </summary>
         private async Task<double> TechnologyAsync(Guid playerId, EffectTarget target, CancellationToken cancellationToken)
         {
@@ -84,7 +84,16 @@ namespace EmpireIdle.Application.Common.Services
                 if (beast.ActivatedAt is { } from && beast.ActiveUntil is { } until)
                     boost = boost.With(new BoostWindow(bonus, from, until));
 
-            return boost;
+            var technologies = await _technologies.ForPlayerAsync(playerId, cancellationToken);
+            var byResource = technologies.Targets(TechnologyStat.Production)
+                .Where(t => t.Target is not null)
+                .ToDictionary(t => t.Target!, t => t.Value);
+
+            return boost with
+            {
+                TechnologyForAll = technologies.Of(TechnologyStat.Production),
+                TechnologyByResource = byResource
+            };
         }
 
         /// <summary>Звірі гравця з пасивкою на цю ціль і їхня надбавка на нинішньому рівні.</summary>

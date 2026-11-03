@@ -69,7 +69,7 @@ namespace EmpireIdle.Application.Speedups.Commands
                 stacks.Add((stack, count));
             }
 
-            var target = await _targets.FindAsync(request.PlayerId, request.Timer, request.TargetId, cancellationToken);
+            var target = await _targets.FindAsync(request.PlayerId, request.Timer, request.TargetId, now, cancellationToken);
 
             // Нижче межі не зрізаємо; на межі — відмова, і предмети не згорають
             var available = _calculator.RequireCut(request.Timer, target.CompletesAt, now);

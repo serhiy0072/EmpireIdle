@@ -55,6 +55,7 @@ public class ResearchCommandTests
 
         return new StartResearchCommandHandler(_villages, _research, _servers, _serverContext, _unitOfWork, personal,
             new PlayerTechnologies(_research, personal), new VillageStatus(catalog), catalog, new FakeTimeProvider(Now),
+            TestTechnologies.Settlement(catalog, _villages, _research, _servers),
             NullLogger<StartResearchCommandHandler>.Instance);
     }
 
@@ -149,7 +150,9 @@ public class ResearchCommandTests
         _wallets.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(wallet);
 
         var handler = new SpeedUpResearchCommandHandler(_research, _wallets, _currentPlayer, _unitOfWork,
-            new SpeedUpCalculator(_config.Monetization), new FakeTimeProvider(Now), NullLogger<SpeedUpResearchCommandHandler>.Instance);
+            new SpeedUpCalculator(_config.Monetization), new FakeTimeProvider(Now),
+            TestTechnologies.Settlement(new GameCatalog(_config), _villages, _research, _servers),
+            NullLogger<SpeedUpResearchCommandHandler>.Instance);
 
         await handler.Handle(new SpeedUpResearchCommand(_village.PlayerId), CancellationToken.None);
 
@@ -162,7 +165,9 @@ public class ResearchCommandTests
     public async Task SpeedUp_ShouldRefuse_WhenNothingIsResearched()
     {
         var handler = new SpeedUpResearchCommandHandler(_research, _wallets, _currentPlayer, _unitOfWork,
-            new SpeedUpCalculator(_config.Monetization), new FakeTimeProvider(Now), NullLogger<SpeedUpResearchCommandHandler>.Instance);
+            new SpeedUpCalculator(_config.Monetization), new FakeTimeProvider(Now),
+            TestTechnologies.Settlement(new GameCatalog(_config), _villages, _research, _servers),
+            NullLogger<SpeedUpResearchCommandHandler>.Instance);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             handler.Handle(new SpeedUpResearchCommand(_village.PlayerId), CancellationToken.None));

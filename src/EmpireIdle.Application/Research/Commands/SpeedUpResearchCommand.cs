@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
@@ -20,12 +21,14 @@ namespace EmpireIdle.Application.Research.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly SpeedUpCalculator _calculator;
         private readonly TimeProvider _timeProvider;
+        private readonly ResearchSettlement _settlement;
         private readonly ILogger<SpeedUpResearchCommandHandler> _logger;
 
         public SpeedUpResearchCommandHandler(IPlayerResearchRepository research, IPlayerWalletRepository wallets,
             ICurrentPlayer currentPlayer, IUnitOfWork unitOfWork, SpeedUpCalculator calculator, TimeProvider timeProvider,
-            ILogger<SpeedUpResearchCommandHandler> logger)
+            ResearchSettlement settlement, ILogger<SpeedUpResearchCommandHandler> logger)
         {
+            _settlement = settlement;
             _research = research;
             _wallets = wallets;
             _currentPlayer = currentPlayer;
@@ -55,6 +58,7 @@ namespace EmpireIdle.Application.Research.Commands
 
             research.Shorten(cut, now);
 
+            await _settlement.SettleAsync(research, now, cancellationToken);
             // Дозріле завершуємо одразу: гравець заплатив за «зараз»
             research.CompleteDue(now);
 

@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -15,11 +16,13 @@ namespace EmpireIdle.Application.Research.Commands
         private readonly IPlayerResearchRepository _research;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
+        private readonly ResearchSettlement _settlement;
         private readonly ILogger<CompleteResearchCommandHandler> _logger;
 
         public CompleteResearchCommandHandler(IPlayerResearchRepository research, IUnitOfWork unitOfWork,
-            TimeProvider timeProvider, ILogger<CompleteResearchCommandHandler> logger)
+            TimeProvider timeProvider, ResearchSettlement settlement, ILogger<CompleteResearchCommandHandler> logger)
         {
+            _settlement = settlement;
             _research = research;
             _unitOfWork = unitOfWork;
             _timeProvider = timeProvider;
@@ -32,7 +35,14 @@ namespace EmpireIdle.Application.Research.Commands
             if (research is null)
                 return;
 
-            var completed = research.CompleteDue(_timeProvider.GetUtcNow().UtcDateTime);
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
+            if (research.CompletesAt is not { } completesAt || completesAt > now)
+                return;
+
+            await _settlement.SettleAsync(research, now, cancellationToken);
+
+            var completed = research.CompleteDue(now);
             if (completed is null)
                 return;
 
