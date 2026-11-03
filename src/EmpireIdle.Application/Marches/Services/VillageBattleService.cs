@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.Services;
@@ -32,7 +33,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly BattleAftermath _aftermath;
         private readonly VillageStatus _status;
         private readonly PlunderCalculator _plunder;
-        private readonly HeroCombatModifiers _heroModifiers;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly HeroCombatants _combatants;
         private readonly GarrisonDefenders _defenders;
         private readonly CityFallService _cityFall;
@@ -54,7 +55,7 @@ namespace EmpireIdle.Application.Marches.Services
             BattleAftermath aftermath,
             VillageStatus status,
             PlunderCalculator plunder,
-            HeroCombatModifiers heroModifiers,
+            ArmyBuffs armyBuffs,
             HeroCombatants combatants,
             GarrisonDefenders defenders,
             CityFallService cityFall,
@@ -75,7 +76,7 @@ namespace EmpireIdle.Application.Marches.Services
             _aftermath = aftermath;
             _status = status;
             _plunder = plunder;
-            _heroModifiers = heroModifiers;
+            _armyBuffs = armyBuffs;
             _combatants = combatants;
             _defenders = defenders;
             _cityFall = cityFall;
@@ -137,22 +138,16 @@ namespace EmpireIdle.Application.Marches.Services
             var stationed = await _heroRepository.GetByGarrisonAsync(targetGarrison.Id, cancellationToken);
             var defenders = await _defenders.ForAsync(targetVillage.PlayerId, cancellationToken);
 
-            var stationedGear = await _combatants.GearAsync(stationed.Concat(defenders), cancellationToken);
-
-            // Кожен захисник веде юнітів свого класу — як герої маршу, а не одним бонусом на всю оборону
-            var defenceBuffs = new DefenceBuffs(
-                _heroModifiers.ForMarch(defenders, stationedGear),
-                // Союзник прийшов із кількома героями — кожен підсилює власні конвої (GDD §6.1)
-                stationed
-                    .Where(h => h.PlayerId != targetVillage.PlayerId)
-                    .GroupBy(h => h.PlayerId)
-                    .ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g, stationedGear)));
+            // Кожен захисник веде юнітів свого класу — як герої маршу, а не одним бонусом на всю оборону;
+            // кожен союзник б'ється під власними героями й технологіями
+            var defenceBuffs = await _armyBuffs.ForDefenceAsync(
+                targetVillage.PlayerId, defenders, stationed, defence, cancellationToken);
 
             // Героїв маршу читаємо тут, до RecordAttackerAsync: саме там їх ранить
             // поразка, і вміння мусять бути зняті, поки вони ще в строю
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
-            var attackerBuff = _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken));
+            var attackerBuff = await _armyBuffs.ForArmyAsync(attackerVillage.PlayerId, attackerHeroes, cancellationToken);
 
             // Кланова територія підсилює обидві сторони, кожну — своя
             var attackerBonus = await _effectResolver.GetMultiplierAsync(

@@ -57,8 +57,8 @@ public class SendScoutCommandTests
         var territory = new ClanTerritoryRules(_catalog);
 
         var targets = new MarchTargetResolver(Substitute.For<IMonsterRepository>(), _villages, _garrisons,
-            _heroes, new MonsterArmyBuilder(_catalog), new HeroCombatModifiers(_catalog),
-            TestCombatants.WithoutGear(_catalog), TestCombatants.Defenders(_heroes, _catalog), _catalog, status, _structures, _clans, territory, _marches, TestEffects.Resolver(_effects));
+            _heroes, new MonsterArmyBuilder(_catalog), TestCombatants.Buffs(_catalog),
+            TestCombatants.Defenders(_heroes, _catalog), _catalog, status, _structures, _clans, territory, _marches, TestEffects.Resolver(_effects));
 
         return new SendScoutCommandHandler(_villages, _garrisons, _marches, _clans, Substitute.For<IUnitOfWork>(),
             _serverContext, new FakeTimeProvider(Now), _calculator, targets, new ScoutVisibility(_effects), status,

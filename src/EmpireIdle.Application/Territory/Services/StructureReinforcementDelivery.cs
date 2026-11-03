@@ -22,8 +22,7 @@ namespace EmpireIdle.Application.Territory.Services
         private readonly IClanRepository _clanRepository;
         private readonly IClanStructureRepository _structureRepository;
         private readonly CombatCalculator _combat;
-        private readonly HeroCombatModifiers _heroModifiers;
-        private readonly HeroCombatants _combatants;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly TerrainGenerator _terrain;
         private readonly MarchLogistics _logistics;
         private readonly ClanTerritoryRules _rules;
@@ -35,8 +34,7 @@ namespace EmpireIdle.Application.Territory.Services
             IClanRepository clanRepository,
             IClanStructureRepository structureRepository,
             CombatCalculator combat,
-            HeroCombatModifiers heroModifiers,
-            HeroCombatants combatants,
+            ArmyBuffs armyBuffs,
             TerrainGenerator terrain,
             MarchLogistics logistics,
             ClanTerritoryRules rules,
@@ -47,8 +45,7 @@ namespace EmpireIdle.Application.Territory.Services
             _clanRepository = clanRepository;
             _structureRepository = structureRepository;
             _combat = combat;
-            _heroModifiers = heroModifiers;
-            _combatants = combatants;
+            _armyBuffs = armyBuffs;
             _terrain = terrain;
             _logistics = logistics;
             _rules = rules;
@@ -82,7 +79,7 @@ namespace EmpireIdle.Application.Territory.Services
 
             // Сила маршу, а не кількість маршів: один сильний прискорює більше за кілька слабких
             var power = _combat.CalculatePower(units, _terrain.GetTerrainType(march.ServerId, structure.X, structure.Y),
-                isAttacker: true, _heroModifiers.ForMarch(heroes, await _combatants.GearAsync(heroes, cancellationToken)));
+                isAttacker: true, await _armyBuffs.ForArmyAsync(ownerVillage.PlayerId, heroes, cancellationToken));
 
             var accelerated = structure.Accelerate(_rules.BuildShareFor(power), _rules.MaxBuildShare, utcNow);
 

@@ -67,19 +67,18 @@ public class GetBattlePreviewQueryTests
         var config = Config();
         var catalog = new GameCatalog(config);
         var terrain = new TerrainGenerator(config.Map);
-        var heroModifiers = new HeroCombatModifiers(catalog);
 
         _serverContext.ServerId.Returns(1);
 
         var targets = new MarchTargetResolver(
-            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, TestCombatants.WithoutGear(catalog), TestCombatants.Defenders(_heroes, catalog), catalog,
+            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), TestCombatants.Buffs(catalog), TestCombatants.Defenders(_heroes, catalog), catalog,
             new VillageStatus(catalog), Substitute.For<IClanStructureRepository>(), Substitute.For<IClanRepository>(),
             new ClanTerritoryRules(catalog), Substitute.For<IMarchRepository>(), TestEffects.Resolver(_effects));
 
         return new GetBattlePreviewQueryHandler(
             _villages, _garrisons, _heroes, _serverContext,
             new CombatCalculator(config.Combat, catalog), terrain, new MarchCalculator(terrain, catalog),
-            TestEffects.Resolver(_effects), new FakeTimeProvider(Now), targets, heroModifiers, catalog,
+            TestEffects.Resolver(_effects), new FakeTimeProvider(Now), targets, TestCombatants.Buffs(catalog), catalog,
             new HeroProgression(config.HeroSettings),
             new HeroCombatants(EmptyInventory(), new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog));
     }

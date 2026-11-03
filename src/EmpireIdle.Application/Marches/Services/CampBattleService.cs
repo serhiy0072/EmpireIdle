@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.Services;
@@ -29,7 +30,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
         private readonly VillageStatus _status;
-        private readonly HeroCombatModifiers _heroModifiers;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly HeroCombatants _combatants;
         private readonly TerritoryBonus _territoryBonus;
         private readonly CampHomecoming _campHomecoming;
@@ -48,7 +49,7 @@ namespace EmpireIdle.Application.Marches.Services
             MarchLogistics logistics,
             BattleAftermath aftermath,
             VillageStatus status,
-            HeroCombatModifiers heroModifiers,
+            ArmyBuffs armyBuffs,
             HeroCombatants combatants,
             TerritoryBonus territoryBonus,
             CampHomecoming campHomecoming,
@@ -66,7 +67,7 @@ namespace EmpireIdle.Application.Marches.Services
             _logistics = logistics;
             _aftermath = aftermath;
             _status = status;
-            _heroModifiers = heroModifiers;
+            _armyBuffs = armyBuffs;
             _combatants = combatants;
             _territoryBonus = territoryBonus;
             _campHomecoming = campHomecoming;
@@ -107,7 +108,7 @@ namespace EmpireIdle.Application.Marches.Services
             var campHeroes = await _heroRepository.GetByMarchAsync(camp.Id, cancellationToken);
 
             var defenceBuffs = new DefenceBuffs(
-                _heroModifiers.ForMarch(campHeroes, await _combatants.GearAsync(campHeroes, cancellationToken)),
+                await _armyBuffs.ForArmyAsync(campHome.PlayerId, campHeroes, cancellationToken),
                 new Dictionary<Guid, StackBuff>());
 
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
@@ -124,7 +125,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
                 attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken)), defenceBuffs,
+                await _armyBuffs.ForArmyAsync(attackerVillage.PlayerId, attackerHeroes, cancellationToken), defenceBuffs,
                 await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken),
                 await _combatants.ForAsync(campHeroes, attacking: false, cancellationToken));
 

@@ -26,6 +26,12 @@ namespace EmpireIdle.Domain.Technologies
         public double Of(TechnologyStat stat, string? target = null)
             => _values.GetValueOrDefault((stat, All)) + (target is null ? 0 : _values.GetValueOrDefault((stat, target)));
 
+        /// <summary>Усі цілі стату з їхнім бонусом; null — бонус «для всіх».</summary>
+        public IEnumerable<(string? Target, double Value)> Targets(TechnologyStat stat)
+            => _values
+                .Where(v => v.Key.Stat == stat && v.Value != 0)
+                .Select(v => (v.Key.Target == All ? null : v.Key.Target, v.Value));
+
         /// <summary>Сума двох наборів — особисті й кланові технології діють разом.</summary>
         public TechnologyBonuses Plus(TechnologyBonuses other)
         {

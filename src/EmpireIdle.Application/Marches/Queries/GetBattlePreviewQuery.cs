@@ -36,7 +36,7 @@ namespace EmpireIdle.Application.Marches.Queries
         private readonly EffectResolver _effectResolver;
         private readonly TimeProvider _timeProvider;
         private readonly MarchTargetResolver _targets;
-        private readonly HeroCombatModifiers _heroModifiers;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly GameCatalog _catalog;
         private readonly HeroProgression _progression;
         private readonly HeroCombatants _combatants;
@@ -52,7 +52,7 @@ namespace EmpireIdle.Application.Marches.Queries
             EffectResolver effectResolver,
             TimeProvider timeProvider,
             MarchTargetResolver targets,
-            HeroCombatModifiers heroModifiers,
+            ArmyBuffs armyBuffs,
             GameCatalog catalog,
             HeroProgression progression,
             HeroCombatants combatants)
@@ -68,7 +68,7 @@ namespace EmpireIdle.Application.Marches.Queries
             _effectResolver = effectResolver;
             _timeProvider = timeProvider;
             _targets = targets;
-            _heroModifiers = heroModifiers;
+            _armyBuffs = armyBuffs;
             _catalog = catalog;
             _progression = progression;
         }
@@ -118,7 +118,7 @@ namespace EmpireIdle.Application.Marches.Queries
             var heroPower = CombatCalculator.HeroPower(await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 
             var attackerPower = (_combat.CalculatePower(attackerArmy, terrain, isAttacker: true,
-                _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken))) + heroPower) * attackerBonus;
+                await _armyBuffs.ForArmyAsync(request.PlayerId, attackerHeroes, cancellationToken)) + heroPower) * attackerBonus;
 
             var defenderPower = _combat.CalculateDefencePower(target.Defence, terrain, target.DefenceBuffs)
                 * target.DefenceMultiplier;

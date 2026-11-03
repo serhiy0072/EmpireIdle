@@ -1,7 +1,10 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Research.Services;
+using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Technologies;
 using NSubstitute;
 
 namespace EmpireIdle.Application.Tests;
@@ -14,6 +17,16 @@ internal static class TestCombatants
 {
     public static HeroCombatants WithoutGear(GameCatalog catalog)
         => new(EmptyInventory(), Stats(catalog), catalog);
+
+    /// <summary>
+    /// Бонуси війська: вміння героїв без спорядження плюс технології з цього репозиторію
+    /// (без репозиторію — жодних досліджень).
+    /// </summary>
+    public static ArmyBuffs Buffs(GameCatalog catalog, HeroCombatants? combatants = null,
+        IPlayerResearchRepository? research = null)
+        => new(new HeroCombatModifiers(catalog), combatants ?? WithoutGear(catalog),
+            new PlayerTechnologies(research ?? Substitute.For<IPlayerResearchRepository>(),
+                new PersonalTechnologies(catalog.Config.Technologies.Personal)));
 
     /// <summary>Захисники села з героїв цього репозиторію — без спорядження, за власною силою.</summary>
     public static GarrisonDefenders Defenders(IHeroRepository heroes, GameCatalog catalog)

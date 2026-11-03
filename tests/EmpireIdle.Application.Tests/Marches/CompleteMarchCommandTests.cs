@@ -45,6 +45,7 @@ public class CompleteMarchCommandTests
     private readonly IGameNotifier _notifier = Substitute.For<IGameNotifier>();
     private readonly IServerRepository _serverRepository = Substitute.For<IServerRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private readonly IVillageFallRepository _falls = Substitute.For<IVillageFallRepository>();
     private readonly IStructureFallRepository _structureFalls = Substitute.For<IStructureFallRepository>();
     private readonly IScoutReportRepository _scoutReports = Substitute.For<IScoutReportRepository>();
@@ -180,12 +181,11 @@ public class CompleteMarchCommandTests
         var status = new VillageStatus(catalog);
         var plunder = new PlunderCalculator(catalog, capacities);
 
-        var heroModifiers = new HeroCombatModifiers(catalog);
-
         // Спорядження в цих сценах немає: бійця дають власні стати героя
         _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
         _inventory.GetEquippedByHeroesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
         var combatants = new HeroCombatants(_inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
+        var armyBuffs = TestCombatants.Buffs(catalog, combatants, _research);
         var defenders = new GarrisonDefenders(_heroes, _inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
 
         var logistics = new MarchLogistics(
@@ -208,7 +208,7 @@ public class CompleteMarchCommandTests
 
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _heroes, _random,
-            armyBuilder, resolver, effects, logistics, aftermath, heroModifiers, combatants, catalog, territoryBonus, territory, _clans,
+            armyBuilder, resolver, effects, logistics, aftermath, armyBuffs, combatants, catalog, territoryBonus, territory, _clans,
             new BeastTamer(_pens, _monsters, _random, new BeastTaming(catalog), capacities, status, catalog),
             new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog),
             NullLogger<MonsterBattleService>.Instance);
@@ -228,7 +228,7 @@ public class CompleteMarchCommandTests
         var villageBattle = new VillageBattleService(
             _garrisons, _villages, _serverRepository, _heroes, _random,
             resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
-            status, plunder, heroModifiers, combatants, defenders, cityFallService, territoryBonus, new HostilityRules(_clans),
+            status, plunder, armyBuffs, combatants, defenders, cityFallService, territoryBonus, new HostilityRules(_clans),
             NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
@@ -242,22 +242,22 @@ public class CompleteMarchCommandTests
             NullLogger<ReinforcementDelivery>.Instance);
 
         var structureDelivery = new StructureReinforcementDelivery(
-            _garrisons, _villages, _clans, _structures, combat, heroModifiers, combatants, terrain, logistics, territory,
+            _garrisons, _villages, _clans, _structures, combat, armyBuffs, terrain, logistics, territory,
             NullLogger<StructureReinforcementDelivery>.Instance);
 
         var remover = new ClanStructureRemover(_structures, _garrisons, _map, returner, NullLogger<ClanStructureRemover>.Instance);
 
         var structureBattle = new StructureBattleService(
             _garrisons, _villages, _heroes, _clans, _structures, _random, resolver, new DefenceLossAllocator(), effects,
-            logistics, aftermath, status, heroModifiers, combatants, territory, territoryBonus, remover, _structureFalls,
+            logistics, aftermath, status, armyBuffs, combatants, territory, territoryBonus, remover, _structureFalls,
             NullLogger<StructureBattleService>.Instance);
 
-        var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, heroModifiers,
-            combatants, defenders, catalog, status, _structures, _clans, territory, _marches, effects);
+        var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, armyBuffs,
+            defenders, catalog, status, _structures, _clans, territory, _marches, effects);
 
         var campBattle = new CampBattleService(
             _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,
-            logistics, aftermath, status, heroModifiers, combatants, territoryBonus,
+            logistics, aftermath, status, armyBuffs, combatants, territoryBonus,
             new CampHomecoming(_heroes, calculator, new HeroProgression(config.HeroSettings), catalog),
             new HostilityRules(_clans), NullLogger<CampBattleService>.Instance);
 

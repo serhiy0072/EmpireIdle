@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Heroes.Services;
@@ -33,7 +34,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly EffectResolver _effectResolver;
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
-        private readonly HeroCombatModifiers _heroModifiers;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly HeroCombatants _combatants;
         private readonly GameCatalog _catalog;
         private readonly TerritoryBonus _territoryBonus;
@@ -55,7 +56,7 @@ namespace EmpireIdle.Application.Marches.Services
             EffectResolver effectResolver,
             MarchLogistics logistics,
             BattleAftermath aftermath,
-            HeroCombatModifiers heroModifiers,
+            ArmyBuffs armyBuffs,
             HeroCombatants combatants,
             GameCatalog catalog,
             TerritoryBonus territoryBonus,
@@ -76,7 +77,7 @@ namespace EmpireIdle.Application.Marches.Services
             _effectResolver = effectResolver;
             _logistics = logistics;
             _aftermath = aftermath;
-            _heroModifiers = heroModifiers;
+            _armyBuffs = armyBuffs;
             _combatants = combatants;
             _catalog = catalog;
             _territoryBonus = territoryBonus;
@@ -126,7 +127,7 @@ namespace EmpireIdle.Application.Marches.Services
 
             // Монстр ні стін, ні героїв не має, тому бік захисту йде без бонусів
             var outcome = _resolver.Resolve(attackerArmy, DefenceStacks.FromArmy(defenderArmy), terrain, seed,
-                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken)),
+                attackerBonus, defenderBonus: 1.0, woundedCapacity, await _armyBuffs.ForArmyAsync(village.PlayerId, attackerHeroes, cancellationToken),
                 attackerHeroes: await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 
             var result = outcome.Battle;
