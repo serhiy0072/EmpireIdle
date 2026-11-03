@@ -25,8 +25,7 @@ internal static class TestCombatants
     public static ArmyBuffs Buffs(GameCatalog catalog, HeroCombatants? combatants = null,
         IPlayerResearchRepository? research = null)
         => new(new HeroCombatModifiers(catalog), combatants ?? WithoutGear(catalog),
-            new PlayerTechnologies(research ?? Substitute.For<IPlayerResearchRepository>(),
-                new PersonalTechnologies(catalog.Config.Technologies.Personal)));
+            TestTechnologies.For(catalog, research));
 
     /// <summary>Захисники села з героїв цього репозиторію — без спорядження, за власною силою.</summary>
     public static GarrisonDefenders Defenders(IHeroRepository heroes, GameCatalog catalog)

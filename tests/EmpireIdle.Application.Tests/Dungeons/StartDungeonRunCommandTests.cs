@@ -46,7 +46,7 @@ public class StartDungeonRunCommandTests
             _dungeons,
             _villages,
             new DungeonTeamFactory(_heroes, _inventory, catalog, new HeroStats(progression, catalog), progression,
-                new HeroSkills(_config.HeroSettings)),
+                new HeroSkills(_config.HeroSettings), TestTechnologies.For(catalog)),
             new BattleBuilder(_config.Dungeons),
             catalog,
             Substitute.For<IRandomSource>(),

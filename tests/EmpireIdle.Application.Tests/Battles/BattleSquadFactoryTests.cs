@@ -28,12 +28,14 @@ public class BattleSquadFactoryTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private readonly Garrison _garrison;
 
     public BattleSquadFactoryTests()
     {
         _config = new GameConfigBuilder()
             .WithUnits()
+            .WithTechnologies()
             .WithHeroes(h =>
             {
                 h.RoleUnits = new() { ["warrior"] = TestKeys.Infantry, ["knight"] = TestKeys.Cavalry, ["archer"] = TestKeys.Archer, ["mage"] = TestKeys.Archer };
@@ -61,7 +63,8 @@ public class BattleSquadFactoryTests
         var progression = new HeroProgression(_config.HeroSettings);
 
         return new BattleSquadFactory(_heroes, _inventory, _villages, _garrisons, catalog, new HeroStats(progression, catalog),
-            new HeroSkills(_config.HeroSettings), new HeroCombatModifiers(catalog), TestEffects.Resolver(_effects, catalog: catalog));
+            new HeroSkills(_config.HeroSettings), new HeroCombatModifiers(catalog), TestEffects.Resolver(_effects, catalog: catalog),
+            TestTechnologies.For(catalog, _research));
     }
 
     private Hero Hero(string key = TestKeys.CommonHero, Guid? playerId = null)
@@ -110,6 +113,26 @@ public class BattleSquadFactoryTests
 
         Assert.Equal([100], squad[0].Convoys.Select(c => c.Units));
         Assert.Equal([50], squad[1].Convoys.Select(c => c.Units));
+    }
+
+    /// <summary>
+    /// Технологія атаки піхоти (+3%) діє на героя-воїна й на його конвої — і поки він живий, і після його загибелі;
+    /// діє й без бафів режиму: це розвиток акаунта, а не тимчасовий буст.
+    /// </summary>
+    [Fact]
+    public async Task BuildAsync_ShouldStrengthenTheHeroAndItsConvoys_WithTechnologies()
+    {
+        Home(infantry: 100);
+        var hero = Hero();
+        var plain = (await Build([hero.Id]))[0];
+
+        _research.Researched(PlayerId, "attack_infantry", 3);
+        var researched = (await Build([hero.Id]))[0];
+
+        Assert.Equal(plain.Hero.Attack * 1.03, researched.Hero.Attack, 6);
+        Assert.Equal(plain.Convoys[0].Led.Attack * 1.03, researched.Convoys[0].Led.Attack, 6);
+        Assert.Equal(plain.Convoys[0].Leaderless.Attack * 1.03, researched.Convoys[0].Leaderless.Attack, 6);
+        Assert.Equal(plain.Hero.Defense, researched.Hero.Defense, 6);
     }
 
     /// <summary>Пасивка героя на атаку піхоти підсилює його конвої, як і в марші; без героя бонус гасне.</summary>

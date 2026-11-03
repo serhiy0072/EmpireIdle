@@ -1,8 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Combat;
-using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
-using EmpireIdle.Domain.Technologies;
 using EmpireIdle.TestKit;
 using NSubstitute;
 
@@ -14,28 +12,13 @@ namespace EmpireIdle.Application.Tests.Marches;
 /// </summary>
 public class ArmyBuffsTests
 {
-    private static readonly DateTime Now = new(2026, 11, 3, 12, 0, 0, DateTimeKind.Utc);
-
     private readonly GameCatalog _catalog = new(new GameConfigBuilder().WithTechnologies().Build());
     private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
 
     private readonly Guid _host = Guid.NewGuid();
     private readonly Guid _ally = Guid.NewGuid();
 
-    /// <summary>Гравець, що вивчив attack_infantry тіру 1 до цього рівня.</summary>
-    private void Researched(Guid playerId, int level)
-    {
-        var research = new PlayerResearch(Guid.NewGuid(), playerId, 1, Now);
-        var key = new TechnologyKey(1, "attack_infantry");
-
-        for (var i = 0; i < level; i++)
-        {
-            research.Start(key, TimeSpan.FromMinutes(1), Now);
-            research.CompleteDue(Now.AddMinutes(1));
-        }
-
-        _research.GetByPlayerReadOnlyAsync(playerId, Arg.Any<CancellationToken>()).Returns(research);
-    }
+    private void Researched(Guid playerId, int level) => _research.Researched(playerId, "attack_infantry", level);
 
     [Fact]
     public async Task ForArmyAsync_ShouldApplyTheOwnersTechnologies_WithoutAHero()

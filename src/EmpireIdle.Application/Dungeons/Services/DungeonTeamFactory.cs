@@ -1,9 +1,11 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Application.Dungeons.Services
 {
@@ -20,6 +22,7 @@ namespace EmpireIdle.Application.Dungeons.Services
         private readonly HeroStats _heroStats;
         private readonly HeroProgression _progression;
         private readonly HeroSkills _skills;
+        private readonly PlayerTechnologies _technologies;
 
         public DungeonTeamFactory(
             IHeroRepository heroRepository,
@@ -27,7 +30,8 @@ namespace EmpireIdle.Application.Dungeons.Services
             GameCatalog catalog,
             HeroStats heroStats,
             HeroProgression progression,
-            HeroSkills skills)
+            HeroSkills skills,
+            PlayerTechnologies technologies)
         {
             _heroRepository = heroRepository;
             _inventoryRepository = inventoryRepository;
@@ -35,6 +39,7 @@ namespace EmpireIdle.Application.Dungeons.Services
             _heroStats = heroStats;
             _progression = progression;
             _skills = skills;
+            _technologies = technologies;
         }
 
         /// <summary>
@@ -45,6 +50,9 @@ namespace EmpireIdle.Application.Dungeons.Services
         public async Task<List<DungeonHero>> BuildAsync(Guid playerId, IReadOnlyList<Guid> heroIds, CancellationToken cancellationToken)
         {
             var team = new List<DungeonHero>();
+
+            // Бойові технології діють і в данжі (рішення 03.11.2026): герой бере бонус юнітів своєї ролі
+            var technologies = await _technologies.ForPlayerAsync(playerId, cancellationToken);
 
             foreach (var heroId in heroIds)
             {
@@ -64,13 +72,14 @@ namespace EmpireIdle.Application.Dungeons.Services
 
                 var equipped = await _inventoryRepository.GetEquippedAsync(hero.Id, cancellationToken);
                 var stats = _heroStats.Compute(hero, config, equipped);
+                var unitType = _catalog.Config.HeroSettings.RoleUnits.GetValueOrDefault(config.Class);
 
                 team.Add(new DungeonHero(
                     hero.Id,
                     hero.HeroKey,
                     config.Class,
-                    stats.GetValueOrDefault("Attack"),
-                    stats.GetValueOrDefault("Defense"),
+                    stats.GetValueOrDefault("Attack") * (1 + technologies.Of(TechnologyStat.Attack, unitType)),
+                    stats.GetValueOrDefault("Defense") * (1 + technologies.Of(TechnologyStat.Defense, unitType)),
                     stats.GetValueOrDefault("Health"),
                     // Швидкість героя задає чергу ходів; без власної береться типова
                     _progression.MarchSpeed(config),

@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Battles;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Dungeons;
@@ -8,6 +9,7 @@ using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.Technologies;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Application.Battles.Services
@@ -29,11 +31,12 @@ namespace EmpireIdle.Application.Battles.Services
         private readonly HeroSkills _skills;
         private readonly HeroCombatModifiers _modifiers;
         private readonly EffectResolver _effects;
+        private readonly PlayerTechnologies _technologies;
         private readonly ConvoyBuilder _convoys;
 
         public BattleSquadFactory(IHeroRepository heroes, IInventoryRepository inventory, IVillageRepository villages,
             IGarrisonRepository garrisons, GameCatalog catalog, HeroStats heroStats, HeroSkills skills,
-            HeroCombatModifiers modifiers, EffectResolver effects)
+            HeroCombatModifiers modifiers, EffectResolver effects, PlayerTechnologies technologies)
         {
             _heroes = heroes;
             _inventory = inventory;
@@ -44,6 +47,7 @@ namespace EmpireIdle.Application.Battles.Services
             _skills = skills;
             _modifiers = modifiers;
             _effects = effects;
+            _technologies = technologies;
             _convoys = new ConvoyBuilder(catalog);
         }
 
@@ -62,6 +66,9 @@ namespace EmpireIdle.Application.Battles.Services
             var heroes = (await _heroes.GetByIdsReadOnlyAsync(ids, cancellationToken)).ToDictionary(h => h.Id);
             var pool = await PoolAsync(playerId, cancellationToken);
             var (attack, defense) = withBuffs ? await BuffsAsync(playerId, utcNow, cancellationToken) : (1.0, 1.0);
+
+            // Технології — постійний розвиток акаунта, як і спорядження: діють у будь-якому режимі
+            var technologies = await _technologies.ForPlayerAsync(playerId, cancellationToken);
             var members = new List<(SquadMember Member, ConvoyLeader Leader)>();
 
             for (var lane = 0; lane < lanes.Count; lane++)
@@ -78,7 +85,7 @@ namespace EmpireIdle.Application.Battles.Services
                     throw new RequirementNotMetException(RefusalReasons.SquadHeroWounded,
                         $"Hero {hero.Id} is wounded and cannot fight.", hero.HeroKey);
 
-                members.Add(await MemberAsync(hero, config, lane, cancellationToken));
+                members.Add(await MemberAsync(hero, config, lane, technologies, cancellationToken));
             }
 
             // Військо ділиться на весь загін разом — по конвою за коло, а не хто перший у списку
@@ -94,14 +101,16 @@ namespace EmpireIdle.Application.Battles.Services
         }
 
         private async Task<(SquadMember Member, ConvoyLeader Leader)> MemberAsync(Hero hero, HeroConfig config, int lane,
-            CancellationToken cancellationToken)
+            TechnologyBonuses technologies, CancellationToken cancellationToken)
         {
             var equipped = await _inventory.GetEquippedAsync(hero.Id, cancellationToken);
             var stats = _heroStats.Compute(hero, config, equipped);
             var unitType = _catalog.Config.HeroSettings.RoleUnits.GetValueOrDefault(config.Class);
 
-            // Бонуси військам — ті самі, що герой дає своїм конвоям у марші: вміння й спорядження
-            var buff = _modifiers.ForMarch([hero], new HeroGear(new Dictionary<Guid, IReadOnlyDictionary<string, double>> { [hero.Id] = stats }));
+            // Бонуси військам — ті самі, що в марші: вміння й спорядження героя плюс технології власника
+            var buff = _modifiers.ForMarch([hero], new HeroGear(new Dictionary<Guid, IReadOnlyDictionary<string, double>> { [hero.Id] = stats }))
+                .With(technologies);
+            var army = StackBuff.None.With(technologies);
 
             var leader = new ConvoyLeader(
                 config.Class,
@@ -109,13 +118,16 @@ namespace EmpireIdle.Application.Battles.Services
                 unitType is null ? 1 : buff.Attack(unitType),
                 unitType is null ? 1 : buff.Defense(unitType),
                 stats.GetValueOrDefault(ArtifactStats.UnitAttack),
-                stats.GetValueOrDefault(ArtifactStats.UnitDefense));
+                stats.GetValueOrDefault(ArtifactStats.UnitDefense),
+                unitType is null ? 1 : army.Attack(unitType),
+                unitType is null ? 1 : army.Defense(unitType));
 
             var member = new SquadMember(
                 lane,
                 config.Class,
                 unitType,
-                HeroFighterStats.From(stats, config.Class, _catalog.Config.RealtimeBattle, _catalog.Config.Dungeons),
+                TechnologyBoost(HeroFighterStats.From(stats, config.Class, _catalog.Config.RealtimeBattle, _catalog.Config.Dungeons),
+                    technologies, unitType),
                 [],
                 Skills(hero, config),
                 hero.HeroKey);
@@ -143,6 +155,15 @@ namespace EmpireIdle.Application.Battles.Services
         /// <summary>Бафи множать атаку й захист усіх бійців гравця — героїв і конвоїв (дизайн §8.5).</summary>
         private static FighterStats Buff(FighterStats stats, double attack, double defense)
             => stats with { Attack = stats.Attack * attack, Defense = stats.Defense * defense };
+
+        /// <summary>
+        /// Герой бере бойові технології юнітів своєї ролі (рішення 03.11.2026: технології діють і там,
+        /// де б'ються самі герої): «для всіх» плюс бонус його типу; без ролі — лише «для всіх».
+        /// </summary>
+        private static FighterStats TechnologyBoost(FighterStats stats, TechnologyBonuses technologies, string? unitType)
+            => Buff(stats,
+                1 + technologies.Of(TechnologyStat.Attack, unitType),
+                1 + technologies.Of(TechnologyStat.Defense, unitType));
 
         /// <summary>Відкриті вміння з ефектом у бою — активне й періодичні, з рівнем героя.</summary>
         private List<CombatSkill> Skills(Hero hero, HeroConfig config)

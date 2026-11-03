@@ -14,8 +14,14 @@ namespace EmpireIdle.Domain.Battles
     /// <param name="DefenseMultiplier">Бонус військам на захист (StackBuff.Defense свого типу).</param>
     /// <param name="UnitAttack">Пласка атака військам зі спорядження (стат героя UnitAttack).</param>
     /// <param name="UnitDefense">Пласке здоров'я військам зі спорядження (стат героя UnitDefense).</param>
+    /// <param name="ArmyAttackMultiplier">
+    /// Бонус атаки, що не залежить від героя, — технології власника: діє й на конвой, що лишився без героя.
+    /// AttackMultiplier уже містить його в одному пулі з вміннями героя.
+    /// </param>
+    /// <param name="ArmyDefenseMultiplier">Те саме для захисту.</param>
     public sealed record ConvoyLeader(string HeroClass, int HeroLevel,
-        double AttackMultiplier = 1, double DefenseMultiplier = 1, double UnitAttack = 0, double UnitDefense = 0);
+        double AttackMultiplier = 1, double DefenseMultiplier = 1, double UnitAttack = 0, double UnitDefense = 0,
+        double ArmyAttackMultiplier = 1, double ArmyDefenseMultiplier = 1);
 
     /// <summary>
     /// Збирає конвої героя для одномоментного бою (дизайн §3.2): кількість — за рівнем героя,
@@ -109,10 +115,11 @@ namespace EmpireIdle.Domain.Battles
                 (health + flatHealth) * leader.DefenseMultiplier * Battle.ConvoyHealthScale,
                 interval);
 
-            // Здоров'я лишається: загибель героя не лікує й не ранить його конвої
+            // Здоров'я лишається: загибель героя не лікує й не ранить його конвої;
+            // технології власника лишаються теж — вони не від героя
             var leaderless = FighterStats.Plain(
-                attack * Battle.ConvoyAttackScale,
-                defense * Battle.ConvoyDefenseScale,
+                attack * leader.ArmyAttackMultiplier * Battle.ConvoyAttackScale,
+                defense * leader.ArmyDefenseMultiplier * Battle.ConvoyDefenseScale,
                 led.MaxHealth,
                 interval);
 
