@@ -140,6 +140,7 @@ public class SendMarchCommandTests
             new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog),
             Effects(catalog),
             _vip,
+            TestTechnologies.For(catalog),
             NullLogger<SendMarchCommandHandler>.Instance);
     }
 

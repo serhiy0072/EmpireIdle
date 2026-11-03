@@ -135,6 +135,19 @@ public class BattleSquadFactoryTests
         Assert.Equal(plain.Hero.Defense, researched.Hero.Defense, 6);
     }
 
+    /// <summary>Технологія командування піхотою (+4 у конвой) збільшує кожен конвой загону вежі.</summary>
+    [Fact]
+    public async Task BuildAsync_ShouldFillBiggerConvoys_WithTheConvoySizeTechnology()
+    {
+        Home(infantry: 300);
+        var hero = Hero();
+
+        _research.Researched(PlayerId, "command_infantry", 1);
+        var squad = await Build([hero.Id]);
+
+        Assert.Equal([104, 104], squad[0].Convoys.Select(c => c.Units));
+    }
+
     /// <summary>Пасивка героя на атаку піхоти підсилює його конвої, як і в марші; без героя бонус гасне.</summary>
     [Fact]
     public async Task BuildAsync_ShouldGiveConvoysTheHerosTroopBonus()

@@ -19,9 +19,10 @@ namespace EmpireIdle.Domain.Battles
     /// AttackMultiplier уже містить його в одному пулі з вміннями героя.
     /// </param>
     /// <param name="ArmyDefenseMultiplier">Те саме для захисту.</param>
+    /// <param name="ExtraConvoySize">На скільки юнітів технології власника збільшують кожен конвой.</param>
     public sealed record ConvoyLeader(string HeroClass, int HeroLevel,
         double AttackMultiplier = 1, double DefenseMultiplier = 1, double UnitAttack = 0, double UnitDefense = 0,
-        double ArmyAttackMultiplier = 1, double ArmyDefenseMultiplier = 1);
+        double ArmyAttackMultiplier = 1, double ArmyDefenseMultiplier = 1, int ExtraConvoySize = 0);
 
     /// <summary>
     /// Збирає конвої героя для одномоментного бою (дизайн §3.2): кількість — за рівнем героя,
@@ -60,7 +61,7 @@ namespace EmpireIdle.Domain.Battles
                     if (slots[i] is not { } slot || round >= slot.Count || convoys[i].Count < round)
                         continue;
 
-                    var units = pool.Take(slot.UnitType, _catalog.Config.HeroSettings.ConvoySize);
+                    var units = pool.Take(slot.UnitType, _catalog.Config.HeroSettings.ConvoySize + leaders[i].ExtraConvoySize);
 
                     if (units.Count > 0)
                         convoys[i].Add(Convoy(slot.UnitType, units, leaders[i], slot.Count));

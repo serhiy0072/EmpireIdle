@@ -62,7 +62,7 @@ public class GetHeroesOverviewQueryTests
             _heroes, _inventory, new HeroStats(progression, catalog), progression,
             new HeroSkills(config.HeroSettings), new HeroConvoys(config.HeroSettings),
             new TrainingCampRules(config.HeroSettings.TrainingCamp), _villages, _garrisons, _marches, new VillageStatus(catalog),
-            catalog, new FakeTimeProvider(Now), _vip);
+            catalog, new FakeTimeProvider(Now), _vip, TestTechnologies.For(catalog));
     }
 
     /// <summary>

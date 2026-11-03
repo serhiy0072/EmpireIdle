@@ -120,7 +120,8 @@ namespace EmpireIdle.Application.Battles.Services
                 stats.GetValueOrDefault(ArtifactStats.UnitAttack),
                 stats.GetValueOrDefault(ArtifactStats.UnitDefense),
                 unitType is null ? 1 : army.Attack(unitType),
-                unitType is null ? 1 : army.Defense(unitType));
+                unitType is null ? 1 : army.Defense(unitType),
+                HeroConvoys.ExtraConvoySize(technologies, unitType));
 
             var member = new SquadMember(
                 lane,
