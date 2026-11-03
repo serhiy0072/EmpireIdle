@@ -1,6 +1,7 @@
 {
   "GameConfig": {
     "Technologies": {
+      "MaxMealUpkeepCut": 0.5,
       "Personal": {
         "BuildingKey": "laboratory",
         "Tabs": ["battle", "economy", "development"],

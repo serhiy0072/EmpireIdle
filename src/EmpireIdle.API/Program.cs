@@ -101,6 +101,8 @@ builder.Services.AddOptions<GameConfig>()
         && c.Monetization.VipThresholds.Zip(c.Monetization.VipThresholds.Skip(1)).All(pair => pair.First < pair.Second),
         "GameConfig.Monetization.VipThresholds must be positive and strictly growing — otherwise a VIP level is skipped or free.")
     .Validate(c => c.Monetization.VipLevelsPerExtraMarch >= 1, "GameConfig.Monetization.VipLevelsPerExtraMarch must be at least 1.")
+    .Validate(c => c.Technologies.MaxMealUpkeepCut is >= 0 and < 1,
+        "GameConfig.Technologies.MaxMealUpkeepCut must be in [0, 1): the village always eats something.")
     .Validate(c => c.Technologies.Personal is { BaseMinutes: > 0, RowTimeGrowth: >= 1, LevelTimeGrowth: >= 1, CostPerMinutePerTownHall: > 0, CostRounding: >= 1 },
         "GameConfig.Technologies.Personal needs a positive base time and cost, growth of at least 1 and a rounding of at least 1.")
     .Validate(c => c.Technologies.Personal.MaxHelps >= 0 && c.Technologies.Personal.HelpShare >= 0

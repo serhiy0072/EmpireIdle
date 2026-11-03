@@ -1,9 +1,11 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Villages.ReadModels;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 
 namespace EmpireIdle.Application.Villages.Queries
@@ -27,6 +29,7 @@ namespace EmpireIdle.Application.Villages.Queries
         private readonly VillageStatus _status;
         private readonly SpeedUpCalculator _calculator;
         private readonly CityFallRules _cityFall;
+        private readonly PlayerTechnologies _technologies;
 
         public GetVillageQueryHandler(
             IVillageRepository villageRepository,
@@ -37,8 +40,10 @@ namespace EmpireIdle.Application.Villages.Queries
             WorldGeometry geometry,
             VillageStatus status,
             SpeedUpCalculator calculator,
-            CityFallRules cityFall)
+            CityFallRules cityFall,
+            PlayerTechnologies technologies)
         {
+            _technologies = technologies;
             _villageRepository = villageRepository;
             _serverRepository = serverRepository;
             _effectResolver = effectResolver;
@@ -127,7 +132,9 @@ namespace EmpireIdle.Application.Villages.Queries
                 : null;
 
             return new VillageView(village.Id, village.Name, village.X, village.Y, buildings, resources,
-                village.IsShieldedAt(now) ? village.ShieldUntil : null, damage, village.IsHungry, _status.MealPerHour(village));
+                village.IsShieldedAt(now) ? village.ShieldUntil : null, damage, village.IsHungry,
+                _status.MealPerHour(village, (await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken))
+                    .Of(TechnologyStat.MealUpkeep)));
         }
     }
 }

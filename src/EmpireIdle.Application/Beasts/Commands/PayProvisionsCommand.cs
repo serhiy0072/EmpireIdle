@@ -1,6 +1,8 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -24,6 +26,7 @@ namespace EmpireIdle.Application.Beasts.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly PlayerTechnologies _technologies;
         private readonly ILogger<PayProvisionsCommandHandler> _logger;
 
         public PayProvisionsCommandHandler(
@@ -37,8 +40,10 @@ namespace EmpireIdle.Application.Beasts.Commands
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
             TimeProvider timeProvider,
+            PlayerTechnologies technologies,
             ILogger<PayProvisionsCommandHandler> logger)
         {
+            _technologies = technologies;
             _villageRepository = villageRepository;
             _beastPens = beastPens;
             _serverRepository = serverRepository;
@@ -65,7 +70,8 @@ namespace EmpireIdle.Application.Beasts.Commands
             var fodderPerHour = _catalog.Config.Beasts.FodderUpkeep.HourlyUpkeep(
                 _capacities.BeastPenLevel(village, _status),
                 pen?.Beasts.Select(b => b.Level) ?? []);
-            var mealPerHour = _status.MealPerHour(village);
+            var technologies = await _technologies.ForPlayerAsync(village.PlayerId, cancellationToken);
+            var mealPerHour = _status.MealPerHour(village, technologies.Of(TechnologyStat.MealUpkeep));
 
             // Перша оплата лише ставить відлік: до неї ні Їдальня, ні звіринець нічого не їли
             var paidUntil = village.FoodUpkeepAt ?? now;

@@ -10,6 +10,12 @@ namespace EmpireIdle.Domain.Services.Config
         public PersonalTechnologiesConfig Personal { get; set; } = new();
 
         public ClanTechnologiesConfig Clan { get; set; } = new();
+
+        /// <summary>
+        /// Найбільша частка, на яку технології (особисті й кланові разом) зменшують з'їдене селом м'ясо:
+        /// без стелі пізні тіри довели б Їдальню до нуля, і провізія втратила б сенс.
+        /// </summary>
+        public double MaxMealUpkeepCut { get; set; } = 0.5;
     }
 
     /// <summary>
