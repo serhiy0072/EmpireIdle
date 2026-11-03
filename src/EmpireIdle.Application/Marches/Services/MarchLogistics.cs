@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
@@ -15,6 +17,7 @@ namespace EmpireIdle.Application.Marches.Services
     /// </summary>
     public sealed class MarchLogistics
     {
+        private readonly PlayerTechnologies _technologies;
         private readonly IVillageRepository _villageRepository;
         private readonly IHeroRepository _heroRepository;
         private readonly GameCatalog _catalog;
@@ -30,8 +33,10 @@ namespace EmpireIdle.Application.Marches.Services
             MarchCalculator calculator,
             HeroProgression progression,
             HeroStats heroStats,
+            PlayerTechnologies technologies,
             ILogger<MarchLogistics> logger)
         {
+            _technologies = technologies;
             _villageRepository = villageRepository;
             _heroRepository = heroRepository;
             _catalog = catalog;
@@ -141,10 +146,10 @@ namespace EmpireIdle.Application.Marches.Services
         }
 
         /// <summary>
-        /// Вільних місць у Госпіталі: сума (рівень × місткість на рівень) мінус уже поранені.
-        /// Немає Госпіталю — немає поранених, усі втрати безповоротні.
+        /// Вільних місць у Госпіталі: сума (рівень × місткість на рівень) × (1 + технології лазарету)
+        /// мінус уже поранені. Немає Госпіталю — немає поранених, усі втрати безповоротні.
         /// </summary>
-        public int CalculateWoundedCapacity(Village? village, Garrison? garrison)
+        public async Task<int> WoundedCapacityAsync(Village? village, Garrison? garrison, CancellationToken cancellationToken)
         {
             if (village is null || garrison is null)
                 return 0;
@@ -157,7 +162,11 @@ namespace EmpireIdle.Application.Marches.Services
                     ? cfg.WoundedCapacityPerLevel * b.Level.Value
                     : 0);
 
-            return Math.Max(0, total - garrison.WoundedCount);
+            var bonus = (await _technologies.ForPlayerAsync(village.PlayerId, cancellationToken))
+                .Of(TechnologyStat.WoundedCapacity);
+            var capacity = (int)Math.Round(total * (1 + bonus), MidpointRounding.AwayFromZero);
+
+            return Math.Max(0, capacity - garrison.WoundedCount);
         }
     }
 }

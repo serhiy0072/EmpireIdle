@@ -125,7 +125,7 @@ namespace EmpireIdle.Application.Territory.Services
 
             // Споруда без господаря: лідери учасників лише підсилюють свої конвої, б'ються герої нападу
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
-                attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
+                attackerBonus, defenderBonus, await _logistics.WoundedCapacityAsync(attackerVillage, attackerGarrison, cancellationToken),
                 await _armyBuffs.ForArmyAsync(attackerVillage.PlayerId, attackerHeroes, cancellationToken), defenceBuffs,
                 await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 

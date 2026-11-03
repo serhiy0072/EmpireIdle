@@ -124,7 +124,7 @@ namespace EmpireIdle.Application.Marches.Services
             var seed = _random.Next(int.MaxValue);
 
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
-                attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
+                attackerBonus, defenderBonus, await _logistics.WoundedCapacityAsync(attackerVillage, attackerGarrison, cancellationToken),
                 await _armyBuffs.ForArmyAsync(attackerVillage.PlayerId, attackerHeroes, cancellationToken), defenceBuffs,
                 await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken),
                 await _combatants.ForAsync(campHeroes, attacking: false, cancellationToken));

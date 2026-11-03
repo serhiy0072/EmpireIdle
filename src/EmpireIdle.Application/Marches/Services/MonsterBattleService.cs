@@ -121,7 +121,7 @@ namespace EmpireIdle.Application.Marches.Services
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
             var seed = _random.Next(int.MaxValue);
 
-            var woundedCapacity = _logistics.CalculateWoundedCapacity(village, garrison);
+            var woundedCapacity = await _logistics.WoundedCapacityAsync(village, garrison, cancellationToken);
 
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 

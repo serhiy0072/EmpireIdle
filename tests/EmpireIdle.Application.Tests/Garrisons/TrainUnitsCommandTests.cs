@@ -79,7 +79,8 @@ public class TrainUnitsCommandTests
 
         return new(_villages, _garrisons, _unitOfWork, new FakeTimeProvider(Now),
             NullLogger<TrainUnitsCommandHandler>.Instance, catalog, new VillageStatus(catalog),
-            TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.TrainingSpeed, 0.25), _research));
+            TestTechnologies.For(TestTechnologies.TreeWith(
+                (TechnologyStat.TrainingSpeed, 0.25), (TechnologyStat.UnitCapacity, 0.1)), _research));
     }
 
     /// <summary>Технологія швидкості тренування +25% скорочує 10 с до 8 (база / 1.25).</summary>
@@ -283,6 +284,22 @@ public class TrainUnitsCommandTests
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 21), CancellationToken.None));
         Assert.Equal(RefusalReasons.GarrisonArmyCapacity.Key, refusal.Reason);
+    }
+
+    /// <summary>Технологія казарм +10% піднімає стелю казарми 1 рівня з 20 до 22 юнітів.</summary>
+    [Fact]
+    public async Task Handle_ShouldRaiseArmyCapacity_WithTheQuartersTechnology()
+    {
+        var (_, garrison) = GivenVillage(barracksLevel: 1);
+        _research.Researched(PlayerId, "attack_infantry", 1);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 23), CancellationToken.None));
+        Assert.Equal(RefusalReasons.GarrisonArmyCapacity.Key, refusal.Reason);
+
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 22), CancellationToken.None);
+
+        Assert.Equal(22, garrison.TrainingOrders.Sum(o => o.Count));
     }
 
     /// <summary>Вища казарма піднімає стелю армії: на 30 рівні — 100 юнітів.</summary>

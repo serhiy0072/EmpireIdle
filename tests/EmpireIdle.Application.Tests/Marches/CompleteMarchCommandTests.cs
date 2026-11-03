@@ -190,7 +190,7 @@ public class CompleteMarchCommandTests
 
         var logistics = new MarchLogistics(
             _villages, _heroes, catalog, calculator, new HeroProgression(config.HeroSettings),
-            new HeroStats(new HeroProgression(config.HeroSettings), catalog), NullLogger<MarchLogistics>.Instance);
+            new HeroStats(new HeroProgression(config.HeroSettings), catalog), TestTechnologies.For(catalog, _research), NullLogger<MarchLogistics>.Instance);
 
         var territory = new ClanTerritoryRules(catalog);
         var territoryBonus = new TerritoryBonus(_clans, _structures, territory);
@@ -229,7 +229,7 @@ public class CompleteMarchCommandTests
             _garrisons, _villages, _serverRepository, _heroes, _random,
             resolver, new DefenceLossAllocator(), effects, geometry, logistics, aftermath,
             status, plunder, armyBuffs, combatants, defenders, cityFallService, territoryBonus, new HostilityRules(_clans),
-            NullLogger<VillageBattleService>.Instance);
+            TestTechnologies.For(catalog, _research), NullLogger<VillageBattleService>.Instance);
 
         _heroes.GetByGarrisonAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<Hero>());
 
@@ -263,7 +263,7 @@ public class CompleteMarchCommandTests
 
         var scouts = new ScoutService(_garrisons, _villages, _structures, _serverRepository, _scoutReports,
             targets, new ScoutVisibility(_effects), combat, plunder, effects, geometry, calculator, catalog,
-            NullLogger<ScoutService>.Instance);
+            TestTechnologies.For(catalog, _research), NullLogger<ScoutService>.Instance);
 
         return new CompleteMarchCommandHandler(
             _marches, _garrisons, _unitOfWork, terrain,

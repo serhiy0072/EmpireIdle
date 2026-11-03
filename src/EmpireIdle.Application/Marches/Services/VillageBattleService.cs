@@ -1,11 +1,13 @@
 using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -39,6 +41,7 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly CityFallService _cityFall;
         private readonly TerritoryBonus _territoryBonus;
         private readonly HostilityRules _hostility;
+        private readonly PlayerTechnologies _technologies;
         private readonly ILogger<VillageBattleService> _logger;
 
         public VillageBattleService(
@@ -61,6 +64,7 @@ namespace EmpireIdle.Application.Marches.Services
             CityFallService cityFall,
             TerritoryBonus territoryBonus,
             HostilityRules hostility,
+            PlayerTechnologies technologies,
             ILogger<VillageBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -82,6 +86,7 @@ namespace EmpireIdle.Application.Marches.Services
             _cityFall = cityFall;
             _territoryBonus = territoryBonus;
             _hostility = hostility;
+            _technologies = technologies;
             _logger = logger;
         }
 
@@ -162,7 +167,7 @@ namespace EmpireIdle.Application.Marches.Services
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіти обох сторін
             var seed = _random.Next(int.MaxValue);
 
-            var attackerWoundedCapacity = _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison);
+            var attackerWoundedCapacity = await _logistics.WoundedCapacityAsync(attackerVillage, attackerGarrison, cancellationToken);
 
             // Бійці — герої маршу й захисники господаря; герої союзників лише підсилюють свої конвої
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
@@ -224,7 +229,11 @@ namespace EmpireIdle.Application.Marches.Services
             var serverLevel = await _serverRepository.GetLevelAsync(target.ServerId, cancellationToken);
             var locationMultiplier = _geometry.ProductionMultiplierAt(target.X, target.Y, serverLevel);
 
-            var loot = _plunder.Plunder(target, capacity, boost, locationMultiplier, utcNow);
+            // Недоторканий запас теж захисника: його технології сховищ
+            var protectedBonus = (await _technologies.ForPlayerAsync(target.PlayerId, cancellationToken))
+                .Of(TechnologyStat.ProtectedStorage);
+
+            var loot = _plunder.Plunder(target, capacity, boost, locationMultiplier, utcNow, protectedBonus);
 
             if (loot.Count == 0)
                 return;

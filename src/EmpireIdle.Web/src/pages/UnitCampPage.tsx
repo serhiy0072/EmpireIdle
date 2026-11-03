@@ -107,6 +107,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
   const speedUpLevelUp = useSpeedUpLevelUp(playerId);
   const trainingSpeed = useTechnologyBonus(playerId, "TrainingSpeed");
   const levelUpSpeed = useTechnologyBonus(playerId, "UnitLevelUpSpeed");
+  const quarters = useTechnologyBonus(playerId, "UnitCapacity");
 
   const counts: Record<number, number> = {};
   for (const stack of garrison.data?.units ?? []) {
@@ -121,8 +122,9 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
   const ownUnits = new Set(catalog.unitsFor(buildingType, buildingLevel).map((candidate) => candidate.key));
   const training = garrison.data?.trainingOrders.find((order) => ownUnits.has(order.unitType));
   const levelling = garrison.data?.levelUpOrders.find((order) => ownUnits.has(order.unitType));
-  // Місткість своя в кожної будівлі: рахуються її типи в гарнізоні, на тренуванні й на прокачці (рішення 13.10.2026)
-  const capacity = catalog.unitCapacity(buildingLevel);
+  // Місткість своя в кожної будівлі: рахуються її типи в гарнізоні, на тренуванні й на прокачці (рішення 13.10.2026);
+  // технології казарм множать її так само, як на сервері (TrainUnitsCommand)
+  const capacity = Math.round(catalog.unitCapacity(buildingLevel) * (1 + quarters));
   const occupied =
     (garrison.data?.units ?? []).filter((stack) => ownUnits.has(stack.unitType)).reduce((sum, stack) => sum + stack.count, 0) +
     (training?.count ?? 0) +

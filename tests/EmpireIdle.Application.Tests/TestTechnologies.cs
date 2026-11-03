@@ -37,9 +37,13 @@ internal static class TestTechnologies
 
     /// <summary>Дерево фікстури TestKit, де attack_infantry ще й дає цей стат за рівень.</summary>
     public static TechnologiesConfig TreeWith(TechnologyStat stat, double perLevel)
+        => TreeWith((stat, perLevel));
+
+    /// <summary>Те саме з кількома статами на attack_infantry.</summary>
+    public static TechnologiesConfig TreeWith(params (TechnologyStat Stat, double PerLevel)[] effects)
         => new GameConfigBuilder()
             .WithTechnologies(t => t.Personal.Nodes.Single(n => n.Key == "attack_infantry").Effects
-                .Add(new TechnologyEffectConfig { Stat = stat, PerLevel = perLevel }))
+                .AddRange(effects.Select(e => new TechnologyEffectConfig { Stat = e.Stat, PerLevel = e.PerLevel })))
             .Build()
             .Technologies;
 

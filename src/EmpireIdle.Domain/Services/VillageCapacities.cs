@@ -16,13 +16,16 @@ namespace EmpireIdle.Domain.Services
         /// <summary>
         /// Недоторканий запас — абсолютне число від рівня сховища.
         /// Не частка від місткості: інакше качання складу піднімало б
-        /// і захист, і здобич, і гравець не мав би важеля.
+        /// і захист, і здобич, і гравець не мав би важеля. Технології сховищ множать його (рішення 28.10.2026).
         /// </summary>
-        public int ProtectedReserveFor(Village village, string resourceKey)
+        /// <param name="protectedBonus">Сума технологій ProtectedStorage власника села (0.05 — +5%).</param>
+        public int ProtectedReserveFor(Village village, string resourceKey, double protectedBonus = 0)
         {
             var storage = StorageFor(village, resourceKey, out var config);
 
-            return storage is null || config is null ? 0 : config.ProtectedStorage * storage.Level.Value;
+            return storage is null || config is null
+                ? 0
+                : (int)Math.Round(config.ProtectedStorage * storage.Level.Value * (1 + protectedBonus), MidpointRounding.AwayFromZero);
         }
 
         /// <summary>

@@ -96,8 +96,11 @@ namespace EmpireIdle.Application.Garrisons.Commands
                     $"Unit level {request.Level} is above the town hall ceiling {levelCeiling}.", levelCeiling);
 
             // У кожної будівлі юнітів своя місткість від її рівня (рішення 13.10.2026)
-            var armyCapacity = ProgressionCurves.UnitCapacity(trainingBuilding.Level.Value, _catalog.Config.MaxBuildingLevel,
-                _catalog.Config.UnitCapacityMin, _catalog.Config.UnitCapacityMax);
+            // Технології казарм множать її (рішення 28.10.2026) — так само рахує й клієнт
+            var technologies = await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken);
+            var armyCapacity = (int)Math.Round(ProgressionCurves.UnitCapacity(trainingBuilding.Level.Value,
+                    _catalog.Config.MaxBuildingLevel, _catalog.Config.UnitCapacityMin, _catalog.Config.UnitCapacityMax)
+                * (1 + technologies.Of(TechnologyStat.UnitCapacity)), MidpointRounding.AwayFromZero);
 
             // Тренування з нуля на обраний рівень коштує суму кроків від 1 до нього —
             // так само, як прокачка вже навченого юніта (§5.2 GDD)
@@ -118,7 +121,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             garrison.TrainUnits(request.UnitType, request.Level, request.Count, batch,
                 armyCapacity, TimerDurations.Training(config, request.Level, request.Count,
-                    (await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken)).Of(TechnologyStat.TrainingSpeed)), now, queue);
+                    technologies.Of(TechnologyStat.TrainingSpeed)), now, queue);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
