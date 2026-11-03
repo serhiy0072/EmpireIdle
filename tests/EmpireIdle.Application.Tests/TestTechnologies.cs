@@ -2,7 +2,9 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.Technologies;
+using EmpireIdle.TestKit;
 using NSubstitute;
 
 namespace EmpireIdle.Application.Tests;
@@ -14,8 +16,22 @@ internal static class TestTechnologies
 
     /// <summary>Бонуси технологій із цього репозиторію; без репозиторію — жодних досліджень.</summary>
     public static PlayerTechnologies For(GameCatalog catalog, IPlayerResearchRepository? research = null)
-        => new(research ?? Substitute.For<IPlayerResearchRepository>(),
-            new PersonalTechnologies(catalog.Config.Technologies.Personal));
+        => For(catalog.Config.Technologies, research);
+
+    /// <summary>
+    /// Те саме з окремого дерева — для тестів із власним конфігом гри, де Лабораторії немає
+    /// і валідатор каталогу дерева б не пропустив.
+    /// </summary>
+    public static PlayerTechnologies For(TechnologiesConfig technologies, IPlayerResearchRepository? research = null)
+        => new(research ?? Substitute.For<IPlayerResearchRepository>(), new PersonalTechnologies(technologies.Personal));
+
+    /// <summary>Дерево фікстури TestKit, де attack_infantry ще й дає цей стат за рівень.</summary>
+    public static TechnologiesConfig TreeWith(TechnologyStat stat, double perLevel)
+        => new GameConfigBuilder()
+            .WithTechnologies(t => t.Personal.Nodes.Single(n => n.Key == "attack_infantry").Effects
+                .Add(new TechnologyEffectConfig { Stat = stat, PerLevel = perLevel }))
+            .Build()
+            .Technologies;
 
     /// <summary>Гравець вивчив вузол тіру 1 до цього рівня — репозиторій віддає його для читання.</summary>
     public static void Researched(this IPlayerResearchRepository research, Guid playerId, string node, int level)

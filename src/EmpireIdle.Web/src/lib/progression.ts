@@ -15,6 +15,14 @@ export function cumulativeUnitLevelCost(base: number, fromLevel: number, toLevel
 }
 
 /**
+ * Тривалість під технологією швидкості — дзеркалить TimerDurations.Faster на бекенді:
+ * база / (1 + бонус), до цілих секунд; без бонусу — як є.
+ */
+export function fasterSeconds(seconds: number, speedBonus: number): number {
+  return speedBonus <= 0 ? seconds : Math.round(seconds / (1 + speedBonus));
+}
+
+/**
  * Множник атаки й захисту юніта від рівня — дзеркалить ProgressionCurves.UnitStatMultiplier на бекенді:
  * +bonusPerLevel за рівень (catalog.unitLevelStatBonus), рівень 1 — база. Швидкість і вантаж від рівня не ростуть.
  */

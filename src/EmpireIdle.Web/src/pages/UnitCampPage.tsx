@@ -5,7 +5,7 @@ import { UnitFigure } from "../components/army/UnitArt";
 import ErrorBanner from "../components/ErrorBanner";
 import { GameTabs } from "../components/game/GameUi";
 import { useSession } from "../hooks/useSession";
-import { cumulativeUnitLevelCost } from "../lib/progression";
+import { cumulativeUnitLevelCost, fasterSeconds } from "../lib/progression";
 import type { CatalogUnit } from "../lib/queries/catalog";
 import { useCatalog } from "../lib/queries/catalog";
 import {
@@ -16,6 +16,7 @@ import {
   useTrainUnits,
   useUnitLevelCeiling,
 } from "../lib/queries/garrison";
+import { useTechnologyBonus } from "../lib/queries/research";
 import { useVillage } from "../lib/queries/village";
 import { roman, tierFrame } from "../lib/unitTiers";
 import { formatNumber } from "../lib/format";
@@ -104,6 +105,8 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
   const levelUp = useLevelUpUnits(playerId);
   const speedUpTraining = useSpeedUpTraining(playerId);
   const speedUpLevelUp = useSpeedUpLevelUp(playerId);
+  const trainingSpeed = useTechnologyBonus(playerId, "TrainingSpeed");
+  const levelUpSpeed = useTechnologyBonus(playerId, "UnitLevelUpSpeed");
 
   const counts: Record<number, number> = {};
   for (const stack of garrison.data?.units ?? []) {
@@ -194,7 +197,10 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               })}
               unitType={training.unitType}
               level={training.level}
-              totalSeconds={cumulativeUnitLevelCost(unit.baseTrainSeconds, 1, training.level + 1, unit.trainTimeGrowth) * training.count}
+              totalSeconds={fasterSeconds(
+                cumulativeUnitLevelCost(unit.baseTrainSeconds, 1, training.level + 1, unit.trainTimeGrowth) * training.count,
+                trainingSpeed,
+              )}
               orderId={training.id}
               completesAt={training.completesAt}
               speedUpCostGems={training.speedUpCostGems}
@@ -209,6 +215,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               unit={unit}
               level={selected}
               maxBatch={Math.max(1, Math.min(maxBatch, free))}
+              speedBonus={trainingSpeed}
               blocked={
                 locked ??
                 (underConstruction
@@ -235,9 +242,10 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               })}
               unitType={levelling.unitType}
               level={levelling.toLevel}
-              totalSeconds={
-                cumulativeUnitLevelCost(unit.baseTrainSeconds, levelling.fromLevel, levelling.toLevel, unit.trainTimeGrowth) * levelling.count
-              }
+              totalSeconds={fasterSeconds(
+                cumulativeUnitLevelCost(unit.baseTrainSeconds, levelling.fromLevel, levelling.toLevel, unit.trainTimeGrowth) * levelling.count,
+                levelUpSpeed,
+              )}
               orderId={levelling.id}
               completesAt={levelling.completesAt}
               speedUpCostGems={levelling.speedUpCostGems}
@@ -253,6 +261,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               toLevel={selected}
               sources={sources}
               maxBatch={maxBatch}
+              speedBonus={levelUpSpeed}
               blocked={locked}
               pending={levelUp.isPending}
               error={levelUp.error}

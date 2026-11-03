@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -32,6 +33,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly ILogger<TrainUnitsCommandHandler> _logger;
         private readonly GameCatalog _catalog;
         private readonly VillageStatus _status;
+        private readonly PlayerTechnologies _technologies;
 
         public TrainUnitsCommandHandler(
             IVillageRepository villageRepository,
@@ -40,8 +42,10 @@ namespace EmpireIdle.Application.Garrisons.Commands
             TimeProvider timeProvider,
             ILogger<TrainUnitsCommandHandler> logger,
             GameCatalog catalog,
-            VillageStatus status)
+            VillageStatus status,
+            PlayerTechnologies technologies)
         {
+            _technologies = technologies;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _unitOfWork = unitOfWork;
@@ -113,7 +117,8 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var queue = _catalog.Units.Values.Where(u => u.RequiresBuilding == config.RequiresBuilding).Select(u => u.Key).ToList();
 
             garrison.TrainUnits(request.UnitType, request.Level, request.Count, batch,
-                armyCapacity, TimerDurations.Training(config, request.Level, request.Count), now, queue);
+                armyCapacity, TimerDurations.Training(config, request.Level, request.Count,
+                    (await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken)).Of(TechnologyStat.TrainingSpeed)), now, queue);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -21,6 +21,7 @@ public class TrainUnitsCommandTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private EffectResolver Effects() => TestEffects.Resolver(_effects);
 
     private static GameConfig Config() => new()
@@ -77,7 +78,20 @@ public class TrainUnitsCommandTests
         var catalog = new GameCatalog(Config());
 
         return new(_villages, _garrisons, _unitOfWork, new FakeTimeProvider(Now),
-            NullLogger<TrainUnitsCommandHandler>.Instance, catalog, new VillageStatus(catalog));
+            NullLogger<TrainUnitsCommandHandler>.Instance, catalog, new VillageStatus(catalog),
+            TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.TrainingSpeed, 0.25), _research));
+    }
+
+    /// <summary>Технологія швидкості тренування +25% скорочує 10 с до 8 (база / 1.25).</summary>
+    [Fact]
+    public async Task Handle_ShouldTrainFaster_WithTheTrainingSpeedTechnology()
+    {
+        var (_, garrison) = GivenVillage();
+        _research.Researched(PlayerId, "attack_infantry", 1);
+
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 5), CancellationToken.None);
+
+        Assert.Equal(Now.AddSeconds(8), Assert.Single(garrison.TrainingOrders).CompletesAt);
     }
 
     /// <summary>Село з ратушею й казармами заданих рівнів, гарнізон, ресурси.</summary>

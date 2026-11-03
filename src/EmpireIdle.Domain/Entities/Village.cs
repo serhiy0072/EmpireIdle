@@ -189,7 +189,7 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public void BeginBuildingUpgrade(Guid buildingId, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
             DateTime utcNow, ProductionBoost boost, string mainBuildingKey, int serverLevel, int levelsPerTier,
-            int maxBuildingLevel, double locationMultiplier)
+            int maxBuildingLevel, double locationMultiplier, double speedBonus = 0)
         {
             var building = _buildings.FirstOrDefault(b => b.Id == buildingId) ??
                 throw new EntityNotFoundException("Building", buildingId);
@@ -217,7 +217,7 @@ namespace EmpireIdle.Domain.Entities
             // Все або нічого — ChargeCost перевіряє всі позиції до першого списання
             ChargeCost(cost, utcNow);
 
-            building.BeginUpgrade(config, TimerDurations.Construction(config, building.Level.Value), utcNow, boost,
+            building.BeginUpgrade(config, TimerDurations.Construction(config, building.Level.Value, speedBonus), utcNow, boost,
                 locationMultiplier);
 
             RaiseDomainEvent(new Events.BuildingUpgradeStarted(Id, PlayerId, building.Id,

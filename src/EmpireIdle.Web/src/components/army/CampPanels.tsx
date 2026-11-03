@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNow } from "../../hooks/useNow";
-import { cumulativeUnitLevelCost, unitStatMultiplier } from "../../lib/progression";
+import { cumulativeUnitLevelCost, fasterSeconds, unitStatMultiplier } from "../../lib/progression";
 import type { CatalogUnit, SpeedUpTimer } from "../../lib/queries/catalog";
 import { useCatalog } from "../../lib/queries/catalog";
 import { formatDuration, formatRemaining } from "../../lib/time";
@@ -178,6 +178,8 @@ interface TrainProps {
   unit: CatalogUnit;
   level: number;
   maxBatch: number;
+  /** Технологія швидкості тренування (0.1 — +10%): час — як на сервері, база / (1 + бонус). */
+  speedBonus: number;
   /** Причина, з якої партію зараз не прийняти; null — можна тренувати. */
   blocked: string | null;
   pending: boolean;
@@ -186,11 +188,11 @@ interface TrainProps {
 }
 
 /** Нова партія на обраному рівні — тренування з нуля коштує суму кроків від 1 (§5.2 GDD). */
-export function TrainForm({ unit, level, maxBatch, blocked, pending, error, onTrain }: TrainProps) {
+export function TrainForm({ unit, level, maxBatch, speedBonus, blocked, pending, error, onTrain }: TrainProps) {
   const catalog = useCatalog();
   const [count, setCount] = useState(maxBatch);
   const amount = Math.min(count, maxBatch);
-  const seconds = cumulativeUnitLevelCost(unit.baseTrainSeconds, 1, level + 1, unit.trainTimeGrowth) * amount;
+  const seconds = fasterSeconds(cumulativeUnitLevelCost(unit.baseTrainSeconds, 1, level + 1, unit.trainTimeGrowth) * amount, speedBonus);
 
   return (
     <div className="space-y-3 rounded-xl bg-[#2a4f8c] p-3 ring-1 ring-[#3d6aae]">
@@ -222,6 +224,8 @@ interface UpgradeProps {
   /** Нижчі рівні, з яких є кого качати: рівень → кількість. */
   sources: [number, number][];
   maxBatch: number;
+  /** Технологія швидкості прокачки юнітів. */
+  speedBonus: number;
   blocked: string | null;
   pending: boolean;
   error: unknown;
@@ -229,7 +233,7 @@ interface UpgradeProps {
 }
 
 /** Прокачка вже навчених до обраного рівня: платяться лише пройдені кроки (§5.2 GDD). */
-export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending, error, onUpgrade }: UpgradeProps) {
+export function UpgradeForm({ unit, toLevel, sources, maxBatch, speedBonus, blocked, pending, error, onUpgrade }: UpgradeProps) {
   const catalog = useCatalog();
   const [picked, setPicked] = useState<number | null>(null);
   const [count, setCount] = useState(maxBatch);
@@ -247,7 +251,10 @@ export function UpgradeForm({ unit, toLevel, sources, maxBatch, blocked, pending
   const [fromLevel, available] = source;
   const limit = Math.max(1, Math.min(available, maxBatch));
   const amount = Math.min(count, limit);
-  const seconds = cumulativeUnitLevelCost(unit.baseTrainSeconds, fromLevel, toLevel, unit.trainTimeGrowth) * amount;
+  const seconds = fasterSeconds(
+    cumulativeUnitLevelCost(unit.baseTrainSeconds, fromLevel, toLevel, unit.trainTimeGrowth) * amount,
+    speedBonus,
+  );
 
   return (
     <div className="space-y-3 rounded-xl bg-[#2a4f8c] p-3 ring-1 ring-[#3d6aae]">

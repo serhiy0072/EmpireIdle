@@ -1,5 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -25,6 +26,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
         private readonly ILogger<LevelUpUnitsCommandHandler> _logger;
         private readonly GameCatalog _catalog;
         private readonly VillageStatus _status;
+        private readonly PlayerTechnologies _technologies;
 
         public LevelUpUnitsCommandHandler(
             IVillageRepository villageRepository,
@@ -33,8 +35,10 @@ namespace EmpireIdle.Application.Garrisons.Commands
             TimeProvider timeProvider,
             ILogger<LevelUpUnitsCommandHandler> logger,
             GameCatalog catalog,
-            VillageStatus status)
+            VillageStatus status,
+            PlayerTechnologies technologies)
         {
+            _technologies = technologies;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _unitOfWork = unitOfWork;
@@ -95,7 +99,8 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var queue = _catalog.Units.Values.Where(u => u.RequiresBuilding == config.RequiresBuilding).Select(u => u.Key).ToList();
 
             garrison.LevelUpUnits(request.UnitType, request.FromLevel, request.ToLevel, request.Count, batch,
-                TimerDurations.LevelUp(config, request.FromLevel, request.ToLevel, request.Count), now, queue);
+                TimerDurations.LevelUp(config, request.FromLevel, request.ToLevel, request.Count,
+                    (await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken)).Of(TechnologyStat.UnitLevelUpSpeed)), now, queue);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
