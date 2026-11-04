@@ -3,6 +3,7 @@
     "Clan": {
       "Capacity": 200,
       "MaxHelpShare": 0.4,
+      "MaxHelpShareWithTechnologies": 0.6,
       "HelpSharePerPlayer": 0.02,
       "HelpRequestLifetimeHours": 24,
       "LeaderInactivityDays": 7,

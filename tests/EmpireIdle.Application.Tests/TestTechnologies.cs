@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Entities;
@@ -28,11 +29,17 @@ internal static class TestTechnologies
         => new(research ?? Substitute.For<IPlayerResearchRepository>(), new PersonalTechnologies(technologies.Personal),
             clanResearch ?? NoClan(), new ClanTechnologies(technologies.Clan));
 
+    /// <summary>Бонуси клану з цього репозиторію; без репозиторію — клан нічого не вивчив.</summary>
+    public static ClanBonuses ClanBonuses(GameCatalog catalog, IClanResearchRepository? clanResearch = null)
+        => new(clanResearch ?? NoClan(), new ClanTechnologies(catalog.Config.Technologies.Clan));
+
     /// <summary>Гравець поза кланом.</summary>
     public static IClanResearchRepository NoClan()
     {
         var clanResearch = Substitute.For<IClanResearchRepository>();
         clanResearch.GetLevelsByMemberAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyDictionary<string, int>?)null);
+        clanResearch.GetLevelsByClanAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((IReadOnlyDictionary<string, int>?)null);
 
         return clanResearch;

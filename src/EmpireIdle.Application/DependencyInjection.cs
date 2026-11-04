@@ -88,6 +88,7 @@ namespace EmpireIdle.Application
             services.AddScoped<ClanSuccession>();
             services.AddScoped<ClanDisbander>();
             services.AddScoped<ClanOfferings>();
+            services.AddScoped<ClanBonuses>();
             services.AddScoped<QuestThresholds>();
             services.AddScoped<ClanStructureRemover>();
             services.AddScoped<StructureMarchRules>();

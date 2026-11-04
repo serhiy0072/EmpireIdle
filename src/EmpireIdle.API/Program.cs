@@ -239,6 +239,8 @@ builder.Services.AddOptions<GameConfig>()
             && c.Combat.CityFall.DefenceLossPerDamage is >= 0 and <= 1
             && c.Combat.CityFall.RepairCostShare >= 0,
         "GameConfig.Combat.CityFall needs DefeatsToEvict ≥ 1, positive RepairHours, non-negative counts and costs, and multipliers within [0; 1].")
+    .Validate(c => c.Clan.MaxHelpShareWithTechnologies >= c.Clan.MaxHelpShare && c.Clan.MaxHelpShareWithTechnologies < 1,
+        "GameConfig.Clan.MaxHelpShareWithTechnologies must be at least MaxHelpShare and below 1 — help must never erase a whole timer.")
     .Validate(c => c.Clan.HelpSharePerPlayer > 0 && c.Clan.MaxHelpShare is > 0 and <= 1 && c.Clan.MaxHelpShare >= c.Clan.HelpSharePerPlayer,
         "GameConfig.Clan needs 0 < HelpSharePerPlayer ≤ MaxHelpShare ≤ 1 — otherwise help is broken or cuts more than the whole timer.")
     .Validate(c => c.Clan.HelpRequestLifetimeHours > 0 && c.Clan.RequestLifetimeHours > 0 && c.Clan.RejectedCooldownHours >= 0 && c.Clan.LeaderInactivityDays > 0,

@@ -8,6 +8,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Технології клану для зміни або null, якщо клан ще нічого не вивчав.</summary>
         Task<ClanResearch?> GetByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
 
+        /// <summary>Вивчені рівні клану лише для читання; клан нічого не вивчив — null.</summary>
+        Task<IReadOnlyDictionary<string, int>?> GetLevelsByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Вивчені рівні клану, у якому гравець зараз; не в клані або клан нічого не вивчив — null.
         /// Читає збережений стан: зміни цієї ж команди до SaveChanges сюди ще не потрапляють.
