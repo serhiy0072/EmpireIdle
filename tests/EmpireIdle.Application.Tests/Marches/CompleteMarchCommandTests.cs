@@ -209,7 +209,8 @@ public class CompleteMarchCommandTests
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _heroes, _random,
             armyBuilder, resolver, effects, logistics, aftermath, armyBuffs, combatants, catalog, territoryBonus, territory, _clans,
-            new BeastTamer(_pens, _monsters, _random, new BeastTaming(catalog), capacities, status, catalog),
+            new BeastTamer(_pens, _monsters, _random, new BeastTaming(catalog), capacities, status, catalog,
+                TestTechnologies.For(catalog, _research)),
             new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog, TestTechnologies.For(catalog, _research)),
             NullLogger<MonsterBattleService>.Instance);
 

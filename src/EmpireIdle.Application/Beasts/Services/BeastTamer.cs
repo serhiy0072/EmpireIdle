@@ -1,8 +1,10 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Application.Beasts.Services
 {
@@ -20,10 +22,13 @@ namespace EmpireIdle.Application.Beasts.Services
         private readonly VillageCapacities _capacities;
         private readonly VillageStatus _status;
         private readonly GameCatalog _catalog;
+        private readonly PlayerTechnologies _technologies;
 
         public BeastTamer(IBeastPenRepository pens, IMonsterRepository monsters, IRandomSource random,
-            BeastTaming taming, VillageCapacities capacities, VillageStatus status, GameCatalog catalog)
+            BeastTaming taming, VillageCapacities capacities, VillageStatus status, GameCatalog catalog,
+            PlayerTechnologies technologies)
         {
+            _technologies = technologies;
             _pens = pens;
             _monsters = monsters;
             _random = random;
@@ -71,7 +76,9 @@ namespace EmpireIdle.Application.Beasts.Services
             if (slots == 0)
                 return null;
 
-            var rolled = _random.NextDouble() < _taming.ChanceFor(beast, _capacities.BeastPenLevel(village, _status));
+            var technologies = await _technologies.ForPlayerAsync(village.PlayerId, cancellationToken);
+            var rolled = _random.NextDouble() < _taming.ChanceFor(beast, _capacities.BeastPenLevel(village, _status),
+                technologies.Of(TechnologyStat.TameChance));
 
             var pen = await _pens.GetByPlayerAsync(village.PlayerId, cancellationToken);
 
