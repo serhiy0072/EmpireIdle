@@ -18,18 +18,35 @@ public class GetDungeonsQueryTests
     private static readonly Guid PlayerId = Guid.NewGuid();
 
     private readonly IDungeonRepository _dungeons = Substitute.For<IDungeonRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private readonly GameConfig _config = new GameConfigBuilder().WithDungeons().Build();
 
     public GetDungeonsQueryTests()
     {
         _config.Dungeons.RefillPricesGems = [100, 300];
+        _config.Dungeons.HeroExperiencePerRun = 1000;
         _dungeons.GetClearedLevelsAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(new Dictionary<string, int>());
     }
 
     private Task<DungeonsOverview> Overview()
         => new GetDungeonsQueryHandler(_dungeons, Substitute.For<IVillageRepository>(), new BattleBuilder(_config.Dungeons),
-                new GameCatalog(_config), new FakeTimeProvider(Now), new LocaleTexts(_config, "uk"))
+                new GameCatalog(_config), new FakeTimeProvider(Now), new LocaleTexts(_config, "uk"),
+                TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.HeroExperience, 0.5), _research))
             .Handle(new GetDungeonsQuery(PlayerId), CancellationToken.None);
+
+    /// <summary>Вітрина обіцяє рівно те, що видасть нагорода: без наставництва — база, із +50% — у півтора раза більше.</summary>
+    [Fact]
+    public async Task Handle_ShouldPromiseTheExperience_WithTheMentorshipTechnology()
+    {
+        var basic = (await Overview()).Dungeons[0].Levels[0].HeroExperience;
+
+        _research.Researched(PlayerId, "attack_infantry", 1);
+
+        var boosted = (await Overview()).Dungeons[0].Levels[0].HeroExperience;
+
+        Assert.True(basic > 0, "у фікстурі рівень мусить давати досвід");
+        Assert.Equal(BattleExperience.Boosted(basic, 0.5), boosted);
+    }
 
     /// <summary>Перше поповнення доби — перша ціна, лишаються всі.</summary>
     [Fact]

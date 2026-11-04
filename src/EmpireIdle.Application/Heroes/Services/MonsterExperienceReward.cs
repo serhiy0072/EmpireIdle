@@ -1,5 +1,7 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 
 namespace EmpireIdle.Application.Heroes.Services
 {
@@ -13,9 +15,12 @@ namespace EmpireIdle.Application.Heroes.Services
         private readonly IHeroRepository _heroRepository;
         private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
+        private readonly PlayerTechnologies _technologies;
 
-        public MonsterExperienceReward(IHeroRepository heroRepository, IServerContext serverContext, GameCatalog catalog)
+        public MonsterExperienceReward(IHeroRepository heroRepository, IServerContext serverContext, GameCatalog catalog,
+            PlayerTechnologies technologies)
         {
+            _technologies = technologies;
             _heroRepository = heroRepository;
             _serverContext = serverContext;
             _catalog = catalog;
@@ -25,10 +30,14 @@ namespace EmpireIdle.Application.Heroes.Services
         public async Task<long> GrantAsync(Guid playerId, int monsterLevel, DateTime utcNow, CancellationToken cancellationToken)
         {
             var settings = _catalog.Config.HeroSettings;
-            var amount = settings.MonsterExperiencePerLevel * Math.Max(1, monsterLevel);
+            var basic = settings.MonsterExperiencePerLevel * Math.Max(1, monsterLevel);
 
-            if (amount <= 0)
+            if (basic <= 0)
                 return 0;
+
+            // Технології наставництва додають досвіду лише за бій (рішення 28.10.2026)
+            var amount = BattleExperience.Boosted(basic,
+                (await _technologies.ForPlayerAsync(playerId, cancellationToken)).Of(TechnologyStat.HeroExperience));
 
             var pool = await _heroRepository.GetOrCreateExperienceAsync(playerId, _serverContext.ServerId, cancellationToken);
 

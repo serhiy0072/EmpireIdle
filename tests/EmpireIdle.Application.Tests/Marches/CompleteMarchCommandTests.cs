@@ -210,7 +210,7 @@ public class CompleteMarchCommandTests
             _monsters, _map, _garrisons, _villages, _heroes, _random,
             armyBuilder, resolver, effects, logistics, aftermath, armyBuffs, combatants, catalog, territoryBonus, territory, _clans,
             new BeastTamer(_pens, _monsters, _random, new BeastTaming(catalog), capacities, status, catalog),
-            new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog),
+            new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog, TestTechnologies.For(catalog, _research)),
             NullLogger<MonsterBattleService>.Instance);
 
         var homecoming = new MarchHomecoming(logistics, NullLogger<MarchHomecoming>.Instance);

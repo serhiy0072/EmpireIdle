@@ -24,6 +24,7 @@ public class DungeonRewarderTests
     private readonly Village _village = Entities.VillageWithResources(0);
     private readonly HeroExperiencePool _pool;
     private readonly DungeonRewarder _rewarder;
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
 
     public DungeonRewarderTests()
     {
@@ -44,7 +45,8 @@ public class DungeonRewarderTests
         var granter = new ItemGranter(Substitute.For<IInventoryRepository>(), Substitute.For<IServerContext>());
 
         _rewarder = new DungeonRewarder(dungeons, villages, heroes, Substitute.For<IServerContext>(), granter, _builder,
-            new GameCatalog(_config), Substitute.For<IRandomSource>());
+            new GameCatalog(_config), Substitute.For<IRandomSource>(),
+            TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.HeroExperience, 0.5), _research));
     }
 
     private Task<Application.Dungeons.Commands.DungeonReward> Grant(int level)
@@ -76,6 +78,20 @@ public class DungeonRewarderTests
         var reward = await Grant(level);
 
         var expected = (long)Math.Round(ExperiencePerRun * _builder.RewardMultiplier(level));
+
+        Assert.Equal(expected, reward.HeroExperience);
+        Assert.Equal(expected, _pool.Amount);
+    }
+
+    /// <summary>Наставництво +50% додає досвіду й за бій у данжі: 1000 → 1500 на першому рівні.</summary>
+    [Fact]
+    public async Task Grant_ShouldBoostTheExperience_WithTheMentorshipTechnology()
+    {
+        _research.Researched(_village.PlayerId, "attack_infantry", 1);
+
+        var reward = await Grant(1);
+
+        var expected = (long)Math.Round(ExperiencePerRun * _builder.RewardMultiplier(1) * 1.5, MidpointRounding.AwayFromZero);
 
         Assert.Equal(expected, reward.HeroExperience);
         Assert.Equal(expected, _pool.Amount);

@@ -2,6 +2,7 @@ using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Dungeons.Commands;
 using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -26,6 +27,7 @@ namespace EmpireIdle.Application.Dungeons.Services
         private readonly BattleBuilder _builder;
         private readonly GameCatalog _catalog;
         private readonly IRandomSource _random;
+        private readonly PlayerTechnologies _technologies;
 
         public DungeonRewarder(
             IDungeonRepository dungeons,
@@ -35,8 +37,10 @@ namespace EmpireIdle.Application.Dungeons.Services
             ItemGranter items,
             BattleBuilder builder,
             GameCatalog catalog,
-            IRandomSource random)
+            IRandomSource random,
+            PlayerTechnologies technologies)
         {
+            _technologies = technologies;
             _dungeons = dungeons;
             _villages = villages;
             _heroes = heroes;
@@ -65,7 +69,9 @@ namespace EmpireIdle.Application.Dungeons.Services
 
             village.GrantResources(resources, now);
 
-            var experience = _builder.HeroExperience(run.Level);
+            // Бій у данжі — теж бій: технології наставництва додають і сюди
+            var experience = BattleExperience.Boosted(_builder.HeroExperience(run.Level),
+                (await _technologies.ForPlayerAsync(run.PlayerId, cancellationToken)).Of(TechnologyStat.HeroExperience));
 
             if (experience > 0)
             {

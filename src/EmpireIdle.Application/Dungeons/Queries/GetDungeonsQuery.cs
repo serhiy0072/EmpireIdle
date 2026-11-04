@@ -2,8 +2,10 @@ using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Dungeons.Contracts;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 
 namespace EmpireIdle.Application.Dungeons.Queries
@@ -19,6 +21,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly LocaleTexts _texts;
+        private readonly PlayerTechnologies _technologies;
 
         public GetDungeonsQueryHandler(
             IDungeonRepository dungeons,
@@ -26,8 +29,10 @@ namespace EmpireIdle.Application.Dungeons.Queries
             BattleBuilder builder,
             GameCatalog catalog,
             TimeProvider timeProvider,
-            LocaleTexts texts)
+            LocaleTexts texts,
+            PlayerTechnologies technologies)
         {
+            _technologies = technologies;
             _texts = texts;
             _dungeons = dungeons;
             _villages = villages;
@@ -59,6 +64,10 @@ namespace EmpireIdle.Application.Dungeons.Queries
             var refillsLeft = Math.Max(0, settings.RefillPricesGems.Count - refills);
             int? refillPrice = refillsLeft > 0 ? settings.RefillPricesGems[refills] : null;
 
+            // Вітрина обіцяє рівно те, що видасть DungeonRewarder, — з наставництвом
+            var experienceBonus = (await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken))
+                .Of(TechnologyStat.HeroExperience);
+
             var views = settings.Dungeons
                 .Select(dungeon =>
                 {
@@ -73,7 +82,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
                             dungeon.Reward
                                 .Select(r => new RewardLine(r.Resource, (int)Math.Round(r.Amount * _builder.RewardMultiplier(level))))
                                 .ToList(),
-                            _builder.HeroExperience(level)))
+                            BattleExperience.Boosted(_builder.HeroExperience(level), experienceBonus)))
                         .ToList();
 
                     return new DungeonView(
