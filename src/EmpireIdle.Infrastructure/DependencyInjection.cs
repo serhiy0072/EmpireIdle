@@ -69,6 +69,7 @@ namespace EmpireIdle.Infrastructure
             services.AddScoped<IDungeonRepository, DungeonRepository>();
             services.AddScoped<ITowerRepository, TowerRepository>();
             services.AddScoped<IPlayerResearchRepository, PlayerResearchRepository>();
+            services.AddScoped<IClanResearchRepository, ClanResearchRepository>();
             services.AddScoped<IMarketRepository, MarketRepository>();
             services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IMailRepository, MailRepository>();

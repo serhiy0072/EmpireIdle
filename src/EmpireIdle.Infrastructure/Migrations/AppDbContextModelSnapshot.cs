@@ -790,6 +790,50 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("ClanRequests", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanResearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Levels")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'::jsonb");
+
+                    b.Property<string>("Progress")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'::jsonb");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TargetKey")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId")
+                        .IsUnique();
+
+                    b.ToTable("ClanResearch", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanRole", b =>
                 {
                     b.Property<Guid>("Id")

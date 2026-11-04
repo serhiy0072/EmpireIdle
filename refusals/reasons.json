@@ -122,6 +122,11 @@
   ],
   "clan.roleProtected": [],
   "clan.targetInClan": [],
+  "clantech.notSelected": [],
+  "clantech.tierLocked": [
+    "tier",
+    "worldLevel"
+  ],
   "common.buildingLevelRequired": [
     "building",
     "level"

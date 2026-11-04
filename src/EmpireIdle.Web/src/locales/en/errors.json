@@ -238,6 +238,10 @@
       "prerequisites": "Research at least one level of: {{nodes}}",
       "maxed": "The technology is already at its top level",
       "notActive": "The Laboratory isn't researching anything"
+    },
+    "clantech": {
+      "notSelected": "The clan hasn't chosen a technology to study yet",
+      "tierLocked": "Tier {{tier}} opens at world level {{worldLevel}}"
     }
   },
   "quoted": "{{name}}",

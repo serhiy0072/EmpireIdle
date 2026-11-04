@@ -321,6 +321,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "research.prerequisites": ({ nodes }) => t("errors:refusal.research.prerequisites", { nodes: nameList(nodes, technologyName) }),
   "research.maxed": () => t("errors:refusal.research.maxed"),
   "research.notActive": () => t("errors:refusal.research.notActive"),
+  "clantech.notSelected": () => t("errors:refusal.clantech.notSelected"),
+  "clantech.tierLocked": ({ tier, worldLevel }) => t("errors:refusal.clantech.tierLocked", { tier, worldLevel }),
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */

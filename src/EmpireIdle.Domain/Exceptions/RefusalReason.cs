@@ -537,5 +537,13 @@
 
         /// <summary>Прискорювати чи просити допомоги нема чого: Лабораторія вільна.</summary>
         public static readonly RefusalReason ResearchNotActive = new("research.notActive");
+
+        // ---------- Кланові технології ----------
+
+        /// <summary>Клан ще не обрав, що вивчати: підносити нема на що.</summary>
+        public static readonly RefusalReason ClanTechNotSelected = new("clantech.notSelected");
+
+        /// <summary>Тір закритий рівнем світу.</summary>
+        public static readonly RefusalReason ClanTechTierLocked = new("clantech.tierLocked", "tier", "worldLevel");
     }
 }
