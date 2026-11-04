@@ -133,7 +133,10 @@
     "need",
     "have"
   ],
-  "clantech.notSelected": [],
+  "clantech.notEnoughPoints": [
+    "need",
+    "have"
+  ],
   "clantech.resourceRejected": [
     "resource"
   ],

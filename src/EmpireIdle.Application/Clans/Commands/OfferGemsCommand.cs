@@ -44,7 +44,7 @@ namespace EmpireIdle.Application.Clans.Commands
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var clan = await _offerings.ClanOfAsync(request.PlayerId, cancellationToken);
-            var (research, _) = await _offerings.TargetOfAsync(clan, cancellationToken);
+            var research = await _offerings.ResearchOfAsync(clan, now, cancellationToken);
             var ledger = await _offerings.LedgerOfAsync(request.PlayerId, now, cancellationToken);
 
             var nth = ledger.NextGemOffering(now);
@@ -65,7 +65,7 @@ namespace EmpireIdle.Application.Clans.Commands
             var wallet = await _wallets.GetByUserIdAsync(userId, cancellationToken)
                 ?? throw new InvalidOperationException("Wallet not found.");
 
-            wallet.SpendGems(new GemAmount(price), $"clan-offering:{research.TargetKey}", request.PlayerId, now);
+            wallet.SpendGems(new GemAmount(price), "clan-offering", request.PlayerId, now);
             ledger.RecordGemOffering(now);
 
             var result = await _offerings.RecordAsync(clan, research, ledger, request.PlayerId, offering.GemPoints, now, cancellationToken);

@@ -4,7 +4,8 @@ using EmpireIdle.Domain.Technologies;
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
-    /// Кланові технології (рішення 28.10.2026): вивчені рівні, накопичені очки й обрана ціль.
+    /// Кланові технології (рішення 04.11): підношення лише наповнюють запас очок, а офіцер потім
+    /// розподіляє його по вузлах. Так внесок і нагорода ніколи не залежать від того, чи зайшов офіцер.
     /// Окремий агрегат, а не частина клану: підношення йдуть часто й паралельно, а токен кореня клану
     /// серіалізував би разом із ними вступи, ролі й споруди.
     /// </summary>
@@ -17,11 +18,11 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Вивчені рівні: «тір:вузол» → рівень.</summary>
         public IReadOnlyDictionary<string, int> Levels { get; private set; } = new Dictionary<string, int>();
 
-        /// <summary>Очки до наступного рівня: «тір:вузол» → очки. Переживають зміну цілі.</summary>
+        /// <summary>Вкладені очки до наступного рівня: «тір:вузол» → очки.</summary>
         public IReadOnlyDictionary<string, int> Progress { get; private set; } = new Dictionary<string, int>();
 
-        /// <summary>Що клан вивчає зараз («тір:вузол»); null — ціль не обрано.</summary>
-        public string? TargetKey { get; private set; }
+        /// <summary>Запас очок, які офіцер ще не розподілив.</summary>
+        public long UnallocatedPoints { get; private set; }
 
         public DateTime UpdatedAt { get; private set; }
 
@@ -40,52 +41,61 @@ namespace EmpireIdle.Domain.Entities
 
         public int ProgressOf(TechnologyKey key) => Progress.GetValueOrDefault(key.ToString());
 
-        /// <summary>Обирає ціль. Чи доступний вузол, вирішує дерево — це робить той, хто кличе.</summary>
-        public void SelectTarget(TechnologyKey key, DateTime utcNow)
+        /// <summary>Очки підношення йдуть у запас клану.</summary>
+        public void AddPoints(int points, DateTime utcNow)
         {
-            TargetKey = key.ToString();
+            UnallocatedPoints += Math.Max(points, 0);
             UpdatedAt = utcNow;
         }
 
         /// <summary>
-        /// Додає очки підношення до цілі й повертає рівні, які вони закрили. Закритий рівень сам веде до
-        /// наступного рівня того ж вузла; надлишок переходить у нього. Вивчений до кінця вузол знімає ціль,
-        /// і надлишок згорає: куди далі, вирішує офіцер, а не сервер.
+        /// Вкладає очки із запасу у вузол і повертає закриті рівні. Чи відкритий вузол, вирішує дерево — це
+        /// робить той, хто кличе. Вузол бере лише те, що йому ще потрібно: надлишок лишається в запасі.
         /// </summary>
-        public IReadOnlyList<(TechnologyKey Key, int Level)> AddPoints(int points, ClanTechnologies technologies, DateTime utcNow)
+        public IReadOnlyList<(TechnologyKey Key, int Level)> Allocate(TechnologyKey key, int points, ClanTechnologies technologies, DateTime utcNow)
         {
-            if (TargetKey is not { } target
-                || TechnologyKey.Parse(target) is not { } key
-                || technologies.Tree.Node(key.Node) is not { } node)
-                throw new RequirementNotMetException(RefusalReasons.ClanTechNotSelected, $"Clan {ClanId} has no technology selected.");
+            if (points > UnallocatedPoints)
+                throw new RequirementNotMetException(RefusalReasons.ClanTechNotEnoughPoints,
+                    $"Clan {ClanId} has {UnallocatedPoints} unallocated points, {points} requested.", points, UnallocatedPoints);
 
+            var node = technologies.Tree.Node(key.Node)
+                ?? throw new EntityNotFoundException("Technology", key.Node);
+
+            var name = key.ToString();
             var levels = new Dictionary<string, int>(Levels);
             var progress = new Dictionary<string, int>(Progress);
 
-            var level = levels.GetValueOrDefault(target);
-            var accumulated = progress.GetValueOrDefault(target) + Math.Max(points, 0);
+            var level = levels.GetValueOrDefault(name);
+            var invested = progress.GetValueOrDefault(name);
+            var left = points;
             var completed = new List<(TechnologyKey, int)>();
 
-            while (level < node.Levels && accumulated >= technologies.Points(key.Tier, node, level + 1))
+            while (left > 0 && level < node.Levels)
             {
-                accumulated -= technologies.Points(key.Tier, node, level + 1);
+                var needed = technologies.Points(key.Tier, node, level + 1) - invested;
+
+                if (left < needed)
+                {
+                    invested += left;
+                    left = 0;
+                    break;
+                }
+
+                left -= needed;
+                invested = 0;
                 level++;
-                levels[target] = level;
+                levels[name] = level;
                 completed.Add((key, level));
             }
 
-            if (level >= node.Levels)
-            {
-                progress.Remove(target);
-                TargetKey = null;
-            }
+            if (invested > 0)
+                progress[name] = invested;
             else
-            {
-                progress[target] = accumulated;
-            }
+                progress.Remove(name);
 
             Levels = levels;
             Progress = progress;
+            UnallocatedPoints -= points - left;
             UpdatedAt = utcNow;
 
             return completed;

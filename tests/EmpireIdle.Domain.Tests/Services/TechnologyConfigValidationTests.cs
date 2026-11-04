@@ -139,11 +139,6 @@ public class TechnologyConfigValidationTests
         => Assert.Contains("no resource prices", Rejects(c => c.Technologies.Personal.TabResources.Clear()).Message);
 
     [Fact]
-    public void Validate_ShouldRejectAnOfferingResourceWithoutAPrice()
-        => Assert.Contains("AttemptCostPerTownHall", Rejects(c =>
-            c.Technologies.Clan.Nodes[0].OfferResources = [TestKeys.Iron]).Message);
-
-    [Fact]
     public void Validate_ShouldRejectAnUnknownShopItem()
         => Assert.Contains("unknown item", Rejects(c => c.Technologies.Clan.Shop.WeeklyPool[0].ItemKey = "nothing").Message);
 

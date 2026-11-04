@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Clans.Commands
 {
     /// <summary>
-    /// Підношення ресурсом на технологію клану (рішення 28.10.2026): витрачає спробу й ресурс села.
+    /// Підношення ресурсом у запас клану (рішення 28.10.2026): витрачає спробу й ресурс села.
     /// Ціна росте з ратушею, а очки однакові — внесок великого й малого села рівноцінний.
     /// </summary>
     public record OfferResourcesCommand(Guid PlayerId, string Resource)
@@ -45,18 +45,14 @@ namespace EmpireIdle.Application.Clans.Commands
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var clan = await _offerings.ClanOfAsync(request.PlayerId, cancellationToken);
-            var (research, node) = await _offerings.TargetOfAsync(clan, cancellationToken);
-
-            // Ціль міг змінити офіцер, поки гравець дивився на старий вузол: це чесна відмова, а не баг клієнта
-            if (!node.OfferResources.Contains(request.Resource))
-                throw new RequirementNotMetException(RefusalReasons.ClanTechResourceRejected,
-                    $"{node.Key} does not accept {request.Resource}.", request.Resource);
+            var research = await _offerings.ResearchOfAsync(clan, now, cancellationToken);
 
             var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
             var cost = _technologies.AttemptCost(request.Resource, _status.MainBuildingLevel(village))
-                ?? throw new InvalidOperationException($"Validated config has no attempt price for {request.Resource}.");
+                ?? throw new RequirementNotMetException(RefusalReasons.ClanTechResourceRejected,
+                    $"Offerings do not accept {request.Resource}.", request.Resource);
 
             var ledger = await _offerings.LedgerOfAsync(request.PlayerId, now, cancellationToken);
             var offering = _technologies.Offering;

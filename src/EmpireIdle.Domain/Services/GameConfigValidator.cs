@@ -116,14 +116,6 @@ namespace EmpireIdle.Domain.Services
                         $"Technologies.Clan.Offering costs '{resource}', which must be a resource with a positive price.");
             }
 
-            foreach (var node in clan.Nodes)
-            {
-                if (node.OfferResources.Count == 0
-                    || node.OfferResources.Any(r => !clan.Offering.AttemptCostPerTownHall.ContainsKey(r)))
-                    throw new InvalidOperationException(
-                        $"Technologies.Clan node '{node.Key}' must accept offerings in resources priced by Offering.AttemptCostPerTownHall.");
-            }
-
             if (clan.Coins.Multipliers.Count == 0)
                 throw new InvalidOperationException("Technologies.Clan.Coins.Multipliers is empty — an offering would roll no coins.");
 

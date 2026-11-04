@@ -540,8 +540,8 @@
 
         // ---------- Кланові технології ----------
 
-        /// <summary>Клан ще не обрав, що вивчати: підносити нема на що.</summary>
-        public static readonly RefusalReason ClanTechNotSelected = new("clantech.notSelected");
+        /// <summary>У запасі клану менше очок, ніж хоче вкласти офіцер.</summary>
+        public static readonly RefusalReason ClanTechNotEnoughPoints = new("clantech.notEnoughPoints", "need", "have");
 
         /// <summary>Тір закритий рівнем світу.</summary>
         public static readonly RefusalReason ClanTechTierLocked = new("clantech.tierLocked", "tier", "worldLevel");
@@ -549,7 +549,7 @@
         /// <summary>Шкала спроб порожня: наступна відновиться з часом.</summary>
         public static readonly RefusalReason ClanTechNoAttempts = new("clantech.noAttempts");
 
-        /// <summary>Поточна ціль не приймає цей ресурс: офіцер змінив її, поки гравець дивився на старий вузол.</summary>
+        /// <summary>Підношення не приймає цей ресурс.</summary>
         public static readonly RefusalReason ClanTechResourceRejected = new("clantech.resourceRejected", "resource");
 
         /// <summary>Вичерпано денний ліміт gems-підношень.</summary>

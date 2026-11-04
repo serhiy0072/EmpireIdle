@@ -240,10 +240,10 @@
       "notActive": "The Laboratory isn't researching anything"
     },
     "clantech": {
-      "notSelected": "The clan hasn't chosen a technology to study yet",
+      "notEnoughPoints": "The clan's pool is short of points: {{need}} needed, it has {{have}}",
       "tierLocked": "Tier {{tier}} opens at world level {{worldLevel}}",
       "noAttempts": "No offering attempts left — a new one recharges soon",
-      "resourceRejected": "This technology doesn't accept {{resource}}",
+      "resourceRejected": "Offerings don't accept {{resource}} right now",
       "gemLimit": "You've reached today's limit of gem offerings ({{limit}})",
       "gemPriceChanged": "The offering price changed: it's {{price}} gems now",
       "noCoins": "Not enough clan coins: {{need}} needed, you have {{have}}",

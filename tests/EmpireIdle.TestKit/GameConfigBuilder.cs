@@ -540,13 +540,11 @@
                         new TechnologyNodeConfig
                         {
                             Key = "v_attack_all", Tab = "valor", Row = 1, Levels = 3, Scaling = TechnologyScaling.Battle,
-                            OfferResources = [TestKeys.Gold],
                             Effects = [new TechnologyEffectConfig { Stat = TechnologyStat.Attack, PerLevel = 0.01 }]
                         },
                         new TechnologyNodeConfig
                         {
                             Key = "c_coins", Tab = "valor", Row = 2, Levels = 3, Requires = ["v_attack_all"],
-                            OfferResources = [TestKeys.Gold, TestKeys.Wood],
                             Effects = [new TechnologyEffectConfig { Stat = TechnologyStat.CoinBonus, PerLevel = 0.02 }]
                         }
                     ],

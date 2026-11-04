@@ -97,9 +97,6 @@ namespace EmpireIdle.Domain.Services.Config
         public TechnologyScaling Scaling { get; set; }
 
         public List<TechnologyEffectConfig> Effects { get; set; } = new();
-
-        /// <summary>Лише кланові: якими ресурсами можна підносити на цей вузол.</summary>
-        public List<string> OfferResources { get; set; } = new();
     }
 
     /// <summary>Тір дерева: гейти відкриття, множники ціни й шкали ефектів.</summary>

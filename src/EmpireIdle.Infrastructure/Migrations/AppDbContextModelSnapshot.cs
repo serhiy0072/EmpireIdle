@@ -893,9 +893,8 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TargetKey")
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                    b.Property<long>("UnallocatedPoints")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");

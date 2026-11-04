@@ -1,7 +1,5 @@
 using EmpireIdle.Application.Clans.Commands;
-using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -30,12 +28,10 @@ public class ClanProductionSettlementTests
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
     private readonly IClanResearchRepository _clanResearch = Substitute.For<IClanResearchRepository>();
-    private readonly IClanOfferingRepository _offerings = Substitute.For<IClanOfferingRepository>();
     private readonly IClanRequestRepository _requests = Substitute.For<IClanRequestRepository>();
     private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
-    private readonly IRandomSource _random = Substitute.For<IRandomSource>();
     private readonly GameCatalog _catalog;
     private readonly ClanTechnologies _technologies;
 
@@ -61,7 +57,6 @@ public class ClanProductionSettlementTests
 
         _servers.GetLevelAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(1);
         _serverContext.ServerId.Returns(1);
-        _random.NextDouble().Returns(0.5);
         _requests.GetPendingForPlayerAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
             .Returns(new List<ClanRequest>());
     }
@@ -81,7 +76,6 @@ public class ClanProductionSettlementTests
         var village = new Village(Guid.NewGuid(), playerId, "Test", [TestKeys.Food, TestKeys.Gold], 0, 0);
         village.AddBuilding(TestKeys.Townhall, _catalog.Buildings, Now.AddHours(-1));
         village.AddBuilding(TestKeys.Farm, _catalog.Buildings, Now.AddHours(-1));
-        village.GrantResources([new ResourceCost { Resource = TestKeys.Gold, Amount = 100_000 }], Now.AddHours(-1));
         _villages.GetByPlayerIdAsync(playerId, Arg.Any<CancellationToken>()).Returns(village);
 
         return village.Buildings.Single(b => b.Type == TestKeys.Farm);
@@ -128,61 +122,50 @@ public class ClanProductionSettlementTests
     }
 
     [Fact]
-    public async Task OfferingThatClosesAProductionLevel_ShouldBankEveryMembersVillage_AtTheOldRate()
+    public async Task AllocationThatClosesAProductionLevel_ShouldBankEveryMembersVillage_AtTheOldRate()
     {
-        var offererFarm = GivenFarm(LeaderId);
+        var leaderFarm = GivenFarm(LeaderId);
         var memberFarm = GivenFarm(PlayerId);
         GivenClanLevels(LeaderId, 0);
         GivenClanLevels(PlayerId, 0);
+        GivenClanWithPoints();
 
-        var (clan, research) = GivenClanOneOfferingShortOfALevel();
-
-        var result = await Offer(clan, research);
+        var result = await Allocate(_technologies.Points(1, _technologies.Tree.Node(Standard.Node)!, 1));
 
         Assert.Single(result.LevelsCompleted);
-        Assert.Equal(600, offererFarm.AccruedAmount);
+        Assert.Equal(600, leaderFarm.AccruedAmount);
         Assert.Equal(600, memberFarm.AccruedAmount);
         Assert.Equal(Now, memberFarm.LastAccruedAt);
     }
 
-    /// <summary>Звичайне підношення чужих сіл не чіпає.</summary>
+    /// <summary>Розподіл, що рівня не закрив, ставки не змінює — чужих сіл не чіпає.</summary>
     [Fact]
-    public async Task OfferingThatClosesNothing_ShouldLeaveOtherVillagesAlone()
+    public async Task AllocationThatClosesNothing_ShouldLeaveVillagesAlone()
     {
         GivenFarm(LeaderId);
         var memberFarm = GivenFarm(PlayerId);
         GivenClanLevels(LeaderId, 0);
         GivenClanLevels(PlayerId, 0);
+        GivenClanWithPoints();
 
-        var (clan, research) = GivenClanOneOfferingShortOfALevel();
-        research.SelectTarget(new TechnologyKey(1, "c_coins"), Now);
-
-        await Offer(clan, research);
+        await Allocate(10);
 
         Assert.Equal(0, memberFarm.AccruedAmount);
     }
 
-    private (Clan Clan, ClanResearch Research) GivenClanOneOfferingShortOfALevel()
+    private void GivenClanWithPoints()
     {
         var clan = new Clan(Guid.NewGuid(), 1, "Alpha", "ALP", LeaderId, Now);
         clan.Join(PlayerId, capacity: 50, Now);
         _clans.GetByMemberAsync(LeaderId, Arg.Any<CancellationToken>()).Returns(clan);
 
         var research = new ClanResearch(Guid.NewGuid(), clan.Id, 1, Now);
-        research.SelectTarget(Standard, Now);
-        research.AddPoints(_technologies.Points(1, _technologies.Tree.Node(Standard.Node)!, 1) - 10, _technologies, Now);
+        research.AddPoints(100_000, Now);
         _clanResearch.GetByClanAsync(clan.Id, Arg.Any<CancellationToken>()).Returns(research);
-
-        return (clan, research);
     }
 
-    private Task<ClanOfferingResult> Offer(Clan clan, ClanResearch research)
-    {
-        var offerings = new ClanOfferings(_clans, _clanResearch, _offerings, _serverContext, _technologies, _random,
-            new RewardDispatcher([]), Settlement());
-
-        return new OfferResourcesCommandHandler(offerings, _villages, _unitOfWork, _technologies, new VillageStatus(_catalog),
-                new FakeTimeProvider(Now), NullLogger<OfferResourcesCommandHandler>.Instance)
-            .Handle(new OfferResourcesCommand(LeaderId, TestKeys.Gold), CancellationToken.None);
-    }
+    private Task<ClanAllocationResult> Allocate(int points)
+        => new AllocateClanPointsCommandHandler(_clans, _clanResearch, _servers, _serverContext, _unitOfWork, _technologies,
+                Settlement(), new FakeTimeProvider(Now), NullLogger<AllocateClanPointsCommandHandler>.Instance)
+            .Handle(new AllocateClanPointsCommand(LeaderId, 1, Standard.Node, points), CancellationToken.None);
 }

@@ -334,8 +334,7 @@
             "Requires": [],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "ResearchSpeed", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "ResearchSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "c_production",
@@ -344,8 +343,7 @@
             "Requires": ["c_research"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "Production", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "Production", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "c_construction",
@@ -354,8 +352,7 @@
             "Requires": ["c_research"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "ConstructionSpeed", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "ConstructionSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "c_training",
@@ -364,8 +361,7 @@
             "Requires": ["c_research"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "TrainingSpeed", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "TrainingSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "c_helpcap",
@@ -374,8 +370,7 @@
             "Requires": ["c_production", "c_construction", "c_training"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "HelpShareCap", "Target": null, "PerLevel": 0.02 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "HelpShareCap", "Target": null, "PerLevel": 0.02 } ]
           },
           {
             "Key": "c_attempts",
@@ -384,8 +379,7 @@
             "Requires": ["c_helpcap"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "OfferingAttempts", "Target": null, "PerLevel": 1 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "OfferingAttempts", "Target": null, "PerLevel": 1 } ]
           },
           {
             "Key": "c_coins",
@@ -394,8 +388,7 @@
             "Requires": ["c_helpcap"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "CoinBonus", "Target": null, "PerLevel": 0.02 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "CoinBonus", "Target": null, "PerLevel": 0.02 } ]
           },
           {
             "Key": "l_buildspeed",
@@ -404,8 +397,7 @@
             "Requires": [],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "StructureBuildSpeed", "Target": null, "PerLevel": 0.05 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "StructureBuildSpeed", "Target": null, "PerLevel": 0.05 } ]
           },
           {
             "Key": "l_attack",
@@ -414,8 +406,7 @@
             "Requires": ["l_buildspeed"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "TerritoryAttack", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "TerritoryAttack", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "l_defense",
@@ -424,8 +415,7 @@
             "Requires": ["l_buildspeed"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "TerritoryDefense", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "TerritoryDefense", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "l_garrison",
@@ -434,8 +424,7 @@
             "Requires": ["l_attack", "l_defense"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "StructureGarrison", "Target": null, "PerLevel": 0.1 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "StructureGarrison", "Target": null, "PerLevel": 0.1 } ]
           },
           {
             "Key": "l_cashback",
@@ -444,8 +433,7 @@
             "Requires": ["l_garrison"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "LootCashback", "Target": null, "PerLevel": 0.005 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "LootCashback", "Target": null, "PerLevel": 0.005 } ]
           },
           {
             "Key": "l_cost",
@@ -454,8 +442,7 @@
             "Requires": ["l_garrison"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "StructureCost", "Target": null, "PerLevel": 0.03 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "StructureCost", "Target": null, "PerLevel": 0.03 } ]
           },
           {
             "Key": "v_attack_all",
@@ -464,8 +451,7 @@
             "Requires": [],
             "Levels": 3,
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Attack", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Attack", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "v_attack_infantry",
@@ -474,8 +460,7 @@
             "Requires": ["v_attack_all"],
             "Levels": 3,
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Attack", "Target": "infantry", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Attack", "Target": "infantry", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_attack_spearman",
@@ -484,8 +469,7 @@
             "Requires": ["v_attack_all"],
             "Levels": 3,
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Attack", "Target": "spearman", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Attack", "Target": "spearman", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_attack_archer",
@@ -494,8 +478,7 @@
             "Requires": ["v_attack_all"],
             "Levels": 3,
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Attack", "Target": "archer", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Attack", "Target": "archer", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_defense_all",
@@ -504,8 +487,7 @@
             "Requires": ["v_attack_infantry", "v_attack_spearman", "v_attack_archer"],
             "Levels": 3,
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Defense", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Defense", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "v_defense_infantry",
@@ -514,8 +496,7 @@
             "Requires": ["v_defense_all"],
             "Levels": 3,
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Defense", "Target": "infantry", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Defense", "Target": "infantry", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_defense_spearman",
@@ -524,8 +505,7 @@
             "Requires": ["v_defense_all"],
             "Levels": 3,
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Defense", "Target": "spearman", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Defense", "Target": "spearman", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_defense_archer",
@@ -534,8 +514,7 @@
             "Requires": ["v_defense_all"],
             "Levels": 3,
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Defense", "Target": "archer", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Defense", "Target": "archer", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_marchspeed",
@@ -544,8 +523,7 @@
             "Requires": ["v_defense_infantry", "v_defense_spearman", "v_defense_archer"],
             "Levels": 3,
             "Scaling": "None",
-            "Effects": [ { "Stat": "MarchSpeed", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "MarchSpeed", "Target": null, "PerLevel": 0.01 } ]
           }
         ],
         "Offering": {

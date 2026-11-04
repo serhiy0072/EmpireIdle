@@ -56,7 +56,6 @@ public class ClanOfferingCommandTests
         _clans.GetByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(_clan);
 
         _target = new ClanResearch(Guid.NewGuid(), _clan.Id, 1, Now);
-        _target.SelectTarget(new TechnologyKey(1, "v_attack_all"), Now);
         _research.GetByClanAsync(_clan.Id, Arg.Any<CancellationToken>()).Returns(_target);
 
         _ledger = new ClanOfferingLedger(Guid.NewGuid(), PlayerId, 1, Now);
@@ -72,8 +71,7 @@ public class ClanOfferingCommandTests
     }
 
     private ClanOfferings Offerings()
-        => new(_clans, _research, _offerings, _serverContext, _technologies, _random, new RewardDispatcher([_granter]),
-            TestTechnologies.Settlement(_catalog, Substitute.For<IVillageRepository>()));
+        => new(_clans, _research, _offerings, _serverContext, _technologies, _random, new RewardDispatcher([_granter]));
 
     private OfferResourcesCommandHandler ResourcesHandler()
         => new(Offerings(), _villages, _unitOfWork, _technologies, new VillageStatus(_catalog),
@@ -105,7 +103,8 @@ public class ClanOfferingCommandTests
 
         // Ратуша 10 × 50 золота за спробу
         Assert.Equal(goldBefore - 500, Resource(TestKeys.Gold));
-        Assert.Equal(10, _target.ProgressOf(new TechnologyKey(1, "v_attack_all")));
+        Assert.Equal(10, _target.UnallocatedPoints);
+        Assert.Equal(10, result.ClanPoints);
         Assert.Equal(100, result.Coins);
         Assert.Equal(100, _ledger.Coins);
         Assert.Equal(24, _ledger.AttemptsAvailable(25, TimeSpan.FromSeconds(576), Now));
@@ -115,24 +114,27 @@ public class ClanOfferingCommandTests
     }
 
     [Fact]
-    public async Task OfferResources_ShouldRefuse_WhenTheTargetDoesNotAcceptTheResource()
+    public async Task OfferResources_ShouldRefuse_AResourceWithoutAPrice()
     {
         var error = await Assert.ThrowsAsync<RequirementNotMetException>(
-            () => ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Wood), CancellationToken.None));
+            () => ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Iron), CancellationToken.None));
 
         Assert.Equal(RefusalReasons.ClanTechResourceRejected.Key, error.Reason);
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
+    /// <summary>Підношення не залежить від офіцера: перше з них саме створює запас клану.</summary>
     [Fact]
-    public async Task OfferResources_ShouldRefuse_WhenTheClanHasNoTarget()
+    public async Task OfferResources_ShouldWorkAndReward_InAClanThatNeverAllocatedAnything()
     {
+        ClanResearch? created = null;
         _research.GetByClanAsync(_clan.Id, Arg.Any<CancellationToken>()).Returns((ClanResearch?)null);
+        await _research.AddAsync(Arg.Do<ClanResearch>(r => created = r), Arg.Any<CancellationToken>());
 
-        var error = await Assert.ThrowsAsync<RequirementNotMetException>(
-            () => ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None));
+        var result = await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
 
-        Assert.Equal(RefusalReasons.ClanTechNotSelected.Key, error.Reason);
+        Assert.Equal(100, result.Coins);
+        Assert.Equal(10, created!.UnallocatedPoints);
     }
 
     [Fact]
@@ -156,7 +158,6 @@ public class ClanOfferingCommandTests
         var other = new Clan(Guid.NewGuid(), 1, "Beta", "BET", PlayerId, Now);
         _clans.GetByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(other);
         var otherTarget = new ClanResearch(Guid.NewGuid(), other.Id, 1, Now);
-        otherTarget.SelectTarget(new TechnologyKey(1, "v_attack_all"), Now);
         _research.GetByClanAsync(other.Id, Arg.Any<CancellationToken>()).Returns(otherTarget);
 
         await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
@@ -175,7 +176,7 @@ public class ClanOfferingCommandTests
         await GemsHandler().Handle(new OfferGemsCommand(PlayerId, 10), CancellationToken.None);
 
         Assert.Equal(90, wallet.GemBalance.Value);
-        Assert.Equal(50, _target.ProgressOf(new TechnologyKey(1, "v_attack_all")));
+        Assert.Equal(50, _target.UnallocatedPoints);
         Assert.Equal(2, _ledger.NextGemOffering(Now));
         Assert.Equal(25, _ledger.AttemptsAvailable(25, TimeSpan.FromSeconds(576), Now));
     }
@@ -249,25 +250,11 @@ public class ClanOfferingCommandTests
         var other = new Clan(Guid.NewGuid(), 1, "Beta", "BET", PlayerId, Now);
         _clans.GetByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(other);
         var otherTarget = new ClanResearch(Guid.NewGuid(), other.Id, 1, Now);
-        otherTarget.SelectTarget(new TechnologyKey(1, "v_attack_all"), Now);
         _research.GetByClanAsync(other.Id, Arg.Any<CancellationToken>()).Returns(otherTarget);
 
         await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
         await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
 
         await _granter.Received(1).GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
-    }
-
-    /// <summary>Рівень, що закрився цим підношенням, діє вже на наступному.</summary>
-    [Fact]
-    public async Task RecordAsync_ShouldReportTheClosedLevel()
-    {
-        var node = _technologies.Tree.Node("v_attack_all")!;
-        _target.AddPoints(_technologies.Points(1, node, 1) - 10, _technologies, Now);
-
-        var result = await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
-
-        Assert.Equal("1:v_attack_all", Assert.Single(result.LevelsCompleted));
-        Assert.Equal(1, _target.LevelOf(new TechnologyKey(1, "v_attack_all")));
     }
 }

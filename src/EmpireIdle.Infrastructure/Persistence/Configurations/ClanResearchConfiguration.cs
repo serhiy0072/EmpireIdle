@@ -20,8 +20,6 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             ConfigureLevels(builder.Property(r => r.Levels));
             ConfigureLevels(builder.Property(r => r.Progress));
 
-            builder.Property(r => r.TargetKey).HasMaxLength(80);
-
             builder.Property(r => r.Version).IsRowVersion();
 
             builder.Ignore(r => r.DomainEvents);
