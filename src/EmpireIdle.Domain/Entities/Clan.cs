@@ -79,20 +79,21 @@ namespace EmpireIdle.Domain.Entities
             new(Guid.NewGuid(), clanId, "Leader", 100,
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
                 | ClanPermission.ManageRoles | ClanPermission.EditProfile
-                | ClanPermission.BuildStructures | ClanPermission.Disband,
+                | ClanPermission.BuildStructures | ClanPermission.Disband | ClanPermission.ManageTechnologies,
                 isLeaderRole: true, key: "leader"),
 
             new(Guid.NewGuid(), clanId, "Deputy", 85,
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
                 | ClanPermission.ManageRoles | ClanPermission.EditProfile
-                | ClanPermission.BuildStructures, key: "deputy"),
+                | ClanPermission.BuildStructures | ClanPermission.ManageTechnologies, key: "deputy"),
 
             new(Guid.NewGuid(), clanId, "General", 60,
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
-                | ClanPermission.BuildStructures, key: "general"),
+                | ClanPermission.BuildStructures | ClanPermission.ManageTechnologies, key: "general"),
 
             new(Guid.NewGuid(), clanId, "Officer", 40,
-                ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles, key: "officer"),
+                ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
+                | ClanPermission.ManageTechnologies, key: "officer"),
 
             new(Guid.NewGuid(), clanId, "Veteran", 20, ClanPermission.None, key: "veteran"),
 

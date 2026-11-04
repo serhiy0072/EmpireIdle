@@ -221,7 +221,7 @@ export const JOIN_POLICIES: { value: ClanJoinPolicy; name: string }[] = [
   { value: 2, name: "InviteOnly" },
 ];
 
-const PERMISSIONS = ["Recruit", "Kick", "AssignRoles", "ManageRoles", "EditProfile", "BuildStructures", "Disband"] as const;
+const PERMISSIONS = ["Recruit", "Kick", "AssignRoles", "ManageRoles", "EditProfile", "BuildStructures", "Disband", "ManageTechnologies"] as const;
 
 export function permissionLabel(permission: string): string {
   return (PERMISSIONS as readonly string[]).includes(permission)

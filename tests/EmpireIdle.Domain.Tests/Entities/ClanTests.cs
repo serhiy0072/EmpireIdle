@@ -34,6 +34,17 @@ public class ClanTests
         Assert.Equal(Now.AddHours(3), clan.Members.Single(m => m.PlayerId == member).LastActiveAt);
     }
 
+    /// <summary>Кланову технологію обирає офіцер і вище (рішення 28.10.2026), а не кожен учасник.</summary>
+    [Theory]
+    [InlineData("Leader", true)]
+    [InlineData("Deputy", true)]
+    [InlineData("General", true)]
+    [InlineData("Officer", true)]
+    [InlineData("Veteran", false)]
+    [InlineData("Member", false)]
+    public void DefaultRoles_ShouldLetOfficersAndAboveManageTechnologies(string role, bool allowed)
+        => Assert.Equal(allowed, NewClan().Roles.Single(r => r.Name == role).Can(ClanPermission.ManageTechnologies));
+
     /// <summary>Новий гравець у ролі, яку видав лідер.</summary>
     private static Guid Recruit(Clan clan, string role)
     {

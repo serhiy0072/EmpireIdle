@@ -32,6 +32,9 @@ namespace EmpireIdle.Domain.Enums
         BuildStructures = 32,
 
         /// <summary>Розпустити клан. Тільки лідер — і при передачі лідерства теж.</summary>
-        Disband = 64
+        Disband = 64,
+
+        /// <summary>Обирати, яку технологію клан вивчає підношеннями.</summary>
+        ManageTechnologies = 128
     }
 }
