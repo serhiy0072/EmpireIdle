@@ -593,6 +593,37 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.ToTable("Clans", (string)null);
                 });
 
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanContribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Today")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Total")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId", "PlayerId")
+                        .IsUnique();
+
+                    b.ToTable("ClanContributions", (string)null);
+                });
+
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanHelpContribution", b =>
                 {
                     b.Property<Guid>("Id")
@@ -695,6 +726,49 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ClanMembers", (string)null);
+                });
+
+            modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanOfferingLedger", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AttemptsAnchor")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("AttemptsSpent")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Coins")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<int>("GemOfferingsToday")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("PointsToday")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.ToTable("ClanOfferingLedgers", (string)null);
                 });
 
             modelBuilder.Entity("EmpireIdle.Domain.Entities.ClanQuestProgress", b =>

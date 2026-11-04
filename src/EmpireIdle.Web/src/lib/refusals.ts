@@ -323,6 +323,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "research.notActive": () => t("errors:refusal.research.notActive"),
   "clantech.notSelected": () => t("errors:refusal.clantech.notSelected"),
   "clantech.tierLocked": ({ tier, worldLevel }) => t("errors:refusal.clantech.tierLocked", { tier, worldLevel }),
+  "clantech.noAttempts": () => t("errors:refusal.clantech.noAttempts"),
+  "clantech.resourceRejected": ({ resource }) => t("errors:refusal.clantech.resourceRejected", { resource }),
+  "clantech.gemLimit": ({ limit }) => t("errors:refusal.clantech.gemLimit", { limit }),
+  "clantech.gemPriceChanged": ({ price }) => t("errors:refusal.clantech.gemPriceChanged", { price }),
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */

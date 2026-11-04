@@ -241,7 +241,11 @@
     },
     "clantech": {
       "notSelected": "The clan hasn't chosen a technology to study yet",
-      "tierLocked": "Tier {{tier}} opens at world level {{worldLevel}}"
+      "tierLocked": "Tier {{tier}} opens at world level {{worldLevel}}",
+      "noAttempts": "No offering attempts left — a new one recharges soon",
+      "resourceRejected": "This technology doesn't accept {{resource}}",
+      "gemLimit": "You've reached today's limit of gem offerings ({{limit}})",
+      "gemPriceChanged": "The offering price changed: it's {{price}} gems now"
     }
   },
   "quoted": "{{name}}",

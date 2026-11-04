@@ -545,5 +545,17 @@
 
         /// <summary>Тір закритий рівнем світу.</summary>
         public static readonly RefusalReason ClanTechTierLocked = new("clantech.tierLocked", "tier", "worldLevel");
+
+        /// <summary>Шкала спроб порожня: наступна відновиться з часом.</summary>
+        public static readonly RefusalReason ClanTechNoAttempts = new("clantech.noAttempts");
+
+        /// <summary>Поточна ціль не приймає цей ресурс: офіцер змінив її, поки гравець дивився на старий вузол.</summary>
+        public static readonly RefusalReason ClanTechResourceRejected = new("clantech.resourceRejected", "resource");
+
+        /// <summary>Вичерпано денний ліміт gems-підношень.</summary>
+        public static readonly RefusalReason ClanTechGemLimit = new("clantech.gemLimit", "limit");
+
+        /// <summary>Ціна наступного gems-підношення вже інша, ніж бачив гравець; price — нова ціна.</summary>
+        public static readonly RefusalReason ClanTechGemPriceChanged = new("clantech.gemPriceChanged", "price");
     }
 }

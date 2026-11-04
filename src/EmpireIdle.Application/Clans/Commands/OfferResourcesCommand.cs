@@ -1,0 +1,78 @@
+using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Domain.Exceptions;
+using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.Technologies;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
+namespace EmpireIdle.Application.Clans.Commands
+{
+    /// <summary>
+    /// Підношення ресурсом на технологію клану (рішення 28.10.2026): витрачає спробу й ресурс села.
+    /// Ціна росте з ратушею, а очки однакові — внесок великого й малого села рівноцінний.
+    /// </summary>
+    public record OfferResourcesCommand(Guid PlayerId, string Resource)
+        : IRequest<ClanOfferingResult>, IPlayerScopedRequest, IIdempotentRequest;
+
+    public sealed class OfferResourcesCommandHandler : IRequestHandler<OfferResourcesCommand, ClanOfferingResult>
+    {
+        private readonly ClanOfferings _offerings;
+        private readonly IVillageRepository _villages;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ClanTechnologies _technologies;
+        private readonly VillageStatus _status;
+        private readonly TimeProvider _timeProvider;
+        private readonly ILogger<OfferResourcesCommandHandler> _logger;
+
+        public OfferResourcesCommandHandler(ClanOfferings offerings, IVillageRepository villages, IUnitOfWork unitOfWork,
+            ClanTechnologies technologies, VillageStatus status, TimeProvider timeProvider,
+            ILogger<OfferResourcesCommandHandler> logger)
+        {
+            _offerings = offerings;
+            _villages = villages;
+            _unitOfWork = unitOfWork;
+            _technologies = technologies;
+            _status = status;
+            _timeProvider = timeProvider;
+            _logger = logger;
+        }
+
+        public async Task<ClanOfferingResult> Handle(OfferResourcesCommand request, CancellationToken cancellationToken)
+        {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
+            var clan = await _offerings.ClanOfAsync(request.PlayerId, cancellationToken);
+            var (research, node) = await _offerings.TargetOfAsync(clan, cancellationToken);
+
+            // Ціль міг змінити офіцер, поки гравець дивився на старий вузол: це чесна відмова, а не баг клієнта
+            if (!node.OfferResources.Contains(request.Resource))
+                throw new RequirementNotMetException(RefusalReasons.ClanTechResourceRejected,
+                    $"{node.Key} does not accept {request.Resource}.", request.Resource);
+
+            var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
+                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+
+            var cost = _technologies.AttemptCost(request.Resource, _status.MainBuildingLevel(village))
+                ?? throw new InvalidOperationException($"Validated config has no attempt price for {request.Resource}.");
+
+            var ledger = await _offerings.LedgerOfAsync(request.PlayerId, now, cancellationToken);
+            var offering = _technologies.Offering;
+            var bonus = (int)_technologies.Tree.Bonuses(research.Levels).Of(TechnologyStat.OfferingAttempts);
+
+            ledger.SpendAttempt(offering.MaxAttempts + bonus, TimeSpan.FromSeconds(offering.AttemptRechargeSeconds), now);
+            village.ChargeCost([new ResourceCost { Resource = request.Resource, Amount = cost }], now);
+
+            var result = await _offerings.RecordAsync(clan, research, ledger, request.PlayerId, offering.PointsPerAttempt, now, cancellationToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Player {PlayerId} offered {Cost} {Resource} to clan {ClanId}: {Coins} coins",
+                request.PlayerId, cost, request.Resource, clan.Id, result.Coins);
+
+            return result;
+        }
+    }
+}

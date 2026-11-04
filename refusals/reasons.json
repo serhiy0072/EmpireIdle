@@ -122,7 +122,17 @@
   ],
   "clan.roleProtected": [],
   "clan.targetInClan": [],
+  "clantech.gemLimit": [
+    "limit"
+  ],
+  "clantech.gemPriceChanged": [
+    "price"
+  ],
+  "clantech.noAttempts": [],
   "clantech.notSelected": [],
+  "clantech.resourceRejected": [
+    "resource"
+  ],
   "clantech.tierLocked": [
     "tier",
     "worldLevel"
