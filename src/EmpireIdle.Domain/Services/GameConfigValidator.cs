@@ -127,6 +127,8 @@ namespace EmpireIdle.Domain.Services
             if (clan.Coins.Multipliers.Count == 0)
                 throw new InvalidOperationException("Technologies.Clan.Coins.Multipliers is empty — an offering would roll no coins.");
 
+            ValidateClanDailyRewards(config, clan.DailyContributionRewards);
+
             var shop = clan.Shop;
 
             if (shop.DailySlots < 0 || shop.DailySlots > shop.DailyPool.Count)
@@ -145,6 +147,29 @@ namespace EmpireIdle.Domain.Services
                 if (offer.Price <= 0 || offer.Limit < 1)
                     throw new InvalidOperationException(
                         $"Technologies.Clan.Shop offer '{offer.ItemKey}' needs a positive price and a limit of at least 1.");
+            }
+        }
+
+        /// <summary>Пороги строго зростають і дають справжні нагороди: порожній поріг гравець побачив би як обман.</summary>
+        private static void ValidateClanDailyRewards(GameConfig config, List<ClanDailyRewardConfig> thresholds)
+        {
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+            var items = config.Items.ToDictionary(i => i.Key);
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+            var previous = 0;
+
+            foreach (var threshold in thresholds)
+            {
+                if (threshold.Points <= previous)
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.DailyContributionRewards must grow from a positive number of points, but {threshold.Points} follows {previous}.");
+
+                if (threshold.Rewards.Count == 0
+                    || threshold.Rewards.Any(r => r.Amount <= 0 || IsRewardBroken(r, resourceKeys, items, heroKeys)))
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.DailyContributionRewards at {threshold.Points} points needs rewards with known keys and positive amounts.");
+
+                previous = threshold.Points;
             }
         }
 

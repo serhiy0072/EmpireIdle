@@ -186,7 +186,18 @@ namespace EmpireIdle.Domain.Services.Config
 
         public ClanCoinsConfig Coins { get; set; } = new();
 
+        /// <summary>Пороги денного внеску за зростанням очок (рішення 03.11: за порогами, а не за місцем).</summary>
+        public List<ClanDailyRewardConfig> DailyContributionRewards { get; set; } = new();
+
         public ClanShopConfig Shop { get; set; } = new();
+    }
+
+    /// <summary>Гравець набрав за добу UTC стільки очок підношень — отримує нагороду.</summary>
+    public class ClanDailyRewardConfig
+    {
+        public int Points { get; set; }
+
+        public List<RewardConfig> Rewards { get; set; } = new();
     }
 
     /// <summary>Підношення: спроби ресурсами з поступовим відновленням і окремі підношення за gems.</summary>

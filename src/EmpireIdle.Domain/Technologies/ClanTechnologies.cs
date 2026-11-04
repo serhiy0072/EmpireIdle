@@ -56,6 +56,10 @@ namespace EmpireIdle.Domain.Technologies
             return (int)(offering.GemPriceBase * Math.Pow(offering.GemPriceGrowth, batch));
         }
 
+        /// <summary>Пороги денного внеску, які перетинає зростання денної суми гравця з before до after.</summary>
+        public IEnumerable<ClanDailyRewardConfig> DailyRewardsCrossed(int before, int after)
+            => _config.DailyContributionRewards.Where(reward => before < reward.Points && reward.Points <= after);
+
         /// <summary>
         /// Монети за одне підношення: база × множник із таблиці ваг, потім × (1 + бонус монет клану).
         /// </summary>

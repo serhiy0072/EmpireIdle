@@ -570,6 +570,16 @@
             { "Multiplier": 50, "Weight": 2 }
           ]
         },
+        "DailyContributionRewards": [
+          { "Points": 100, "Rewards": [ { "Type": "Item", "Key": "speedup_1m", "Amount": 3 } ] },
+          { "Points": 250, "Rewards": [ { "Type": "Gems", "Amount": 10 }, { "Type": "Item", "Key": "hero_xp_1k", "Amount": 1 } ] },
+          { "Points": 500, "Rewards": [ { "Type": "Item", "Key": "speedup_5m", "Amount": 1 } ] },
+          { "Points": 750, "Rewards": [ { "Type": "Gems", "Amount": 20 }, { "Type": "Item", "Key": "beast_feed", "Amount": 5 } ] },
+          { "Points": 1000, "Rewards": [ { "Type": "Item", "Key": "dungeon_energy_10", "Amount": 1 } ] },
+          { "Points": 1500, "Rewards": [ { "Type": "Gems", "Amount": 30 }, { "Type": "Item", "Key": "speedup_10m", "Amount": 1 } ] },
+          { "Points": 2000, "Rewards": [ { "Type": "Item", "Key": "boost_production_1h", "Amount": 1 } ] },
+          { "Points": 2500, "Rewards": [ { "Type": "Item", "Key": "chest_books_common", "Amount": 1 } ] }
+        ],
         "Shop": {
           "DailySlots": 6,
           "DailyPool": [

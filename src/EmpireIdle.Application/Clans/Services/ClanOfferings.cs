@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
@@ -8,7 +9,8 @@ using EmpireIdle.Domain.Technologies;
 namespace EmpireIdle.Application.Clans.Services
 {
     /// <summary>Що принесло одне підношення.</summary>
-    public record ClanOfferingResult(int Coins, long TotalCoins, IReadOnlyList<string> LevelsCompleted);
+    /// <param name="DailyRewardsReached">Пороги денного внеску, які перетнуло це підношення; нагороди вже видано.</param>
+    public record ClanOfferingResult(int Coins, long TotalCoins, IReadOnlyList<string> LevelsCompleted, IReadOnlyList<int> DailyRewardsReached);
 
     /// <summary>
     /// Спільне для підношень ресурсом і за gems: ціль клану, особиста книга й те, що дає саме підношення —
@@ -22,10 +24,12 @@ namespace EmpireIdle.Application.Clans.Services
         private readonly IServerContext _serverContext;
         private readonly ClanTechnologies _technologies;
         private readonly IRandomSource _random;
+        private readonly RewardDispatcher _rewards;
 
         public ClanOfferings(IClanRepository clans, IClanResearchRepository research, IClanOfferingRepository offerings,
-            IServerContext serverContext, ClanTechnologies technologies, IRandomSource random)
+            IServerContext serverContext, ClanTechnologies technologies, IRandomSource random, RewardDispatcher rewards)
         {
+            _rewards = rewards;
             _clans = clans;
             _research = research;
             _offerings = offerings;
@@ -75,7 +79,14 @@ namespace EmpireIdle.Application.Clans.Services
             var completed = research.AddPoints(points, _technologies, utcNow);
 
             ledger.AddCoins(coins);
-            ledger.AddPoints(points, utcNow);
+
+            // Пороги — за денною сумою гравця, а не внеском у клан: інакше перехід у інший клан дав би їх удруге
+            var (before, after) = ledger.AddPoints(points, utcNow);
+            var reached = _technologies.DailyRewardsCrossed(before, after).ToList();
+
+            foreach (var threshold in reached)
+                await _rewards.GrantAllAsync(playerId, threshold.Rewards,
+                    $"clan-daily:{DateOnly.FromDateTime(utcNow):yyyy-MM-dd}:{threshold.Points}", utcNow, cancellationToken);
 
             var contribution = await _offerings.GetContributionAsync(clan.Id, playerId, cancellationToken);
             if (contribution is null)
@@ -87,7 +98,8 @@ namespace EmpireIdle.Application.Clans.Services
             contribution.Add(points, utcNow);
             clan.RecordActivity(playerId, utcNow);
 
-            return new ClanOfferingResult(coins, ledger.Coins, completed.Select(c => c.Key.ToString()).ToList());
+            return new ClanOfferingResult(coins, ledger.Coins, completed.Select(c => c.Key.ToString()).ToList(),
+                reached.Select(r => r.Points).ToList());
         }
     }
 }

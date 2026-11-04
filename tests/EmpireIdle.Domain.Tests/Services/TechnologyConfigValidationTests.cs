@@ -10,6 +10,21 @@ namespace EmpireIdle.Domain.Tests.Services;
 /// </summary>
 public class TechnologyConfigValidationTests
 {
+    [Fact]
+    public void Validate_ShouldRejectDailyRewardThresholdsThatDoNotGrow()
+        => Assert.Contains("must grow", Rejects(c => c.Technologies.Clan.DailyContributionRewards =
+        [
+            new ClanDailyRewardConfig { Points = 100, Rewards = [new RewardConfig { Type = "Gems", Amount = 1 }] },
+            new ClanDailyRewardConfig { Points = 100, Rewards = [new RewardConfig { Type = "Gems", Amount = 1 }] }
+        ]).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectADailyRewardWithAnUnknownItem()
+        => Assert.Contains("known keys", Rejects(c => c.Technologies.Clan.DailyContributionRewards =
+        [
+            new ClanDailyRewardConfig { Points = 100, Rewards = [new RewardConfig { Type = "Item", Key = "nothing", Amount = 1 }] }
+        ]).Message);
+
     private static GameConfig Valid() => new GameConfigBuilder().WithTechnologies().Build();
 
     private static InvalidOperationException Rejects(Action<GameConfig> break_)

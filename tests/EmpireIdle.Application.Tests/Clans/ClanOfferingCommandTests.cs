@@ -1,9 +1,12 @@
 using EmpireIdle.Application.Clans.Commands;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Rewards;
+using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.Technologies;
 using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.TestKit;
@@ -29,6 +32,7 @@ public class ClanOfferingCommandTests
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IRandomSource _random = Substitute.For<IRandomSource>();
+    private readonly IRewardGranter _granter = Substitute.For<IRewardGranter>();
     private readonly Clan _clan;
     private readonly ClanResearch _target;
     private readonly ClanOfferingLedger _ledger;
@@ -38,7 +42,13 @@ public class ClanOfferingCommandTests
 
     public ClanOfferingCommandTests()
     {
-        var config = new GameConfigBuilder().WithTechnologies().Build();
+        var config = new GameConfigBuilder()
+            .WithTechnologies(t => t.Clan.DailyContributionRewards =
+            [
+                new ClanDailyRewardConfig { Points = 20, Rewards = [new RewardConfig { Type = "Gems", Amount = 5 }] },
+                new ClanDailyRewardConfig { Points = 60, Rewards = [new RewardConfig { Type = "Gems", Amount = 7 }] }
+            ])
+            .Build();
         _catalog = new GameCatalog(config);
         _technologies = new ClanTechnologies(config.Technologies.Clan);
 
@@ -56,12 +66,13 @@ public class ClanOfferingCommandTests
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(_village);
 
         _random.NextDouble().Returns(0.5);
+        _granter.RewardType.Returns("Gems");
         _serverContext.ServerId.Returns(1);
         _currentPlayer.UserId.Returns(UserId);
     }
 
     private ClanOfferings Offerings()
-        => new(_clans, _research, _offerings, _serverContext, _technologies, _random);
+        => new(_clans, _research, _offerings, _serverContext, _technologies, _random, new RewardDispatcher([_granter]));
 
     private OfferResourcesCommandHandler ResourcesHandler()
         => new(Offerings(), _villages, _unitOfWork, _technologies, new VillageStatus(_catalog),
@@ -196,6 +207,54 @@ public class ClanOfferingCommandTests
             () => GemsHandler().Handle(new OfferGemsCommand(PlayerId, 10240), CancellationToken.None));
 
         Assert.Equal(RefusalReasons.ClanTechGemLimit.Key, error.Reason);
+    }
+
+    /// <summary>Поріг 20 перетинає друга спроба, і лише вона; поріг 60 ще попереду.</summary>
+    [Fact]
+    public async Task Offering_ShouldGrantADailyReward_OnlyWhenCrossingItsThreshold()
+    {
+        var first = await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
+        var second = await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
+        var third = await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
+
+        Assert.Empty(first.DailyRewardsReached);
+        Assert.Equal(20, Assert.Single(second.DailyRewardsReached));
+        Assert.Empty(third.DailyRewardsReached);
+
+        await _granter.Received(1).GrantAsync(Arg.Is<RewardContext>(c => c.PlayerId == PlayerId && c.Reward.Amount == 5),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Велике gems-підношення може перетнути кілька порогів разом: кожен дає свою нагороду.</summary>
+    [Fact]
+    public async Task Offering_ShouldGrantEveryThresholdItCrosses()
+    {
+        GivenWallet(100);
+        _ledger.AddPoints(15, Now);
+
+        var result = await GemsHandler().Handle(new OfferGemsCommand(PlayerId, 10), CancellationToken.None);
+
+        Assert.Equal([20, 60], result.DailyRewardsReached);
+        await _granter.Received(2).GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Перехід в інший клан не дає порога вдруге: сума дня живе в особистій книзі.</summary>
+    [Fact]
+    public async Task Offering_ShouldNotRepeatTheThreshold_InAnotherClan()
+    {
+        await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
+        await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
+
+        var other = new Clan(Guid.NewGuid(), 1, "Beta", "BET", PlayerId, Now);
+        _clans.GetByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(other);
+        var otherTarget = new ClanResearch(Guid.NewGuid(), other.Id, 1, Now);
+        otherTarget.SelectTarget(new TechnologyKey(1, "v_attack_all"), Now);
+        _research.GetByClanAsync(other.Id, Arg.Any<CancellationToken>()).Returns(otherTarget);
+
+        await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
+        await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None);
+
+        await _granter.Received(1).GrantAsync(Arg.Any<RewardContext>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>Рівень, що закрився цим підношенням, діє вже на наступному.</summary>
