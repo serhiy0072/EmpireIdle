@@ -110,9 +110,9 @@ builder.Services.AddOptions<GameConfig>()
         "GameConfig.Technologies.Personal help must not be negative and all helps together must leave some research time.")
     .Validate(c => c.Technologies.Clan is { BasePoints: > 0, RowGrowth: >= 1, LevelGrowth: >= 1, PointsRounding: >= 1 },
         "GameConfig.Technologies.Clan needs positive base points, growth of at least 1 and a rounding of at least 1.")
-    .Validate(c => c.Technologies.Clan.Offering is { MaxAttempts: >= 1, AttemptRechargeSeconds: >= 1, PointsPerAttempt: >= 1, GemPoints: >= 1, GemPriceStep: >= 1, GemDailyLimit: >= 0 }
-        && c.Technologies.Clan.Offering.GemPriceCap >= c.Technologies.Clan.Offering.GemPriceStep,
-        "GameConfig.Technologies.Clan.Offering needs positive attempts, recharge, points and gem prices, with the gem price cap not below its step.")
+    .Validate(c => c.Technologies.Clan.Offering is { MaxAttempts: >= 1, AttemptRechargeSeconds: >= 1, PointsPerAttempt: >= 1, GemPoints: >= 1, GemPriceBase: >= 1, GemPriceBatch: >= 1, GemPriceGrowth: >= 1, GemDailyLimit: >= 0 }
+        && c.Technologies.Clan.Offering.GemPriceAtLimit <= int.MaxValue,
+        "GameConfig.Technologies.Clan.Offering needs positive attempts, recharge, points and gem prices, and the last offering of a day must have a representable price.")
     .Validate(c => c.Technologies.Clan.Coins.BaseAmount >= 1
         && c.Technologies.Clan.Coins.Multipliers.All(m => m.Multiplier >= 1 && m.Weight > 0),
         "GameConfig.Technologies.Clan.Coins needs a positive base and multipliers of at least ×1 with positive weights.")

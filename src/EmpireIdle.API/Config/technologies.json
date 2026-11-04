@@ -554,19 +554,20 @@
           "PointsPerAttempt": 10,
           "AttemptCostPerTownHall": { "gold": 50, "wood": 40, "iron": 40, "food": 50, "fodder": 35 },
           "GemPoints": 50,
-          "GemPriceStep": 20,
-          "GemPriceCap": 400,
+          "GemPriceBase": 10,
+          "GemPriceBatch": 5,
+          "GemPriceGrowth": 2,
           "GemDailyLimit": 50
         },
         "Coins": {
           "BaseAmount": 100,
           "Multipliers": [
-            { "Multiplier": 1, "Weight": 72 },
-            { "Multiplier": 2, "Weight": 18 },
-            { "Multiplier": 5, "Weight": 7 },
-            { "Multiplier": 10, "Weight": 2.5 },
-            { "Multiplier": 20, "Weight": 0.4 },
-            { "Multiplier": 50, "Weight": 0.1 }
+            { "Multiplier": 1, "Weight": 60 },
+            { "Multiplier": 2, "Weight": 20 },
+            { "Multiplier": 5, "Weight": 10 },
+            { "Multiplier": 10, "Weight": 5 },
+            { "Multiplier": 20, "Weight": 3 },
+            { "Multiplier": 50, "Weight": 2 }
           ]
         },
         "Shop": {

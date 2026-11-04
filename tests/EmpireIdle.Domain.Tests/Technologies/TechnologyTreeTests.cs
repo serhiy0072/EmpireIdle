@@ -118,10 +118,13 @@ public class TechnologyTreeTests
     }
 
     [Theory]
-    [InlineData(1, 20)]
-    [InlineData(3, 60)]
-    [InlineData(25, 400)]
-    public void GemOfferingPrice_ShouldGrowPerOfferingUpToTheCap(int nth, int price)
+    [InlineData(1, 10)]
+    [InlineData(5, 10)]
+    [InlineData(6, 20)]
+    [InlineData(10, 20)]
+    [InlineData(11, 40)]
+    [InlineData(50, 5120)]
+    public void GemOfferingPrice_ShouldDoubleEveryFiveOfferings(int nth, int price)
         => Assert.Equal(price, Clan.GemOfferingPrice(nth));
 
     /// <summary>Ваги 90 і 10: кидок 0,95 падає у ×10; бонус монет клану +50% множиться поверх.</summary>

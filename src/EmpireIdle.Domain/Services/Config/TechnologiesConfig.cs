@@ -204,12 +204,21 @@ namespace EmpireIdle.Domain.Services.Config
 
         public int GemPoints { get; set; } = 50;
 
-        /// <summary>Ціна n-го gems-підношення за добу UTC: min(GemPriceStep × n, GemPriceCap).</summary>
-        public int GemPriceStep { get; set; } = 20;
+        /// <summary>
+        /// Ціна n-го gems-підношення за добу UTC росте партіями: перша партія по GemPriceBase,
+        /// кожна наступна в GemPriceGrowth разів дорожча (рішення 03.11: п'ять по 10, п'ять по 20, п'ять по 40…).
+        /// </summary>
+        public int GemPriceBase { get; set; } = 10;
 
-        public int GemPriceCap { get; set; } = 400;
+        public int GemPriceBatch { get; set; } = 5;
+
+        public int GemPriceGrowth { get; set; } = 2;
 
         public int GemDailyLimit { get; set; } = 50;
+
+        /// <summary>Ціна останнього дозволеного підношення за добу — найбільша; від неї межа конфіга.</summary>
+        public double GemPriceAtLimit
+            => GemPriceBase * Math.Pow(GemPriceGrowth, (Math.Max(GemDailyLimit, 1) - 1) / Math.Max(GemPriceBatch, 1));
     }
 
     /// <summary>Кланові монети за підношення: база × множник, який кидає сервер.</summary>

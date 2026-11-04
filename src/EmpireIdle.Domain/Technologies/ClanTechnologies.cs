@@ -47,9 +47,14 @@ namespace EmpireIdle.Domain.Technologies
                 ? perLevel * Math.Max(mainBuildingLevel, 1)
                 : null;
 
-        /// <summary>Ціна n-го (від 1) gems-підношення за добу UTC: min(крок × n, стеля).</summary>
+        /// <summary>Ціна n-го (від 1) gems-підношення за добу UTC: база × ріст^(номер партії від нуля).</summary>
         public int GemOfferingPrice(int nth)
-            => Math.Min(_config.Offering.GemPriceStep * Math.Max(nth, 1), _config.Offering.GemPriceCap);
+        {
+            var offering = _config.Offering;
+            var batch = (Math.Max(nth, 1) - 1) / Math.Max(offering.GemPriceBatch, 1);
+
+            return (int)(offering.GemPriceBase * Math.Pow(offering.GemPriceGrowth, batch));
+        }
 
         /// <summary>
         /// Монети за одне підношення: база × множник із таблиці ваг, потім × (1 + бонус монет клану).
