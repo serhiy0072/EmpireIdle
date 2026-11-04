@@ -193,7 +193,7 @@ public class CompleteMarchCommandTests
             new HeroStats(new HeroProgression(config.HeroSettings), catalog), TestTechnologies.For(catalog, _research), NullLogger<MarchLogistics>.Instance);
 
         var territory = new ClanTerritoryRules(catalog);
-        var territoryBonus = new TerritoryBonus(_clans, _structures, territory);
+        var territoryBonus = TestTechnologies.TerritoryBonus(catalog, _clans, _structures);
 
         var returner = new ReinforcementReturner(
             _garrisons, _villages, _structures, _marches, _heroes, calculator, catalog,
@@ -208,7 +208,7 @@ public class CompleteMarchCommandTests
 
         var monsterBattle = new MonsterBattleService(
             _monsters, _map, _garrisons, _villages, _heroes, _random,
-            armyBuilder, resolver, effects, logistics, aftermath, armyBuffs, combatants, catalog, territoryBonus, territory, _clans,
+            armyBuilder, resolver, effects, logistics, aftermath, armyBuffs, combatants, catalog, territoryBonus, territory, _clans, TestTechnologies.ClanBonuses(catalog),
             new BeastTamer(_pens, _monsters, _random, new BeastTaming(catalog), capacities, status, catalog,
                 TestTechnologies.For(catalog, _research)),
             new MonsterExperienceReward(_heroes, Substitute.For<IServerContext>(), catalog, TestTechnologies.For(catalog, _research)),
@@ -243,18 +243,18 @@ public class CompleteMarchCommandTests
             NullLogger<ReinforcementDelivery>.Instance);
 
         var structureDelivery = new StructureReinforcementDelivery(
-            _garrisons, _villages, _clans, _structures, combat, armyBuffs, terrain, logistics, territory,
+            _garrisons, _villages, _clans, _structures, combat, armyBuffs, terrain, logistics, territory, TestTechnologies.ClanBonuses(catalog),
             NullLogger<StructureReinforcementDelivery>.Instance);
 
         var remover = new ClanStructureRemover(_structures, _garrisons, _map, returner, NullLogger<ClanStructureRemover>.Instance);
 
         var structureBattle = new StructureBattleService(
             _garrisons, _villages, _heroes, _clans, _structures, _random, resolver, new DefenceLossAllocator(), effects,
-            logistics, aftermath, status, armyBuffs, combatants, territory, territoryBonus, remover, _structureFalls,
+            logistics, aftermath, status, armyBuffs, combatants, territoryBonus, remover, _structureFalls,
             NullLogger<StructureBattleService>.Instance);
 
         var targets = new MarchTargetResolver(_monsters, _villages, _garrisons, _heroes, armyBuilder, armyBuffs,
-            defenders, catalog, status, _structures, _clans, territory, _marches, effects);
+            defenders, catalog, status, _structures, _clans, territoryBonus, _marches, effects);
 
         var campBattle = new CampBattleService(
             _garrisons, _villages, _marches, _heroes, _random, resolver, new DefenceLossAllocator(), effects,

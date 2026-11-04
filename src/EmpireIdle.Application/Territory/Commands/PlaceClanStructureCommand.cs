@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
@@ -28,6 +30,7 @@ namespace EmpireIdle.Application.Territory.Commands
         private readonly WorldGeometry _geometry;
         private readonly TerrainGenerator _terrain;
         private readonly ClanTerritoryRules _rules;
+        private readonly ClanBonuses _clanBonuses;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<PlaceClanStructureCommandHandler> _logger;
@@ -43,10 +46,12 @@ namespace EmpireIdle.Application.Territory.Commands
             WorldGeometry geometry,
             TerrainGenerator terrain,
             ClanTerritoryRules rules,
+            ClanBonuses clanBonuses,
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ILogger<PlaceClanStructureCommandHandler> logger)
         {
+            _clanBonuses = clanBonuses;
             _clanRepository = clanRepository;
             _structureRepository = structureRepository;
             _clanQuestRepository = clanQuestRepository;
@@ -93,13 +98,15 @@ namespace EmpireIdle.Application.Territory.Commands
             if (await _mapRepository.IsOccupiedAsync(serverId, request.X, request.Y, cancellationToken))
                 throw new AlreadyExistsException(RefusalReasons.TerritoryCellTaken, "Map cell", $"({request.X},{request.Y})");
 
-            clan.SpendPoints(_rules.StructureCost, now);
+            var bonuses = await _clanBonuses.ForClanAsync(clan.Id, cancellationToken);
+
+            clan.SpendPoints(_rules.StructureCostWith(bonuses.Of(TechnologyStat.StructureCost)), now);
 
             var structureId = Guid.NewGuid();
             var garrison = Garrison.ForStructure(Guid.NewGuid(), structureId, serverId);
 
             var structure = new ClanStructure(structureId, serverId, clan.Id, request.X, request.Y, garrison.Id,
-                request.PlayerId, _rules.BuildDuration, now);
+                request.PlayerId, _rules.BuildDurationWith(bonuses.Of(TechnologyStat.StructureBuildSpeed)), now);
 
             await _garrisonRepository.AddAsync(garrison, cancellationToken);
             await _structureRepository.AddAsync(structure, cancellationToken);

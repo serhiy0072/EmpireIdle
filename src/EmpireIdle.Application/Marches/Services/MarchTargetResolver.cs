@@ -57,7 +57,6 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly VillageStatus _status;
         private readonly IClanStructureRepository _structureRepository;
         private readonly IClanRepository _clanRepository;
-        private readonly ClanTerritoryRules _territory;
         private readonly TerritoryBonus _territoryBonus;
         private readonly IMarchRepository _marchRepository;
         private readonly HostilityRules _hostility;
@@ -75,7 +74,7 @@ namespace EmpireIdle.Application.Marches.Services
             VillageStatus status,
             IClanStructureRepository structureRepository,
             IClanRepository clanRepository,
-            ClanTerritoryRules territory,
+            TerritoryBonus territoryBonus,
             IMarchRepository marchRepository,
             EffectResolver effects)
         {
@@ -90,12 +89,11 @@ namespace EmpireIdle.Application.Marches.Services
             _catalog = catalog;
             _structureRepository = structureRepository;
             _clanRepository = clanRepository;
-            _territory = territory;
             _marchRepository = marchRepository;
             _effects = effects;
 
             // Той самий розрахунок, що в бою: прев'ю не має розходитись із результатом
-            _territoryBonus = new TerritoryBonus(clanRepository, structureRepository, territory);
+            _territoryBonus = territoryBonus;
             _hostility = new HostilityRules(clanRepository);
         }
 
@@ -189,8 +187,7 @@ namespace EmpireIdle.Application.Marches.Services
                         Village: null,
                         structureDefence,
                         structureBuffs,
-                        // Споруда завжди в межах власного радіуса: добудована — під своїм бонусом
-                        _territory.DefenceMultiplier(_territory.Enabled && structure.IsActiveAt(utcNow)),
+                        await _territoryBonus.StructureDefenceMultiplierAsync(structure, utcNow, cancellationToken),
                         structure);
 
                 case MarchTargetType.Camp:

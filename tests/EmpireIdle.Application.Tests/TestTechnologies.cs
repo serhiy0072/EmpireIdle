@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
@@ -32,6 +33,12 @@ internal static class TestTechnologies
     /// <summary>Бонуси клану з цього репозиторію; без репозиторію — клан нічого не вивчив.</summary>
     public static ClanBonuses ClanBonuses(GameCatalog catalog, IClanResearchRepository? clanResearch = null)
         => new(clanResearch ?? NoClan(), new ClanTechnologies(catalog.Config.Technologies.Clan));
+
+    /// <summary>Бонус території; без репозиторіїв — гравець поза кланом.</summary>
+    public static TerritoryBonus TerritoryBonus(GameCatalog catalog, IClanRepository? clans = null,
+        IClanStructureRepository? structures = null, IClanResearchRepository? clanResearch = null)
+        => new(clans ?? Substitute.For<IClanRepository>(), structures ?? Substitute.For<IClanStructureRepository>(),
+            new ClanTerritoryRules(catalog), ClanBonuses(catalog, clanResearch));
 
     /// <summary>Гравець поза кланом.</summary>
     public static IClanResearchRepository NoClan()

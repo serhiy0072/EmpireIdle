@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Technologies;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.Commands;
@@ -33,6 +34,7 @@ public class ClanStructureCommandTests
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IClanResearchRepository _clanResearch = TestTechnologies.NoClan();
 
     private readonly Guid _leader = Guid.NewGuid();
     private readonly Clan _clan;
@@ -87,6 +89,27 @@ public class ClanStructureCommandTests
         return config;
     }
 
+    /// <summary>
+    /// Рівень дає −10% ціни й +100% швидкості будівництва. Окремо від конфіга гри: каталог валідує
+    /// дерево цілком, а тут потрібен лише один вузол.
+    /// </summary>
+    private static ClanTechnologies LandsTree() => new(new ClanTechnologiesConfig
+    {
+        Tiers = [new TechnologyTierConfig { Tier = 1 }],
+        Nodes =
+        [
+            new TechnologyNodeConfig
+            {
+                Key = "l_cost", Tab = "lands", Row = 1, Levels = 3,
+                Effects =
+                [
+                    new TechnologyEffectConfig { Stat = TechnologyStat.StructureCost, PerLevel = 0.1 },
+                    new TechnologyEffectConfig { Stat = TechnologyStat.StructureBuildSpeed, PerLevel = 1.0 }
+                ]
+            }
+        ]
+    });
+
     private PlaceClanStructureCommandHandler Place()
     {
         var config = Config();
@@ -94,6 +117,7 @@ public class ClanStructureCommandTests
 
         return new PlaceClanStructureCommandHandler(_clans, _structures, _clanQuests, _garrisons, _map, _servers,
             _serverContext, new WorldGeometry(config.Map), new TerrainGenerator(config.Map), new ClanTerritoryRules(catalog),
+            new ClanBonuses(_clanResearch, LandsTree()),
             _unitOfWork, new FakeTimeProvider(Now), NullLogger<PlaceClanStructureCommandHandler>.Instance);
     }
 
@@ -130,6 +154,20 @@ public class ClanStructureCommandTests
         await _map.Received(1).AddAsync(
             Arg.Is<MapCell>(c => c.OccupantType == MapOccupantType.ClanStructure && c.OccupantId == id),
             Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>Два рівні: ціна −20%, будівництво втричі швидше — година стає двадцятьма хвилинами.</summary>
+    [Fact]
+    public async Task Place_ShouldChargeLess_AndBuildFaster_WithTheClansTechnologies()
+    {
+        _clanResearch.GetLevelsByClanAsync(_clan.Id, Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyDictionary<string, int>?)new Dictionary<string, int> { ["1:l_cost"] = 2 });
+
+        await Place().Handle(new PlaceClanStructureCommand(_leader, 52, 52), CancellationToken.None);
+
+        Assert.Equal(Cost * 3 - (long)Math.Round(Cost * 0.8), _clan.ContributionPoints);
+        await _structures.Received(1).AddAsync(
+            Arg.Is<ClanStructure>(s => s.CompletesAt == Now.AddMinutes(20)), Arg.Any<CancellationToken>());
     }
 
     [Fact]

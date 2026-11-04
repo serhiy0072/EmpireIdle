@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.ReadModels;
@@ -20,6 +22,7 @@ namespace EmpireIdle.Application.Territory.Queries
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IPlayerRepository _playerRepository;
         private readonly ClanTerritoryRules _rules;
+        private readonly ClanBonuses _clanBonuses;
         private readonly GameCatalog _catalog;
         private readonly LocaleTexts _texts;
 
@@ -30,6 +33,7 @@ namespace EmpireIdle.Application.Territory.Queries
             IGarrisonRepository garrisonRepository,
             IPlayerRepository playerRepository,
             ClanTerritoryRules rules,
+            ClanBonuses clanBonuses,
             GameCatalog catalog,
             LocaleTexts texts)
         {
@@ -40,6 +44,7 @@ namespace EmpireIdle.Application.Territory.Queries
             _garrisonRepository = garrisonRepository;
             _playerRepository = playerRepository;
             _rules = rules;
+            _clanBonuses = clanBonuses;
             _catalog = catalog;
         }
 
@@ -100,13 +105,15 @@ namespace EmpireIdle.Application.Territory.Queries
 
             var role = clan.RoleOf(request.PlayerId);
 
+            var bonuses = await _clanBonuses.ForClanAsync(clan.Id, cancellationToken);
+
             return new ClanTerritoryView(
                 _rules.Enabled,
                 clan.ContributionPoints,
-                _rules.StructureCost,
+                _rules.StructureCostWith(bonuses.Of(TechnologyStat.StructureCost)),
                 _rules.Radius,
-                config.BuildMinutes,
-                _rules.GarrisonCapacity,
+                (int)Math.Ceiling(_rules.BuildDurationWith(bonuses.Of(TechnologyStat.StructureBuildSpeed)).TotalMinutes),
+                _rules.GarrisonCapacityWith(bonuses.Of(TechnologyStat.StructureGarrison)),
                 _rules.SlotsFor(clan.Members.Count, completed),
                 config.MaxStructures,
                 role is not null && role.Can(ClanPermission.BuildStructures),

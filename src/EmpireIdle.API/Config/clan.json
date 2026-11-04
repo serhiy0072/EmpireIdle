@@ -38,7 +38,8 @@
         "GarrisonCapacity": 500,
         "AttackBonus": 0.1,
         "DefenceBonus": 0.1,
-        "MonsterLootCashbackShare": 0.05
+        "MonsterLootCashbackShare": 0.05,
+        "MaxTechnologyCostCut": 0.45
       }
     }
   }

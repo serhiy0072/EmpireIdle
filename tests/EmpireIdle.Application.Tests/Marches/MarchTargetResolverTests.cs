@@ -43,7 +43,7 @@ public class MarchTargetResolverTests
             new VillageStatus(catalog),
             Substitute.For<IClanStructureRepository>(),
             Substitute.For<IClanRepository>(),
-            new ClanTerritoryRules(catalog),
+            TestTechnologies.TerritoryBonus(catalog),
             Substitute.For<IMarchRepository>(),
             TestEffects.Resolver(effects ?? Substitute.For<IActiveEffectRepository>()));
     }

@@ -33,7 +33,8 @@ public class TerritoryRulesTests
     private ClanStructure Structure(Guid clanId, TimeSpan build)
         => new(Guid.NewGuid(), 1, clanId, 50, 50, Guid.NewGuid(), Guid.NewGuid(), build, Now.AddHours(-1));
 
-    private TerritoryBonus Bonus(bool enabled = true) => new(_clans, _structures, Rules(enabled));
+    private TerritoryBonus Bonus(bool enabled = true) => new(_clans, _structures, Rules(enabled),
+        TestTechnologies.ClanBonuses(new GameConfigBuilder().WithBuildings().BuildCatalog()));
 
     [Fact]
     public async Task Bonus_ShouldApply_InsideAFinishedOwnStructure()

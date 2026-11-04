@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Combat;
@@ -26,6 +28,7 @@ namespace EmpireIdle.Application.Territory.Services
         private readonly TerrainGenerator _terrain;
         private readonly MarchLogistics _logistics;
         private readonly ClanTerritoryRules _rules;
+        private readonly ClanBonuses _clanBonuses;
         private readonly ILogger<StructureReinforcementDelivery> _logger;
 
         public StructureReinforcementDelivery(
@@ -38,8 +41,10 @@ namespace EmpireIdle.Application.Territory.Services
             TerrainGenerator terrain,
             MarchLogistics logistics,
             ClanTerritoryRules rules,
+            ClanBonuses clanBonuses,
             ILogger<StructureReinforcementDelivery> logger)
         {
+            _clanBonuses = clanBonuses;
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
             _clanRepository = clanRepository;
@@ -83,12 +88,15 @@ namespace EmpireIdle.Application.Territory.Services
 
             var accelerated = structure.Accelerate(_rules.BuildShareFor(power), _rules.MaxBuildShare, utcNow);
 
-            var free = Math.Max(0, _rules.GarrisonCapacity - structureGarrison.ReinforcementCount);
+            var capacity = _rules.GarrisonCapacityWith(
+                (await _clanBonuses.ForClanAsync(structure.ClanId, cancellationToken)).Of(TechnologyStat.StructureGarrison));
+
+            var free = Math.Max(0, capacity - structureGarrison.ReinforcementCount);
             var (accepted, rejected) = ReinforcementSplit.Take(units, free);
 
             if (accepted.Count > 0)
                 structureGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, accepted,
-                    _rules.GarrisonCapacity, utcNow);
+                    capacity, utcNow);
 
             // Герої лишаються завжди: слота гарнізону вони не займають, а бонус тримають над своїми конвоями
             foreach (var hero in heroes)

@@ -125,7 +125,7 @@ public class SendMarchCommandTests
 
         var targets = new MarchTargetResolver(
             _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), TestCombatants.Buffs(catalog), TestCombatants.Defenders(_heroes, catalog), catalog, status,
-            _structures, _clans, new ClanTerritoryRules(catalog), _marches, Effects(catalog));
+            _structures, _clans, TestTechnologies.TerritoryBonus(catalog, _clans, _structures), _marches, Effects(catalog));
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 

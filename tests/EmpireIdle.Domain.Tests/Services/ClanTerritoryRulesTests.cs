@@ -90,6 +90,50 @@ namespace EmpireIdle.Domain.Tests.Services
         public void IsCovered_ShouldBeFalse_WhenTheWorldHasNoTerritory()
             => Assert.False(Rules(c => c.Enabled = false).IsCovered([ActiveAt(50, 50)], 50, 50, Now));
 
+        /// <summary>Технологія додається до бонусу території, а не множиться; поза територією не дає нічого.</summary>
+        [Fact]
+        public void Multipliers_ShouldAddTheTechnology_OnlyInsideTheTerritory()
+        {
+            var rules = Rules();
+
+            Assert.Equal(1.13, rules.AttackMultiplier(true, 0.03), 6);
+            Assert.Equal(1.23, rules.DefenceMultiplier(true, 0.03), 6);
+            Assert.Equal(1, rules.AttackMultiplier(false, 0.03));
+            Assert.Equal(1, rules.DefenceMultiplier(false, 0.03));
+        }
+
+        [Fact]
+        public void StructureCostWith_ShouldStopAtTheCeiling()
+        {
+            var rules = Rules(t => { t.StructureCostPoints = 1000; t.MaxTechnologyCostCut = 0.45; });
+
+            Assert.Equal(1000, rules.StructureCostWith(0));
+            Assert.Equal(700, rules.StructureCostWith(0.3));
+            Assert.Equal(550, rules.StructureCostWith(0.9));
+        }
+
+        [Fact]
+        public void BuildDurationWith_ShouldDivideTheTime()
+        {
+            var rules = Rules(t => t.BuildMinutes = 60);
+
+            Assert.Equal(TimeSpan.FromMinutes(40), rules.BuildDurationWith(0.5));
+        }
+
+        [Fact]
+        public void GarrisonCapacityWith_ShouldGrowByTheBonus()
+            => Assert.Equal(550, Rules(t => t.GarrisonCapacity = 500).GarrisonCapacityWith(0.1));
+
+        [Fact]
+        public void CashbackFor_ShouldAddTheTechnologyShare()
+        {
+            var rules = Rules(t => t.MonsterLootCashbackShare = 0.05);
+            var loot = new Dictionary<string, int> { ["gold"] = 1000 };
+
+            Assert.Equal(50, rules.CashbackFor(loot));
+            Assert.Equal(60, rules.CashbackFor(loot, 0.01));
+        }
+
         [Fact]
         public void Multipliers_ShouldBeOne_OutsideTheRadius()
         {

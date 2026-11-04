@@ -31,7 +31,6 @@ namespace EmpireIdle.Application.Territory.Services
         private readonly VillageStatus _status;
         private readonly ArmyBuffs _armyBuffs;
         private readonly HeroCombatants _combatants;
-        private readonly ClanTerritoryRules _rules;
         private readonly TerritoryBonus _territoryBonus;
         private readonly ClanStructureRemover _remover;
         private readonly IStructureFallRepository _falls;
@@ -52,7 +51,6 @@ namespace EmpireIdle.Application.Territory.Services
             VillageStatus status,
             ArmyBuffs armyBuffs,
             HeroCombatants combatants,
-            ClanTerritoryRules rules,
             TerritoryBonus territoryBonus,
             ClanStructureRemover remover,
             IStructureFallRepository falls,
@@ -72,7 +70,6 @@ namespace EmpireIdle.Application.Territory.Services
             _status = status;
             _armyBuffs = armyBuffs;
             _combatants = combatants;
-            _rules = rules;
             _territoryBonus = territoryBonus;
             _remover = remover;
             _falls = falls;
@@ -118,8 +115,7 @@ namespace EmpireIdle.Application.Territory.Services
                     attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
                 * await _territoryBonus.AttackMultiplierAsync(attackerVillage, utcNow, cancellationToken);
 
-            // Добудована споруда стоїть у власному радіусі — під своїм бонусом
-            var defenderBonus = _rules.DefenceMultiplier(_rules.Enabled && structure.IsActiveAt(utcNow));
+            var defenderBonus = await _territoryBonus.StructureDefenceMultiplierAsync(structure, utcNow, cancellationToken);
 
             var seed = _random.Next(int.MaxValue);
 

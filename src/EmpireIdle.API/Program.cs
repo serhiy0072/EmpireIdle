@@ -124,6 +124,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Map.Geometry.RingMultipliers.Count > 0 && c.Map.Geometry.RingMultipliers.All(m => m > 0),
         "GameConfig.Map.Geometry.RingMultipliers must be non-empty and positive — every cell takes its production multiplier from a ring.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
+    .Validate(c => c.Clan.Territory.MaxTechnologyCostCut is >= 0 and < 1,
+        "GameConfig.Clan.Territory.MaxTechnologyCostCut must be within 0..1 — a structure must keep some price.")
     .Validate(c => c.Clan.Territory.Radius > 0, "GameConfig.Clan.Territory.Radius must be positive — a structure would cover nothing.")
     .Validate(c => c.Clan.Territory.MaxStructures > 0 && c.Clan.Territory.StartingSlots >= 0,
         "GameConfig.Clan.Territory needs a positive MaxStructures and non-negative StartingSlots.")

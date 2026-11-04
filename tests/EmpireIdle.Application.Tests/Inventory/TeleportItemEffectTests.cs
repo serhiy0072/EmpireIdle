@@ -79,7 +79,7 @@ public class TeleportItemEffectTests
 
         return new TeleportItemEffect(_villages, _map, _servers, _clans, _serverContext, geometry, terrain,
             new SettlementPlacer(terrain, geometry, new DeterministicRandom(42)),
-            new TerritoryBonus(_clans, _structures, new ClanTerritoryRules(catalog)), relocator);
+            TestTechnologies.TerritoryBonus(catalog, _clans, _structures), relocator);
     }
 
     private Village GivenVillage()
