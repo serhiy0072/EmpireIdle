@@ -7,6 +7,8 @@ using EmpireIdle.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
+using EmpireIdle.Application.Research.Services;
+
 namespace EmpireIdle.Application.Clans.Commands
 {
     /// <summary>
@@ -36,6 +38,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly ResearchSettlement _settlement;
         private readonly ILogger<JoinClanCommandHandler> _logger;
 
         public JoinClanCommandHandler(
@@ -45,8 +48,10 @@ namespace EmpireIdle.Application.Clans.Commands
             IUnitOfWork unitOfWork,
             GameCatalog catalog,
             TimeProvider timeProvider,
+            ResearchSettlement settlement,
             ILogger<JoinClanCommandHandler> logger)
         {
+            _settlement = settlement;
             _clanRepository = clanRepository;
             _requestRepository = requestRepository;
             _playerRepository = playerRepository;
@@ -86,6 +91,9 @@ namespace EmpireIdle.Application.Clans.Commands
 
             // Членство — в агрегаті: там же перевірка місткості й видача
             // ролі за замовчуванням. Player.ClanId — лише дзеркало
+            // Вироблене досі лишається за ставкою без клану: його технології діють лише від вступу
+            await _settlement.SettleVillageAsync(player.Id, now, cancellationToken);
+
             clan.Join(player.Id, clanConfig.Capacity, now);
             player.JoinClan(clan.Id);
 

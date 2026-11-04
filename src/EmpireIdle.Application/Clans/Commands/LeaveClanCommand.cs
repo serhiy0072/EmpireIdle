@@ -5,6 +5,8 @@ using EmpireIdle.Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
+using EmpireIdle.Application.Research.Services;
+
 namespace EmpireIdle.Application.Clans.Commands
 {
     /// <summary>
@@ -24,6 +26,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly ReinforcementReturner _returner;
         private readonly ClanSuccession _succession;
         private readonly ClanDisbander _disbander;
+        private readonly ResearchSettlement _settlement;
         private readonly ILogger<LeaveClanCommandHandler> _logger;
 
         public LeaveClanCommandHandler(
@@ -36,8 +39,10 @@ namespace EmpireIdle.Application.Clans.Commands
             ReinforcementReturner returner,
             ClanSuccession succession,
             ClanDisbander disbander,
+            ResearchSettlement settlement,
             ILogger<LeaveClanCommandHandler> logger)
         {
+            _settlement = settlement;
             _disbander = disbander;
             _clanRepository = clanRepository;
             _playerRepository = playerRepository;
@@ -66,6 +71,9 @@ namespace EmpireIdle.Application.Clans.Commands
 
             clan.Leave(player.Id, successor, now);
             player.LeaveClan();
+
+            // Вироблене досі лишається за ставкою з кланом: бонус зникає лише від виходу
+            await _settlement.SettleVillageAsync(player.Id, now, cancellationToken);
 
             // Колишні соклановці не зрізають його таймери
             await _helpRepository.RemoveByPlayerAsync(clan.Id, player.Id, cancellationToken);

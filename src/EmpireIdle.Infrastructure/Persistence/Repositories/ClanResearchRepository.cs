@@ -16,6 +16,13 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
         public Task<ClanResearch?> GetByClanAsync(Guid clanId, CancellationToken cancellationToken = default)
             => _context.ClanResearch.FirstOrDefaultAsync(r => r.ClanId == clanId, cancellationToken);
 
+        public Task<IReadOnlyDictionary<string, int>?> GetLevelsByMemberAsync(Guid playerId, CancellationToken cancellationToken = default)
+            => _context.ClanMembers
+                .AsNoTracking()
+                .Where(m => m.PlayerId == playerId)
+                .Join(_context.ClanResearch, m => m.ClanId, r => r.ClanId, (_, r) => (IReadOnlyDictionary<string, int>?)r.Levels)
+                .FirstOrDefaultAsync(cancellationToken);
+
         public async Task AddAsync(ClanResearch research, CancellationToken cancellationToken = default)
             => await _context.ClanResearch.AddAsync(research, cancellationToken);
 

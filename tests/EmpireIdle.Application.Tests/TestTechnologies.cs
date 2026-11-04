@@ -15,15 +15,28 @@ internal static class TestTechnologies
     private static readonly DateTime Now = new(2026, 11, 3, 12, 0, 0, DateTimeKind.Utc);
 
     /// <summary>Бонуси технологій із цього репозиторію; без репозиторію — жодних досліджень.</summary>
-    public static PlayerTechnologies For(GameCatalog catalog, IPlayerResearchRepository? research = null)
-        => For(catalog.Config.Technologies, research);
+    public static PlayerTechnologies For(GameCatalog catalog, IPlayerResearchRepository? research = null,
+        IClanResearchRepository? clanResearch = null)
+        => For(catalog.Config.Technologies, research, clanResearch);
 
     /// <summary>
     /// Те саме з окремого дерева — для тестів із власним конфігом гри, де Лабораторії немає
     /// і валідатор каталогу дерева б не пропустив.
     /// </summary>
-    public static PlayerTechnologies For(TechnologiesConfig technologies, IPlayerResearchRepository? research = null)
-        => new(research ?? Substitute.For<IPlayerResearchRepository>(), new PersonalTechnologies(technologies.Personal));
+    public static PlayerTechnologies For(TechnologiesConfig technologies, IPlayerResearchRepository? research = null,
+        IClanResearchRepository? clanResearch = null)
+        => new(research ?? Substitute.For<IPlayerResearchRepository>(), new PersonalTechnologies(technologies.Personal),
+            clanResearch ?? NoClan(), new ClanTechnologies(technologies.Clan));
+
+    /// <summary>Гравець поза кланом.</summary>
+    public static IClanResearchRepository NoClan()
+    {
+        var clanResearch = Substitute.For<IClanResearchRepository>();
+        clanResearch.GetLevelsByMemberAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyDictionary<string, int>?)null);
+
+        return clanResearch;
+    }
 
     /// <summary>
     /// Фіксація виробітку перед завершенням дослідження — з тими самими репозиторіями села й досліджень,

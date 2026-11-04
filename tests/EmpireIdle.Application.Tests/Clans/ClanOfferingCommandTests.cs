@@ -72,7 +72,8 @@ public class ClanOfferingCommandTests
     }
 
     private ClanOfferings Offerings()
-        => new(_clans, _research, _offerings, _serverContext, _technologies, _random, new RewardDispatcher([_granter]));
+        => new(_clans, _research, _offerings, _serverContext, _technologies, _random, new RewardDispatcher([_granter]),
+            TestTechnologies.Settlement(_catalog, Substitute.For<IVillageRepository>()));
 
     private OfferResourcesCommandHandler ResourcesHandler()
         => new(Offerings(), _villages, _unitOfWork, _technologies, new VillageStatus(_catalog),

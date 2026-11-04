@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
@@ -25,10 +26,13 @@ namespace EmpireIdle.Application.Clans.Services
         private readonly ClanTechnologies _technologies;
         private readonly IRandomSource _random;
         private readonly RewardDispatcher _rewards;
+        private readonly ResearchSettlement _settlement;
 
         public ClanOfferings(IClanRepository clans, IClanResearchRepository research, IClanOfferingRepository offerings,
-            IServerContext serverContext, ClanTechnologies technologies, IRandomSource random, RewardDispatcher rewards)
+            IServerContext serverContext, ClanTechnologies technologies, IRandomSource random, RewardDispatcher rewards,
+            ResearchSettlement settlement)
         {
+            _settlement = settlement;
             _rewards = rewards;
             _clans = clans;
             _research = research;
@@ -77,6 +81,12 @@ namespace EmpireIdle.Application.Clans.Services
             var coins = _technologies.RollCoins(_random, coinBonus);
 
             var completed = research.AddPoints(points, _technologies, utcNow);
+
+            // Новий рівень виробітку діє лише відтепер: кожне село клану фіксує вироблене за старою ставкою.
+            // Сотні сіл в одній транзакції, але такий рівень закривається рідко
+            if (completed.Any(c => _technologies.Tree.Node(c.Key.Node)!.Effects.Any(e => e.Stat == TechnologyStat.Production)))
+                foreach (var member in clan.Members)
+                    await _settlement.SettleVillageAsync(member.PlayerId, utcNow, cancellationToken);
 
             ledger.AddCoins(coins);
 

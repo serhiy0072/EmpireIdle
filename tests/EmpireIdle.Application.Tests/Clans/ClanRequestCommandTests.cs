@@ -35,6 +35,7 @@ public class ClanRequestCommandTests
         _clans, _requests, _players, _unitOfWork,
         new GameCatalog(Config()),
         new FakeTimeProvider(Now),
+        TestTechnologies.Settlement(new GameCatalog(Config()), Substitute.For<IVillageRepository>()),
         NullLogger<ResolveClanRequestCommandHandler>.Instance);
 
     private CancelClanRequestCommandHandler Canceller() => new(

@@ -42,13 +42,22 @@ namespace EmpireIdle.Application.Research.Services
                 || node.Effects.All(e => e.Stat != TechnologyStat.Production))
                 return;
 
-            var village = await _villages.GetByPlayerIdAsync(research.PlayerId, cancellationToken);
+            await SettleVillageAsync(research.PlayerId, utcNow, cancellationToken);
+        }
+
+        /// <summary>
+        /// Фіксує виробіток села за ставкою збереженого стану. Клан кличе це перед тим, як змінюється
+        /// склад або рівень: бонуси читаються з БД, тож до SaveChanges це ще стара ставка.
+        /// </summary>
+        public async Task SettleVillageAsync(Guid playerId, DateTime utcNow, CancellationToken cancellationToken)
+        {
+            var village = await _villages.GetByPlayerIdAsync(playerId, cancellationToken);
 
             if (village is null)
                 return;
 
             var serverLevel = await _servers.GetLevelAsync(village.ServerId, cancellationToken);
-            var boost = await _effects.GetProductionBoostAsync(research.PlayerId, utcNow, cancellationToken);
+            var boost = await _effects.GetProductionBoostAsync(playerId, utcNow, cancellationToken);
 
             village.MaterializeProduction(_catalog.Buildings, utcNow, boost,
                 _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel));

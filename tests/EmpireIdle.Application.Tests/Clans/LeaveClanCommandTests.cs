@@ -65,7 +65,8 @@ public class LeaveClanCommandTests
             NullLogger<ClanDisbander>.Instance);
 
         return new LeaveClanCommandHandler(_clans, _players, _villages, _helps, _unitOfWork, new FakeTimeProvider(Now),
-            returner, new ClanSuccession(_players), disbander, NullLogger<LeaveClanCommandHandler>.Instance);
+            returner, new ClanSuccession(_players), disbander, TestTechnologies.Settlement(catalog, Substitute.For<IVillageRepository>()),
+            NullLogger<LeaveClanCommandHandler>.Instance);
     }
 
     private Clan GivenClan(params (Guid Id, string Role, DateTime LastSeen)[] members)

@@ -54,7 +54,7 @@ public class ResearchCommandTests
         var personal = new PersonalTechnologies(_config.Technologies.Personal);
 
         return new StartResearchCommandHandler(_villages, _research, _servers, _serverContext, _unitOfWork, personal,
-            new PlayerTechnologies(_research, personal), new VillageStatus(catalog), catalog, new FakeTimeProvider(Now),
+            new PlayerTechnologies(_research, personal, TestTechnologies.NoClan(), new ClanTechnologies(_config.Technologies.Clan)), new VillageStatus(catalog), catalog, new FakeTimeProvider(Now),
             TestTechnologies.Settlement(catalog, _villages, _research, _servers),
             NullLogger<StartResearchCommandHandler>.Instance);
     }

@@ -13,11 +13,11 @@ namespace EmpireIdle.Application.Tests;
 internal static class TestEffects
 {
     public static EffectResolver Resolver(IActiveEffectRepository effects, IBeastPenRepository? pens = null,
-        GameCatalog? catalog = null, IPlayerResearchRepository? research = null)
+        GameCatalog? catalog = null, IPlayerResearchRepository? research = null, IClanResearchRepository? clanResearch = null)
     {
         var resolved = catalog ?? new GameConfigBuilder().WithBuildings().BuildCatalog();
 
         return new EffectResolver(effects, pens ?? Substitute.For<IBeastPenRepository>(), resolved,
-            new BeastProgression(resolved), TestTechnologies.For(resolved, research));
+            new BeastProgression(resolved), TestTechnologies.For(resolved, research, clanResearch));
     }
 }
