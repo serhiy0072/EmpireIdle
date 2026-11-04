@@ -15,6 +15,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             // Два перші підношення з різних вкладок не створять двох книг — гонку розв'язує індекс
             builder.HasIndex(l => l.PlayerId).IsUnique();
 
+            ClanResearchConfiguration.ConfigureLevels(builder.Property(l => l.ShopPurchases));
+
             builder.Property(l => l.Version).IsRowVersion();
 
             builder.Ignore(l => l.DomainEvents);

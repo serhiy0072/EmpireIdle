@@ -327,6 +327,10 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "clantech.resourceRejected": ({ resource }) => t("errors:refusal.clantech.resourceRejected", { resource }),
   "clantech.gemLimit": ({ limit }) => t("errors:refusal.clantech.gemLimit", { limit }),
   "clantech.gemPriceChanged": ({ price }) => t("errors:refusal.clantech.gemPriceChanged", { price }),
+  "clantech.noCoins": ({ need, have }) => t("errors:refusal.clantech.noCoins", { need, have }),
+  "clantech.shopLimit": ({ limit, bought }) => t("errors:refusal.clantech.shopLimit", { limit, bought }),
+  "clantech.shopItemGone": () => t("errors:refusal.clantech.shopItemGone"),
+  "clantech.shopPriceChanged": ({ price }) => t("errors:refusal.clantech.shopPriceChanged", { price }),
 };
 
 /** Текст відмови або null, якщо причини немає чи клієнт її ще не знає. */

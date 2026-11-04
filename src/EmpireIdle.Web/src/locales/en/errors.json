@@ -245,7 +245,11 @@
       "noAttempts": "No offering attempts left — a new one recharges soon",
       "resourceRejected": "This technology doesn't accept {{resource}}",
       "gemLimit": "You've reached today's limit of gem offerings ({{limit}})",
-      "gemPriceChanged": "The offering price changed: it's {{price}} gems now"
+      "gemPriceChanged": "The offering price changed: it's {{price}} gems now",
+      "noCoins": "Not enough clan coins: {{need}} needed, you have {{have}}",
+      "shopLimit": "You've reached this item's limit: {{bought}} of {{limit}} bought",
+      "shopItemGone": "This item is no longer on the shelf",
+      "shopPriceChanged": "The price changed: it's {{price}} coins now"
     }
   },
   "quoted": "{{name}}",

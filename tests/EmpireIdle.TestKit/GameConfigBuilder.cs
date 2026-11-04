@@ -561,8 +561,9 @@
                     Shop = new ClanShopConfig
                     {
                         DailySlots = 1,
+                        WeeklySlots = 1,
                         DailyPool = [new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 1000, Limit = 3 }],
-                        Weekly = [new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 5000, Limit = 1 }]
+                        WeeklyPool = [new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 5000, Limit = 1 }]
                     }
                 }
             };

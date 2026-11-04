@@ -581,30 +581,65 @@
           { "Points": 2500, "Rewards": [ { "Type": "Item", "Key": "chest_books_common", "Amount": 1 } ] }
         ],
         "Shop": {
-          "DailySlots": 6,
+          "DailySlots": 15,
+          "WeeklySlots": 15,
           "DailyPool": [
-            { "ItemKey": "speedup_5m", "Price": 1800, "Limit": 5 },
-            { "ItemKey": "speedup_10m", "Price": 3500, "Limit": 3 },
-            { "ItemKey": "hero_xp_1k", "Price": 1500, "Limit": 5 },
-            { "ItemKey": "crate_food_5000", "Price": 2000, "Limit": 3 },
-            { "ItemKey": "crate_wood_5000", "Price": 2000, "Limit": 3 },
-            { "ItemKey": "crate_iron_2500", "Price": 2000, "Limit": 3 },
-            { "ItemKey": "beast_feed", "Price": 400, "Limit": 10 },
-            { "ItemKey": "wrench_common", "Price": 3000, "Limit": 2 },
-            { "ItemKey": "dungeon_energy_10", "Price": 2500, "Limit": 2 },
-            { "ItemKey": "teleport_nearby", "Price": 4000, "Limit": 1 },
-            { "ItemKey": "boost_production_1h", "Price": 5000, "Limit": 1 },
-            { "ItemKey": "universal_shard_common", "Price": 6000, "Limit": 1 }
+            { "ItemKey": "speedup_1m", "Price": 600, "Limit": 10, "Weight": 10 },
+            { "ItemKey": "speedup_5m", "Price": 3300, "Limit": 3, "Weight": 12 },
+            { "ItemKey": "speedup_10m", "Price": 6600, "Limit": 2, "Weight": 10 },
+            { "ItemKey": "speedup_1h", "Price": 40000, "Limit": 1, "Weight": 2 },
+            { "ItemKey": "hero_xp_small", "Price": 1500, "Limit": 5, "Weight": 10 },
+            { "ItemKey": "hero_xp_1k", "Price": 3000, "Limit": 3, "Weight": 12 },
+            { "ItemKey": "hero_xp_medium", "Price": 12000, "Limit": 1, "Weight": 5 },
+            { "ItemKey": "hero_xp_10k", "Price": 24000, "Limit": 1, "Weight": 2 },
+            { "ItemKey": "crate_food_5000", "Price": 6000, "Limit": 2, "Weight": 8 },
+            { "ItemKey": "crate_wood_5000", "Price": 6000, "Limit": 2, "Weight": 8 },
+            { "ItemKey": "crate_iron_2500", "Price": 3000, "Limit": 2, "Weight": 8 },
+            { "ItemKey": "beast_feed", "Price": 200, "Limit": 25, "Weight": 8 },
+            { "ItemKey": "wrench_common", "Price": 6000, "Limit": 2, "Weight": 8 },
+            { "ItemKey": "wrench_rare", "Price": 18000, "Limit": 1, "Weight": 3 },
+            { "ItemKey": "dungeon_energy_10", "Price": 5000, "Limit": 2, "Weight": 6 },
+            { "ItemKey": "teleport_nearby", "Price": 8000, "Limit": 1, "Weight": 3 },
+            { "ItemKey": "teleport_random", "Price": 6000, "Limit": 1, "Weight": 3 },
+            { "ItemKey": "boost_production_1h", "Price": 10000, "Limit": 1, "Weight": 4 },
+            { "ItemKey": "universal_shard_common", "Price": 12000, "Limit": 1, "Weight": 4 },
+            { "ItemKey": "scout_veil_24h", "Price": 8000, "Limit": 1, "Weight": 3 }
           ],
-          "Weekly": [
-            { "ItemKey": "speedup_1h", "Price": 20000, "Limit": 3 },
-            { "ItemKey": "speedup_5h", "Price": 100000, "Limit": 1 },
-            { "ItemKey": "hero_xp_10k", "Price": 12000, "Limit": 2 },
-            { "ItemKey": "key_rare", "Price": 20000, "Limit": 1 },
-            { "ItemKey": "chest_books_rare", "Price": 30000, "Limit": 1 },
-            { "ItemKey": "universal_shard_rare", "Price": 40000, "Limit": 1 },
-            { "ItemKey": "teleport_clan", "Price": 10000, "Limit": 1 },
-            { "ItemKey": "dungeon_energy_50", "Price": 12000, "Limit": 1 }
+          "WeeklyPool": [
+            { "ItemKey": "speedup_1h", "Price": 40000, "Limit": 2, "Weight": 40, "MaxDiscount": 90 },
+            { "ItemKey": "speedup_5h", "Price": 200000, "Limit": 1, "Weight": 12, "MaxDiscount": 90 },
+            { "ItemKey": "hero_xp_10k", "Price": 24000, "Limit": 2, "Weight": 40, "MaxDiscount": 90 },
+            { "ItemKey": "chest_books_common", "Price": 32000, "Limit": 1, "Weight": 40, "MaxDiscount": 90 },
+            { "ItemKey": "chest_books_rare", "Price": 60000, "Limit": 1, "Weight": 30, "MaxDiscount": 90 },
+            { "ItemKey": "universal_shard_common", "Price": 12000, "Limit": 3, "Weight": 40, "MaxDiscount": 90 },
+            { "ItemKey": "universal_shard_rare", "Price": 120000, "Limit": 1, "Weight": 20, "MaxDiscount": 90 },
+            { "ItemKey": "teleport_clan", "Price": 20000, "Limit": 1, "Weight": 25, "MaxDiscount": 90 },
+            { "ItemKey": "teleport_leader", "Price": 20000, "Limit": 1, "Weight": 15, "MaxDiscount": 90 },
+            { "ItemKey": "dungeon_energy_50", "Price": 24000, "Limit": 1, "Weight": 30, "MaxDiscount": 90 },
+            { "ItemKey": "repair_kit", "Price": 30000, "Limit": 1, "Weight": 25, "MaxDiscount": 90 },
+            { "ItemKey": "wrench_rare", "Price": 18000, "Limit": 3, "Weight": 35, "MaxDiscount": 90 },
+            { "ItemKey": "hero_xp_20k", "Price": 72000, "Limit": 1, "Weight": 2, "MaxDiscount": 50 },
+            { "ItemKey": "chest_books_unique", "Price": 90000, "Limit": 1, "Weight": 2, "MaxDiscount": 50 },
+            { "ItemKey": "whetstone", "Price": 800, "Limit": 50, "Weight": 2, "MaxDiscount": 50 },
+            { "ItemKey": "weapon_chest", "Price": 120000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 },
+            { "ItemKey": "hero_xp_large", "Price": 180000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 },
+            { "ItemKey": "key_unique", "Price": 300000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 },
+            { "ItemKey": "speedup_8h", "Price": 480000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 },
+            { "ItemKey": "universal_shard_unique", "Price": 480000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 }
+          ],
+          "DailyDiscounts": [
+            { "Percent": 0, "Weight": 62 },
+            { "Percent": 10, "Weight": 20 },
+            { "Percent": 20, "Weight": 11 },
+            { "Percent": 50, "Weight": 6 },
+            { "Percent": 90, "Weight": 1 }
+          ],
+          "WeeklyDiscounts": [
+            { "Percent": 0, "Weight": 60 },
+            { "Percent": 10, "Weight": 22 },
+            { "Percent": 20, "Weight": 12 },
+            { "Percent": 50, "Weight": 5 },
+            { "Percent": 90, "Weight": 1 }
           ]
         }
       }

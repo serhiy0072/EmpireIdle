@@ -247,14 +247,31 @@ namespace EmpireIdle.Domain.Services.Config
         public double Weight { get; set; }
     }
 
-    /// <summary>Клановий магазин: щоденна вітрина з пулу (однакова для всіх за датою) і фіксована тижнева.</summary>
+    /// <summary>
+    /// Клановий магазин (рішення 03.11): щоденна й тижнева вітрини з пулів, однакові для всіх за датою.
+    /// На кожен слот окремо кидається знижка.
+    /// </summary>
     public class ClanShopConfig
     {
-        public int DailySlots { get; set; } = 6;
+        public int DailySlots { get; set; } = 15;
+
+        public int WeeklySlots { get; set; } = 15;
 
         public List<ClanShopItemConfig> DailyPool { get; set; } = new();
 
-        public List<ClanShopItemConfig> Weekly { get; set; } = new();
+        public List<ClanShopItemConfig> WeeklyPool { get; set; } = new();
+
+        public List<ClanShopDiscountConfig> DailyDiscounts { get; set; } = new();
+
+        public List<ClanShopDiscountConfig> WeeklyDiscounts { get; set; } = new();
+    }
+
+    public class ClanShopDiscountConfig
+    {
+        /// <summary>Знижка у відсотках; 0 — повна ціна.</summary>
+        public int Percent { get; set; }
+
+        public double Weight { get; set; }
     }
 
     public class ClanShopItemConfig
@@ -265,5 +282,11 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Скільки разів можна купити за період вітрини.</summary>
         public int Limit { get; set; }
+
+        /// <summary>Вага випадання на вітрину.</summary>
+        public double Weight { get; set; } = 1;
+
+        /// <summary>Найбільша знижка цього предмета: вищу випалу знижку обрізає.</summary>
+        public int MaxDiscount { get; set; } = 90;
     }
 }

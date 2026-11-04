@@ -757,6 +757,12 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ShopPurchases")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'::jsonb");
+
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()

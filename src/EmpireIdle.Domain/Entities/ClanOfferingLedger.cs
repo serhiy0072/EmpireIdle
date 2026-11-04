@@ -32,6 +32,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Очки всіх підношень за добу, у кожному клані разом: від них пороги денних нагород.</summary>
         public int PointsToday { get; private set; }
 
+        /// <summary>Куплено в клановому магазині: «період|предмет» → кількість; старі періоди забуваються.</summary>
+        public IReadOnlyDictionary<string, int> ShopPurchases { get; private set; } = new Dictionary<string, int>();
+
         public uint Version { get; private set; }
 
         public ClanOfferingLedger(Guid id, Guid playerId, int serverId, DateTime utcNow) : base(id)
@@ -83,6 +86,33 @@ namespace EmpireIdle.Domain.Entities
         }
 
         public void AddCoins(int coins) => Coins += Math.Max(coins, 0);
+
+        /// <summary>Скільки цього предмета куплено за період вітрини.</summary>
+        public int PurchasedIn(string period, string itemKey) => ShopPurchases.GetValueOrDefault(PurchaseKey(period, itemKey));
+
+        /// <summary>Покупка за монети в межах ліміту періоду. Записи періодів, що вже минули, прибираються.</summary>
+        public void Purchase(string period, string itemKey, int quantity, int limit, long totalPrice, IReadOnlyCollection<string> livePeriods)
+        {
+            var bought = PurchasedIn(period, itemKey);
+
+            if (bought + quantity > limit)
+                throw new RequirementNotMetException(RefusalReasons.ClanTechShopLimit,
+                    $"Player {PlayerId} bought {bought} of {itemKey} out of {limit} in {period}.", limit, bought);
+
+            if (Coins < totalPrice)
+                throw new RequirementNotMetException(RefusalReasons.ClanTechNoCoins,
+                    $"Player {PlayerId} has {Coins} coins, {totalPrice} needed.", totalPrice, Coins);
+
+            Coins -= totalPrice;
+
+            var purchases = ShopPurchases
+                .Where(p => livePeriods.Any(live => p.Key.StartsWith(live + "|", StringComparison.Ordinal)))
+                .ToDictionary(p => p.Key, p => p.Value);
+            purchases[PurchaseKey(period, itemKey)] = bought + quantity;
+            ShopPurchases = purchases;
+        }
+
+        private static string PurchaseKey(string period, string itemKey) => $"{period}|{itemKey}";
 
         private int SpentAt(TimeSpan recharge, DateTime utcNow)
         {

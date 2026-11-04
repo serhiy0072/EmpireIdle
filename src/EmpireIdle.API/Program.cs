@@ -311,6 +311,7 @@ builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetizatio
 builder.Services.AddSingleton(sp => new VipProgression(gameConfig.Monetization));
 builder.Services.AddSingleton(sp => new PersonalTechnologies(gameConfig.Technologies.Personal));
 builder.Services.AddSingleton(sp => new ClanTechnologies(gameConfig.Technologies.Clan));
+builder.Services.AddSingleton(sp => new ClanShop(gameConfig.Technologies.Clan.Shop));
 builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));

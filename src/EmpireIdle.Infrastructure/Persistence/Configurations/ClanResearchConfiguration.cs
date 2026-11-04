@@ -28,7 +28,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
         }
 
         /// <summary>Словник ключів — непрозорий для БД JSON, як у особистих технологій.</summary>
-        private static void ConfigureLevels(PropertyBuilder<IReadOnlyDictionary<string, int>> property)
+        internal static void ConfigureLevels(PropertyBuilder<IReadOnlyDictionary<string, int>> property)
             => property
                 .HasColumnType("jsonb")
                 .HasDefaultValueSql("'{}'::jsonb")

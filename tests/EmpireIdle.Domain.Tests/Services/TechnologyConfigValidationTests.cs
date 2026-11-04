@@ -25,6 +25,47 @@ public class TechnologyConfigValidationTests
             new ClanDailyRewardConfig { Points = 100, Rewards = [new RewardConfig { Type = "Item", Key = "nothing", Amount = 1 }] }
         ]).Message);
 
+    [Fact]
+    public void Validate_ShouldRejectMoreWeeklySlotsThanThePoolHolds()
+        => Assert.Contains("WeeklySlots", Rejects(c => c.Technologies.Clan.Shop.WeeklySlots = 2).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectADiscountOfAHundredPercent()
+        => Assert.Contains("discount", Rejects(c => c.Technologies.Clan.Shop.DailyDiscounts =
+            [new ClanShopDiscountConfig { Percent = 100, Weight = 1 }]).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectAnItemTwiceInOnePool()
+        => Rejects(c => c.Technologies.Clan.Shop.DailyPool.Add(
+            new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 1, Limit = 1 }));
+
+    /// <summary>Скриня сама не торгується, але випадає з неї те, що торгується: монети дійшли б до gems.</summary>
+    [Fact]
+    public void Validate_ShouldRejectAChestThatOpensIntoSomethingTradeable()
+        => Assert.Contains("opens into something tradeable", Rejects(c =>
+        {
+            c.Items.Add(new ItemConfig { Key = "trade_good", DisplayName = "x", Description = "x", Type = "resources", Tradeable = true });
+            c.Items.Add(new ItemConfig { Key = "leaky_chest", DisplayName = "x", Description = "x", Type = "lootbox" });
+            c.Lootboxes.Add(new LootboxConfig
+            {
+                Key = "leaky_chest",
+                Entries = [new LootboxEntryConfig { Type = "Item", Key = "trade_good", Amount = 1, Weight = 1 }]
+            });
+            c.Technologies.Clan.Shop.WeeklyPool[0].ItemKey = "leaky_chest";
+        }).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectAnItemThatGrantsTheMarketCurrency()
+        => Assert.Contains("opens into something tradeable", Rejects(c =>
+        {
+            c.Items.Add(new ItemConfig
+            {
+                Key = "gold_crate", DisplayName = "x", Description = "x", Type = "resources",
+                Resources = [new ResourceCost { Resource = TestKeys.Gold, Amount = 100 }]
+            });
+            c.Technologies.Clan.Shop.WeeklyPool[0].ItemKey = "gold_crate";
+        }).Message);
+
     private static GameConfig Valid() => new GameConfigBuilder().WithTechnologies().Build();
 
     private static InvalidOperationException Rejects(Action<GameConfig> break_)
@@ -104,7 +145,7 @@ public class TechnologyConfigValidationTests
 
     [Fact]
     public void Validate_ShouldRejectAnUnknownShopItem()
-        => Assert.Contains("unknown item", Rejects(c => c.Technologies.Clan.Shop.Weekly[0].ItemKey = "nothing").Message);
+        => Assert.Contains("unknown item", Rejects(c => c.Technologies.Clan.Shop.WeeklyPool[0].ItemKey = "nothing").Message);
 
     /// <summary>Річ із ринку в магазині за монети — монети перетекли б у gems через продаж іншим.</summary>
     [Fact]

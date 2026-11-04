@@ -129,9 +129,21 @@
     "price"
   ],
   "clantech.noAttempts": [],
+  "clantech.noCoins": [
+    "need",
+    "have"
+  ],
   "clantech.notSelected": [],
   "clantech.resourceRejected": [
     "resource"
+  ],
+  "clantech.shopItemGone": [],
+  "clantech.shopLimit": [
+    "limit",
+    "bought"
+  ],
+  "clantech.shopPriceChanged": [
+    "price"
   ],
   "clantech.tierLocked": [
     "tier",

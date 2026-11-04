@@ -134,21 +134,66 @@ namespace EmpireIdle.Domain.Services
             if (shop.DailySlots < 0 || shop.DailySlots > shop.DailyPool.Count)
                 throw new InvalidOperationException("Technologies.Clan.Shop.DailySlots must be within 0..the size of DailyPool.");
 
-            foreach (var offer in shop.DailyPool.Concat(shop.Weekly))
+            if (shop.WeeklySlots < 0 || shop.WeeklySlots > shop.WeeklyPool.Count)
+                throw new InvalidOperationException("Technologies.Clan.Shop.WeeklySlots must be within 0..the size of WeeklyPool.");
+
+            foreach (var discount in shop.DailyDiscounts.Concat(shop.WeeklyDiscounts))
             {
-                var item = config.Items.FirstOrDefault(i => i.Key == offer.ItemKey)
-                    ?? throw new InvalidOperationException($"Technologies.Clan.Shop sells unknown item '{offer.ItemKey}'.");
-
-                // Предмет із ринку перетворив би монети на gems через продаж іншим гравцям
-                if (item.Tradeable)
+                if (discount.Percent is < 0 or >= 100 || discount.Weight <= 0)
                     throw new InvalidOperationException(
-                        $"Technologies.Clan.Shop sells '{offer.ItemKey}', which is tradeable — coins would leak into gems through the market.");
+                        $"Technologies.Clan.Shop discount {discount.Percent}% needs a percent within 0..99 and a positive weight.");
+            }
 
-                if (offer.Price <= 0 || offer.Limit < 1)
-                    throw new InvalidOperationException(
-                        $"Technologies.Clan.Shop offer '{offer.ItemKey}' needs a positive price and a limit of at least 1.");
+            foreach (var pool in new[] { shop.DailyPool, shop.WeeklyPool })
+            {
+                RequireUniqueKeys(pool.Select(o => o.ItemKey), "Technologies.Clan.Shop pool");
+
+                foreach (var offer in pool)
+                {
+                    if (config.Items.All(i => i.Key != offer.ItemKey))
+                        throw new InvalidOperationException($"Technologies.Clan.Shop sells unknown item '{offer.ItemKey}'.");
+
+                    // Предмет, що веде на ринок, перетворив би монети на gems через продаж іншим гравцям
+                    if (LeadsToMarket(config, offer.ItemKey, new HashSet<string>()))
+                        throw new InvalidOperationException(
+                            $"Technologies.Clan.Shop sells '{offer.ItemKey}', which is tradeable or opens into something tradeable — coins would leak into gems through the market.");
+
+                    if (offer.Price <= 0 || offer.Limit < 1 || offer.Weight <= 0 || offer.MaxDiscount is < 0 or >= 100)
+                        throw new InvalidOperationException(
+                            $"Technologies.Clan.Shop offer '{offer.ItemKey}' needs a positive price and weight, a limit of at least 1 and a max discount within 0..99.");
+                }
             }
         }
+
+        /// <summary>
+        /// Чи предмет продається на ринку сам або розкривається в те, що продається: спорядження торгується завжди,
+        /// скриня й ключ — через свою таблицю, а золото — це валюта ринку.
+        /// </summary>
+        private static bool LeadsToMarket(GameConfig config, string itemKey, HashSet<string> visited)
+        {
+            if (!visited.Add(itemKey) || config.Items.FirstOrDefault(i => i.Key == itemKey) is not { } item)
+                return false;
+
+            if (item.Tradeable || item.Slot is not null || item.Resources.Any(r => r.Resource == MarketCurrency))
+                return true;
+
+            var tableKey = item.Type == "chestkey"
+                ? config.KeyChests.FirstOrDefault(c => c.KeyItemKey == itemKey)?.LootboxKey
+                : itemKey;
+
+            var table = config.Lootboxes.FirstOrDefault(b => b.Key == tableKey);
+
+            return table is not null && table.Entries.Any(entry => entry.Type?.ToLowerInvariant() switch
+            {
+                "equipment" or "artifact" => true,
+                "resource" => entry.Key == MarketCurrency,
+                "item" or "lootbox" => entry.Key is not null && LeadsToMarket(config, entry.Key, visited),
+                _ => false
+            });
+        }
+
+        /// <summary>Ресурс, яким платять на ринку.</summary>
+        private const string MarketCurrency = "gold";
 
         /// <summary>Пороги строго зростають і дають справжні нагороди: порожній поріг гравець побачив би як обман.</summary>
         private static void ValidateClanDailyRewards(GameConfig config, List<ClanDailyRewardConfig> thresholds)

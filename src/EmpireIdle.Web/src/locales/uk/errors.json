@@ -233,7 +233,11 @@
       "noAttempts": "Спроби підношень закінчились — нова відновиться згодом",
       "resourceRejected": "Ця технологія не приймає такий ресурс: {{resource}}",
       "gemLimit": "На сьогодні вичерпано ліміт підношень за gems ({{limit}})",
-      "gemPriceChanged": "Ціна підношення змінилась: тепер {{price}} gems"
+      "gemPriceChanged": "Ціна підношення змінилась: тепер {{price}} gems",
+      "noCoins": "Бракує кланових монет: треба {{need}}, є {{have}}",
+      "shopLimit": "Ліміт цього предмета вичерпано: куплено {{bought}} з {{limit}}",
+      "shopItemGone": "Цього предмета вже немає на вітрині",
+      "shopPriceChanged": "Ціна змінилась: тепер {{price}} монет"
     }
   },
   "registration": {
