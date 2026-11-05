@@ -70,6 +70,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IItemEffect, BoostItemEffect>();
             services.AddScoped<IItemEffect, TeleportItemEffect>();
             services.AddScoped<IItemEffect, ScoutVeilItemEffect>();
+            services.AddScoped<IItemEffect, ShieldItemEffect>();
             services.AddScoped<IItemEffect, HeroExperienceItemEffect>();
             services.AddScoped<IItemEffect, DungeonEnergyItemEffect>();
 

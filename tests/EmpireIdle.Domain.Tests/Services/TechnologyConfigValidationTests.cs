@@ -66,6 +66,11 @@ public class TechnologyConfigValidationTests
             c.Technologies.Clan.Shop.WeeklyPool[0].ItemKey = "gold_crate";
         }).Message);
 
+    [Fact]
+    public void Validate_ShouldRejectAShieldWithoutADuration()
+        => Assert.Contains("DurationHours", Rejects(c => c.Items.Add(
+            new ItemConfig { Key = "empty_shield", DisplayName = "x", Description = "x", Type = "shield" })).Message);
+
     private static GameConfig Valid() => new GameConfigBuilder().WithTechnologies().Build();
 
     private static InvalidOperationException Rejects(Action<GameConfig> break_)

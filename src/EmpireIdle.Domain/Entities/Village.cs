@@ -689,6 +689,17 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
+        /// Піднімає щит предметом (рішення 04.11): чинний подовжується, строки складаються.
+        /// Напад на іншого гравця знімає його за тим самим правилом, що й щит після падіння.
+        /// </summary>
+        public void RaiseShield(TimeSpan duration, DateTime utcNow)
+        {
+            ShieldUntil = (IsShieldedAt(utcNow) ? ShieldUntil!.Value : utcNow) + duration;
+
+            Touch(utcNow);
+        }
+
+        /// <summary>
         /// Знімає щит: гравець сам пішов атакувати іншого гравця. Інакше щит
         /// став би укриттям, з-під якого безкарно нападають.
         /// </summary>

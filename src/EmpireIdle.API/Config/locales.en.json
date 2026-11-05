@@ -320,6 +320,8 @@
           "item.crate_mixed_large.description": "A bundle of resources for building up",
           "item.scout_veil_24h": "Veil of Mist",
           "item.scout_veil_24h.description": "Hides your village from scouting for 24 hours",
+          "item.shield_8h": "Shield",
+          "item.shield_8h.description": "Protects your village from attacks for 8 hours. Attacking another player removes the shield",
           "item.boost_production_2x_4h": "Production Boost",
           "item.boost_production_2x_4h.description": "Doubles production for 4 hours",
           "item.boost_attack_25_1h": "War Banner",

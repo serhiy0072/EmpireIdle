@@ -98,6 +98,15 @@
         "DurationHours": 24
       },
       {
+        "Key": "shield_8h",
+        "Tradeable": false,
+        "DisplayName": "Щит",
+        "Description": "Захищає село від нападів на 8 годин. Ваш напад на іншого гравця знімає щит",
+        "Rarity": "rare",
+        "Type": "shield",
+        "DurationHours": 8
+      },
+      {
         "Key": "boost_production_2x_4h",
         "Tradeable": true,
         "DisplayName": "Прискорення виробництва",

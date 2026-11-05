@@ -59,6 +59,7 @@ namespace EmpireIdle.Domain.Services
             ValidateMonsters(config);
             ValidateTierGates(config);
             ValidateTechnologies(config);
+            ValidateShields(config);
         }
 
         /// <summary>Стати, що мають сенс лише для клану: особисте дерево їх не дає.</summary>
@@ -187,6 +188,13 @@ namespace EmpireIdle.Domain.Services
                 "item" or "lootbox" => entry.Key is not null && LeadsToMarket(config, entry.Key, visited),
                 _ => false
             });
+        }
+
+        /// <summary>Щит без строку згорів би, нічого не давши.</summary>
+        private static void ValidateShields(GameConfig config)
+        {
+            foreach (var shield in config.Items.Where(i => i.Type == "shield" && i.DurationHours <= 0))
+                throw new InvalidOperationException($"Shield '{shield.Key}' has no DurationHours.");
         }
 
         /// <summary>Ресурс, яким платять на ринку.</summary>
