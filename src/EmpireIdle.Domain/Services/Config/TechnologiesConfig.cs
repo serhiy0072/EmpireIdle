@@ -267,6 +267,20 @@ namespace EmpireIdle.Domain.Services.Config
         public List<ClanShopDiscountConfig> DailyDiscounts { get; set; } = new();
 
         public List<ClanShopDiscountConfig> WeeklyDiscounts { get; set; } = new();
+
+        /// <summary>Безкоштовна тижнева вітрина (рішення 05.11): сталий набір, доступний і без клану.</summary>
+        public List<ClanFreeItemConfig> FreeWeekly { get; set; } = new();
+    }
+
+    public class ClanFreeItemConfig
+    {
+        public string ItemKey { get; set; } = null!;
+
+        /// <summary>Скільки можна забрати за тиждень.</summary>
+        public int Limit { get; set; }
+
+        /// <summary>Лише для учасника клану: клановий телепорт без клану використати ніде.</summary>
+        public bool RequiresClan { get; set; }
     }
 
     public class ClanShopDiscountConfig

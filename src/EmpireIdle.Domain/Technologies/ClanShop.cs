@@ -28,16 +28,26 @@ namespace EmpireIdle.Domain.Technologies
         /// <summary>Період, до якого належить момент: доба UTC або тиждень UTC від понеділка.</summary>
         public static string Period(ClanShopKind kind, DateTime utcNow)
         {
+            return kind == ClanShopKind.Daily
+                ? $"daily:{DateOnly.FromDateTime(utcNow):yyyy-MM-dd}"
+                : $"weekly:{MondayOf(utcNow):yyyy-MM-dd}";
+        }
+
+        /// <summary>Тиждень безкоштовної вітрини; окремий префікс, щоб ліміт не змішувався з покупками за монети.</summary>
+        public static string FreePeriod(DateTime utcNow) => $"free:{MondayOf(utcNow):yyyy-MM-dd}";
+
+        private static DateOnly MondayOf(DateTime utcNow)
+        {
             var date = DateOnly.FromDateTime(utcNow);
 
-            return kind == ClanShopKind.Daily
-                ? $"daily:{date:yyyy-MM-dd}"
-                : $"weekly:{date.AddDays(-(((int)date.DayOfWeek + 6) % 7)):yyyy-MM-dd}";
+            return date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
         }
 
         /// <summary>Періоди, чиї ліміти ще мають значення; решту особиста книга може забути.</summary>
         public static IReadOnlyCollection<string> LivePeriods(DateTime utcNow)
-            => [Period(ClanShopKind.Daily, utcNow), Period(ClanShopKind.Weekly, utcNow)];
+            => [Period(ClanShopKind.Daily, utcNow), Period(ClanShopKind.Weekly, utcNow), FreePeriod(utcNow)];
+
+        public IReadOnlyList<ClanFreeItemConfig> FreeWeekly => _config.FreeWeekly;
 
         public IReadOnlyList<ClanShopOffer> Offers(ClanShopKind kind, DateTime utcNow)
         {

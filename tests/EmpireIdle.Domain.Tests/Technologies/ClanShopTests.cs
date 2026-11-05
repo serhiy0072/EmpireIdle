@@ -39,6 +39,18 @@ public class ClanShopTests
         Assert.Equal("daily:2026-11-05", ClanShop.Period(ClanShopKind.Daily, Wednesday.Date.AddDays(1)));
     }
 
+    [Theory]
+    [InlineData(2026, 11, 2, "free:2026-11-02")]
+    [InlineData(2026, 11, 8, "free:2026-11-02")]
+    [InlineData(2026, 11, 9, "free:2026-11-09")]
+    public void FreePeriod_ShouldStartOnMonday(int year, int month, int day, string period)
+        => Assert.Equal(period, ClanShop.FreePeriod(new DateTime(year, month, day, 23, 0, 0, DateTimeKind.Utc)));
+
+    /// <summary>Інакше будь-яка покупка за монети стирала б, скільки вже забрано задарма.</summary>
+    [Fact]
+    public void LivePeriods_ShouldKeepTheFreeWeek()
+        => Assert.Contains(ClanShop.FreePeriod(Wednesday), ClanShop.LivePeriods(Wednesday));
+
     /// <summary>Два окремі екземпляри — як два процеси сервера: вітрина мусить збігтись.</summary>
     [Fact]
     public void Offers_ShouldBeTheSameForEveryone_WithinAPeriod()

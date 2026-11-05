@@ -563,6 +563,11 @@
         "Shop": {
           "DailySlots": 15,
           "WeeklySlots": 15,
+          "FreeWeekly": [
+            { "ItemKey": "teleport_random", "Limit": 10 },
+            { "ItemKey": "shield_8h", "Limit": 5 },
+            { "ItemKey": "teleport_clan", "Limit": 3, "RequiresClan": true }
+          ],
           "DailyPool": [
             { "ItemKey": "speedup_1m", "Price": 600, "Limit": 10, "Weight": 10 },
             { "ItemKey": "speedup_5m", "Price": 3300, "Limit": 3, "Weight": 12 },

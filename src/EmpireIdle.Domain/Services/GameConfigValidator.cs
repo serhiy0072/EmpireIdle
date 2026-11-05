@@ -142,6 +142,8 @@ namespace EmpireIdle.Domain.Services
                         $"Technologies.Clan.Shop discount {discount.Percent}% needs a percent within 0..99 and a positive weight.");
             }
 
+            ValidateFreeWeekly(config, shop);
+
             foreach (var pool in new[] { shop.DailyPool, shop.WeeklyPool })
             {
                 RequireUniqueKeys(pool.Select(o => o.ItemKey), "Technologies.Clan.Shop pool");
@@ -188,6 +190,32 @@ namespace EmpireIdle.Domain.Services
                 "item" or "lootbox" => entry.Key is not null && LeadsToMarket(config, entry.Key, visited),
                 _ => false
             });
+        }
+
+        /// <summary>
+        /// Безкоштовна тижнева вітрина. Кланові телепорти без прапорця RequiresClan видавались би гравцеві,
+        /// який не може їх використати, а предмет, що веде на ринок, давав би золото задарма.
+        /// </summary>
+        private static void ValidateFreeWeekly(GameConfig config, ClanShopConfig shop)
+        {
+            RequireUniqueKeys(shop.FreeWeekly.Select(o => o.ItemKey), "Technologies.Clan.Shop.FreeWeekly");
+
+            foreach (var free in shop.FreeWeekly)
+            {
+                var item = config.Items.FirstOrDefault(i => i.Key == free.ItemKey)
+                    ?? throw new InvalidOperationException($"Technologies.Clan.Shop.FreeWeekly gives unknown item '{free.ItemKey}'.");
+
+                if (free.Limit < 1)
+                    throw new InvalidOperationException($"Technologies.Clan.Shop.FreeWeekly '{free.ItemKey}' needs a limit of at least 1.");
+
+                if (LeadsToMarket(config, free.ItemKey, new HashSet<string>()))
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.Shop.FreeWeekly gives '{free.ItemKey}', which is tradeable or opens into something tradeable.");
+
+                if (item.Type == "teleport" && item.TeleportScope is TeleportScope.ClanTerritory or TeleportScope.ClanLeader && !free.RequiresClan)
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.Shop.FreeWeekly '{free.ItemKey}' is a clan teleport and must set RequiresClan.");
+            }
         }
 
         /// <summary>Щит без строку згорів би, нічого не давши.</summary>
