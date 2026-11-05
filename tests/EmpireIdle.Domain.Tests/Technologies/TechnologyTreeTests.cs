@@ -118,6 +118,23 @@ public class TechnologyTreeTests
     }
 
     [Theory]
+    [InlineData(0, TestKeys.Gold)]
+    [InlineData(9_999, TestKeys.Gold)]
+    [InlineData(10_000, TestKeys.Wood)]
+    [InlineData(19_999, TestKeys.Wood)]
+    [InlineData(20_000, TestKeys.Gold)]
+    public void OfferedResource_ShouldShiftEveryTenThousandOfferings_AndGoRound(long offerings, string resource)
+        => Assert.Equal(resource, Clan.OfferedResource(offerings));
+
+    [Fact]
+    public void OfferedResource_ShouldBeNull_WithoutARotation()
+    {
+        var config = new GameConfigBuilder().WithTechnologies(t => t.Clan.Offering.ResourceRotation = []).Build();
+
+        Assert.Null(new ClanTechnologies(config.Technologies.Clan).OfferedResource(0));
+    }
+
+    [Theory]
     [InlineData(1, 10)]
     [InlineData(5, 10)]
     [InlineData(6, 20)]

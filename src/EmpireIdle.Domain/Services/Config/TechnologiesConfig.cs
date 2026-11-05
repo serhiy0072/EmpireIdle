@@ -210,6 +210,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Ресурс → ціна однієї спроби за кожен рівень ратуші гравця.</summary>
         public Dictionary<string, int> AttemptCostPerTownHall { get; set; } = new();
 
+        /// <summary>Ресурси, які клан приймає по черзі, по колу; перший — від створення клану.</summary>
+        public List<string> ResourceRotation { get; set; } = new();
+
+        /// <summary>Скільки підношень ресурсом клану відбувається до зміни ресурсу (рішення 05.11).</summary>
+        public int ResourceRotationEvery { get; set; } = 10000;
+
         public int GemPoints { get; set; } = 50;
 
         /// <summary>

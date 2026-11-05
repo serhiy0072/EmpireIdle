@@ -116,6 +116,11 @@ namespace EmpireIdle.Domain.Services
                         $"Technologies.Clan.Offering costs '{resource}', which must be a resource with a positive price.");
             }
 
+            // Обидва напрямки: ресурс без ціни зламав би підношення, а ціна поза чергою ніколи б не спрацювала
+            if (!clan.Offering.AttemptCostPerTownHall.Keys.ToHashSet().SetEquals(clan.Offering.ResourceRotation))
+                throw new InvalidOperationException(
+                    "Technologies.Clan.Offering.ResourceRotation must list exactly the resources priced in AttemptCostPerTownHall.");
+
             if (clan.Coins.Multipliers.Count == 0)
                 throw new InvalidOperationException("Technologies.Clan.Coins.Multipliers is empty — an offering would roll no coins.");
 

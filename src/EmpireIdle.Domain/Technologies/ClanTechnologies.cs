@@ -47,6 +47,22 @@ namespace EmpireIdle.Domain.Technologies
                 ? perLevel * Math.Max(mainBuildingLevel, 1)
                 : null;
 
+        /// <summary>
+        /// Ресурс, який клан приймає зараз: черга зсувається що ResourceRotationEvery підношень ресурсом.
+        /// null — черги немає, і підношення ресурсом не приймаються.
+        /// </summary>
+        public string? OfferedResource(long resourceOfferings)
+        {
+            var rotation = _config.Offering.ResourceRotation;
+
+            if (rotation.Count == 0)
+                return null;
+
+            var period = Math.Max(resourceOfferings, 0) / Math.Max(_config.Offering.ResourceRotationEvery, 1);
+
+            return rotation[(int)(period % rotation.Count)];
+        }
+
         /// <summary>Ціна n-го (від 1) gems-підношення за добу UTC: база × ріст^(номер партії від нуля).</summary>
         public int GemOfferingPrice(int nth)
         {

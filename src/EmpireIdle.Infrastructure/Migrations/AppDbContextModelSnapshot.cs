@@ -890,6 +890,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasColumnType("jsonb")
                         .HasDefaultValueSql("'{}'::jsonb");
 
+                    b.Property<long>("ResourceOfferings")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
 

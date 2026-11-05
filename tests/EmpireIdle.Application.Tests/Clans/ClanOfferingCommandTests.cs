@@ -123,6 +123,49 @@ public class ClanOfferingCommandTests
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
+    /// <summary>Черга зсунулась, поки клієнт показував старий ресурс: відмова без спроби, списання й лічби.</summary>
+    [Fact]
+    public async Task OfferResources_ShouldRefuseWithoutCharging_APricedResourceOutOfTurn()
+    {
+        var goldBefore = Resource(TestKeys.Gold);
+        var attemptsBefore = _ledger.AttemptsAvailable(25, TimeSpan.FromSeconds(576), Now);
+
+        var error = await Assert.ThrowsAsync<RequirementNotMetException>(
+            () => ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Wood), CancellationToken.None));
+
+        Assert.Equal(RefusalReasons.ClanTechResourceRejected.Key, error.Reason);
+        Assert.Equal(goldBefore, Resource(TestKeys.Gold));
+        Assert.Equal(attemptsBefore, _ledger.AttemptsAvailable(25, TimeSpan.FromSeconds(576), Now));
+        Assert.Equal(0, _target.ResourceOfferings);
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task OfferResources_ShouldTakeTheNextResource_AfterTheRotationPeriod()
+    {
+        for (var i = 0; i < 10_000; i++)
+            _target.CountResourceOffering();
+        var woodBefore = Resource(TestKeys.Wood);
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(
+            () => ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Gold), CancellationToken.None));
+        await ResourcesHandler().Handle(new OfferResourcesCommand(PlayerId, TestKeys.Wood), CancellationToken.None);
+
+        // Ратуша 10 × 40 дерева за спробу
+        Assert.Equal(woodBefore - 400, Resource(TestKeys.Wood));
+        Assert.Equal(10_001, _target.ResourceOfferings);
+    }
+
+    [Fact]
+    public async Task OfferGems_ShouldNotShiftTheResourceRotation()
+    {
+        GivenWallet(gems: 100);
+
+        await GemsHandler().Handle(new OfferGemsCommand(PlayerId, ExpectedPrice: 10), CancellationToken.None);
+
+        Assert.Equal(0, _target.ResourceOfferings);
+    }
+
     /// <summary>Підношення не залежить від офіцера: перше з них саме створює запас клану.</summary>
     [Fact]
     public async Task OfferResources_ShouldWorkAndReward_InAClanThatNeverAllocatedAnything()

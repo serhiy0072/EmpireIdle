@@ -24,6 +24,9 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Запас очок, які офіцер ще не розподілив.</summary>
         public long UnallocatedPoints { get; private set; }
 
+        /// <summary>Скільки підношень ресурсом зробив клан; за цим лічильником зсувається черга ресурсів.</summary>
+        public long ResourceOfferings { get; private set; }
+
         public DateTime UpdatedAt { get; private set; }
 
         public uint Version { get; private set; }
@@ -40,6 +43,9 @@ namespace EmpireIdle.Domain.Entities
         public int LevelOf(TechnologyKey key) => Levels.GetValueOrDefault(key.ToString());
 
         public int ProgressOf(TechnologyKey key) => Progress.GetValueOrDefault(key.ToString());
+
+        /// <summary>Підношення за gems ресурс не витрачає, тому чергу зсуває лише підношення ресурсом.</summary>
+        public void CountResourceOffering() => ResourceOfferings++;
 
         /// <summary>Очки підношення йдуть у запас клану.</summary>
         public void AddPoints(int points, DateTime utcNow)

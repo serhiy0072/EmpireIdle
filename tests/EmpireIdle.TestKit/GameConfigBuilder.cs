@@ -550,7 +550,8 @@
                     ],
                     Offering = new ClanOfferingConfig
                     {
-                        AttemptCostPerTownHall = new() { [TestKeys.Gold] = 50, [TestKeys.Wood] = 40 }
+                        AttemptCostPerTownHall = new() { [TestKeys.Gold] = 50, [TestKeys.Wood] = 40 },
+                        ResourceRotation = [TestKeys.Gold, TestKeys.Wood]
                     },
                     Coins = new ClanCoinsConfig
                     {

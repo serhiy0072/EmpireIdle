@@ -13,6 +13,7 @@ namespace EmpireIdle.Application.Clans.Commands
     /// <summary>
     /// Підношення ресурсом у запас клану (рішення 28.10.2026): витрачає спробу й ресурс села.
     /// Ціна росте з ратушею, а очки однакові — внесок великого й малого села рівноцінний.
+    /// Клан приймає один ресурс за раз, по черзі (рішення 05.11).
     /// </summary>
     public record OfferResourcesCommand(Guid PlayerId, string Resource)
         : IRequest<ClanOfferingResult>, IPlayerScopedRequest, IIdempotentRequest;
@@ -50,7 +51,9 @@ namespace EmpireIdle.Application.Clans.Commands
             var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
 
-            var cost = _technologies.AttemptCost(request.Resource, _status.MainBuildingLevel(village))
+            // Клієнт сам називає ресурс: якщо черга зсунулась, гравець отримає відмову, а не несподіване списання
+            var accepted = request.Resource == _technologies.OfferedResource(research.ResourceOfferings);
+            var cost = (accepted ? _technologies.AttemptCost(request.Resource, _status.MainBuildingLevel(village)) : null)
                 ?? throw new RequirementNotMetException(RefusalReasons.ClanTechResourceRejected,
                     $"Offerings do not accept {request.Resource}.", request.Resource);
 
@@ -60,6 +63,7 @@ namespace EmpireIdle.Application.Clans.Commands
 
             ledger.SpendAttempt(offering.MaxAttempts + bonus, TimeSpan.FromSeconds(offering.AttemptRechargeSeconds), now);
             village.ChargeCost([new ResourceCost { Resource = request.Resource, Amount = cost }], now);
+            research.CountResourceOffering();
 
             var result = await _offerings.RecordAsync(clan, research, ledger, request.PlayerId, offering.PointsPerAttempt, now, cancellationToken);
 
