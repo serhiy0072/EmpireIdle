@@ -1,6 +1,7 @@
 import type { QuestObjectiveView, RewardConfig } from "./apiTypes";
 import type { Catalog } from "./queries/catalog";
 import { rarityLabel } from "./rarity";
+import { technologyTabName } from "./technologies";
 import { formatNumber } from "./format";
 import { t } from "i18next";
 
@@ -23,6 +24,12 @@ export function objectiveLabel(objective: QuestObjectiveView, catalog: Catalog):
       return t("social:objective.monsters");
     case "GemsSpent":
       return t("social:objective.gems");
+    case "ResearchCompleted":
+      return target === ""
+        ? t("social:objective.researchAny")
+        : t("social:objective.research", { tab: technologyTabName(target) });
+    case "ClanOfferingMade":
+      return t("social:objective.clanOffering");
     default:
       return target === "" ? objective.type : `${objective.type}: ${target}`;
   }

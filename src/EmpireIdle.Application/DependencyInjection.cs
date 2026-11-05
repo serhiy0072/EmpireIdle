@@ -156,6 +156,8 @@ namespace EmpireIdle.Application
             services.AddScoped<IQuestSignalMapper, BattleFoughtMapper>();
             services.AddScoped<IQuestSignalMapper, GemsSpentMapper>();
             services.AddScoped<IQuestSignalMapper, UnitsTrainedMapper>();
+            services.AddScoped<IQuestSignalMapper, ResearchCompletedMapper>();
+            services.AddScoped<IQuestSignalMapper, ClanOfferingMadeMapper>();
 
             // Закриті типи хендлера — MediatR не вміє резолвити відкритий генерик
             // для вкладеної нотифікації, тому реєструємо їх рефлексією

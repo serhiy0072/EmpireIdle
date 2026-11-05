@@ -13,6 +13,11 @@ export function technologyName(key: string): string {
   return key in uk.node ? t(`technologies:node.${key as NodeKey}`) : key;
 }
 
+/** Назва вкладки дерева; невідомий ключ повертається як є. */
+export function technologyTabName(key: string): string {
+  return key in uk.tab ? t(`technologies:tab.${key as keyof typeof uk.tab}`) : key;
+}
+
 /** Імена TechnologyStat у порядку enum на сервері: на дроті — число. */
 const STATS: readonly StatKey[] = [
   "Attack",

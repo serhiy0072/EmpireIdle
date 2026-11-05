@@ -19,7 +19,10 @@
     "trainAny": "Train troops",
     "train": "Train: {{unit}}",
     "monsters": "Defeat monsters",
-    "gems": "Spend gems"
+    "gems": "Spend gems",
+    "researchAny": "Research a technology level",
+    "research": "Research a technology level: {{tab}}",
+    "clanOffering": "Make a clan offering"
   },
   "reward": {
     "hero": "Hero: {{hero}}",

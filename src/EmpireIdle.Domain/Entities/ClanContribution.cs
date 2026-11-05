@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Events;
+
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
@@ -41,6 +43,8 @@ namespace EmpireIdle.Domain.Entities
 
             Total += points;
             Today += points;
+
+            RaiseDomainEvent(new ClanOfferingMade(PlayerId, ClanId, points, utcNow));
         }
 
         /// <summary>Внесок за цю добу: вчорашній лічильник уже не рахується, хоч рядок ще не оновлено.</summary>
