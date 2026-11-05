@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using EmpireIdle.API.Configuration;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -23,14 +24,14 @@ public class ShippedConfigTests
     private static string ApiProject(string root) => Path.Combine(root, "src", "EmpireIdle.API");
 
     /// <summary>
-    /// Шляхи з усіх викликів AddJsonFile у Program.cs. Читаються з коду, а не
+    /// Шляхи з усіх викликів AddJsonFile й AddIndexedJsonFile у Program.cs. Читаються з коду, а не
     /// дублюються тут: інакше доданий конфіг лишився б поза перевіркою.
     /// </summary>
     private static List<string> ConfigFiles(string root)
     {
         var program = File.ReadAllText(Path.Combine(ApiProject(root), "Program.cs"));
 
-        return Regex.Matches(program, @"AddJsonFile\(\s*""([^""]+)""")
+        return Regex.Matches(program, @"Add(?:Indexed)?JsonFile\(\s*""([^""]+)""")
             .Select(m => m.Groups[1].Value)
             .ToList();
     }
@@ -40,7 +41,7 @@ public class ShippedConfigTests
         var builder = new ConfigurationBuilder().SetBasePath(ApiProject(root));
 
         foreach (var file in ConfigFiles(root))
-            builder.AddJsonFile(file, optional: false);
+            builder.AddIndexedJsonFile(file);
 
         return builder.Build().GetSection("GameConfig").Get<GameConfig>(o => o.ErrorOnUnknownConfiguration = true)
             ?? throw new InvalidOperationException("GameConfig section is missing from the shipped config.");

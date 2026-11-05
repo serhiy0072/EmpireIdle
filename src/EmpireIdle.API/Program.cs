@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application;
+using EmpireIdle.Application;
 using EmpireIdle.API.Hubs;
 using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Middleware;
@@ -15,6 +15,7 @@ using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Technologies;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
+using EmpireIdle.API.Configuration;
 using Hangfire;
 using Hangfire.PostgreSql;
 using MediatR;
@@ -35,31 +36,31 @@ var builder = WebApplication.CreateBuilder(args);
 //  тож гаряче перезавантаження лише створювало б ілюзію й зайві FileSystemWatcher-и.
 
 builder.Configuration
-    .AddJsonFile("game-config.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/battle.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/tower.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/beasts.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/provisions.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/lootboxes.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/technologies.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
+    .AddIndexedJsonFile("game-config.json")
+    .AddIndexedJsonFile("Config/resources.json")
+    .AddIndexedJsonFile("Config/buildings.json")
+    .AddIndexedJsonFile("Config/units.json")
+    .AddIndexedJsonFile("Config/monsters.json")
+    .AddIndexedJsonFile("Config/map.json")
+    .AddIndexedJsonFile("Config/combat.json")
+    .AddIndexedJsonFile("Config/monetization.json")
+    .AddIndexedJsonFile("Config/shop.json")
+    .AddIndexedJsonFile("Config/items.json")
+    .AddIndexedJsonFile("Config/quests.json")
+    .AddIndexedJsonFile("Config/rating.json")
+    .AddIndexedJsonFile("Config/clan.json")
+    .AddIndexedJsonFile("Config/heroes.json")
+    .AddIndexedJsonFile("Config/dungeons.json")
+    .AddIndexedJsonFile("Config/battle.json")
+    .AddIndexedJsonFile("Config/tower.json")
+    .AddIndexedJsonFile("Config/market.json")
+    .AddIndexedJsonFile("Config/chat.json")
+    .AddIndexedJsonFile("Config/login-rewards.json")
+    .AddIndexedJsonFile("Config/beasts.json")
+    .AddIndexedJsonFile("Config/provisions.json")
+    .AddIndexedJsonFile("Config/lootboxes.json")
+    .AddIndexedJsonFile("Config/technologies.json")
+    .AddIndexedJsonFile("Config/locales.en.json");
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
