@@ -6,6 +6,8 @@ public record PowerResponse(
     double Army,
     double Hero,
     double Equipment,
+    double Technology,
+    double ClanTechnology,
     DateTime UpdatedAt);
 
 /// <summary>Місце гравця з розкладкою рейтингу.</summary>

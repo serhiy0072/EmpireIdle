@@ -5,6 +5,7 @@ using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.Technologies;
 using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
@@ -23,9 +24,29 @@ public class RecalculatePowerCommandTests
     private readonly IPlayerPowerRepository _powers = Substitute.For<IPlayerPowerRepository>();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
+    private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
+    private readonly IClanResearchRepository _clanResearch = Substitute.For<IClanResearchRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
     private const string HeroKey = "warrior_bran";
+    private const string TechNode = "attack_all";
+
+    private static List<TechnologyNodeConfig> TechNodes() =>
+        [new TechnologyNodeConfig { Key = TechNode, Tab = "battle", Row = 1, Levels = 3, Scaling = TechnologyScaling.Battle }];
+
+    private static PersonalTechnologiesConfig PersonalTree => new()
+    {
+        Tiers = [new TechnologyTierConfig { Tier = 1, PowerPerLevel = 30 }],
+        Nodes = TechNodes()
+    };
+
+    private static ClanTechnologiesConfig ClanTree => new()
+    {
+        BasePoints = 100,
+        Tiers = [new TechnologyTierConfig { Tier = 1, PowerPerLevel = 40 }],
+        Nodes = TechNodes()
+    };
 
     private static GameConfig Config() => new()
     {
@@ -45,6 +66,8 @@ public class RecalculatePowerCommandTests
             }
         ],
         Combat = new CombatConfig(),
+        // Дерева окремо: каталог валідує конфіг повністю, а цим тестам потрібні лише їхні числа
+        Technologies = new TechnologiesConfig { PowerWeights = new() { [TechnologyScaling.Battle] = 2 } },
         Equipment = TestKit.GameConfigBuilder.DefaultEquipment("forge"),
         HeroSettings = new HeroesConfig
         {
@@ -76,7 +99,8 @@ public class RecalculatePowerCommandTests
         var progression = new HeroProgression(config.HeroSettings);
 
         return new RecalculatePowerCommandHandler(
-            _garrisons, _villages, _marches, _powers, _heroes, _inventory, _unitOfWork,
+            _garrisons, _villages, _marches, _powers, _heroes, _inventory, _research, _clans, _clanResearch,
+            new PersonalTechnologies(PersonalTree), new ClanTechnologies(ClanTree), _unitOfWork,
             new CombatCalculator(config.Combat, catalog),
             new FakeTimeProvider(Now),
             new HeroStats(progression, catalog),
@@ -123,6 +147,78 @@ public class RecalculatePowerCommandTests
         _powers.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(power);
 
         return power;
+    }
+
+    private void GivenPersonalLevels(int levels)
+    {
+        var research = new PlayerResearch(Guid.NewGuid(), PlayerId, 1, Now);
+
+        for (var i = 0; i < levels; i++)
+        {
+            research.Start(new TechnologyKey(1, TechNode), TimeSpan.Zero, Now);
+            research.CompleteDue(Now);
+        }
+
+        _research.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(research);
+    }
+
+    private void GivenClanLevels(bool isMember)
+    {
+        var clanId = Guid.NewGuid();
+        var technologies = new ClanTechnologies(ClanTree);
+        var research = new ClanResearch(Guid.NewGuid(), clanId, 1, Now);
+        var key = new TechnologyKey(1, TechNode);
+        var points = technologies.Points(1, technologies.Tree.Node(TechNode)!, 1);
+
+        research.AddPoints(points, Now);
+        research.Allocate(key, points, technologies, Now);
+
+        _clanResearch.GetByClanAsync(clanId, Arg.Any<CancellationToken>()).Returns(research);
+        _clans.GetClanIdByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(isMember ? clanId : null);
+    }
+
+    /// <summary>Рівень × сила тіру × вага бойової шкали: 2 × 30 × 2.</summary>
+    [Fact]
+    public async Task Handle_ShouldAddPersonalTechnologies_ToTheTotal()
+    {
+        var garrison = GivenGarrison(garrisonInfantry: 10);
+        var power = GivenExistingPower();
+        GivenPersonalLevels(2);
+
+        await Handler().Handle(new RecalculatePowerCommand(garrison.Id), CancellationToken.None);
+
+        Assert.Equal(120, power.TechnologyPower, 3);
+        Assert.Equal(0, power.ClanTechnologyPower, 3);
+        Assert.Equal(220, power.TotalPower, 3);
+    }
+
+    /// <summary>Клан дає силу кожному учаснику: 1 × 40 × 2.</summary>
+    [Fact]
+    public async Task Handle_ShouldAddClanTechnologies_ForAMember()
+    {
+        var garrison = GivenGarrison(garrisonInfantry: 10);
+        var power = GivenExistingPower();
+        GivenClanLevels(isMember: true);
+
+        await Handler().Handle(new RecalculatePowerCommand(garrison.Id), CancellationToken.None);
+
+        Assert.Equal(80, power.ClanTechnologyPower, 3);
+        Assert.Equal(180, power.TotalPower, 3);
+    }
+
+    /// <summary>Без клану кланова частина зникає: перерахунок після виходу пише нуль, а не старе число.</summary>
+    [Fact]
+    public async Task Handle_ShouldDropClanTechnologies_OutsideAClan()
+    {
+        var garrison = GivenGarrison(garrisonInfantry: 10);
+        var power = GivenExistingPower();
+        power.Set(100, 0, 0, 0, clanTechnology: 80, Now);
+        GivenClanLevels(isMember: false);
+
+        await Handler().Handle(new RecalculatePowerCommand(garrison.Id), CancellationToken.None);
+
+        Assert.Equal(0, power.ClanTechnologyPower, 3);
+        Assert.Equal(100, power.TotalPower, 3);
     }
 
     /// <summary>Перший перерахунок створює рядок сили.</summary>
@@ -172,7 +268,7 @@ public class RecalculatePowerCommandTests
         var garrison = GivenGarrison(garrisonInfantry: 3);
 
         var existing = new PlayerPower(Guid.NewGuid(), PlayerId, 1, Now.AddDays(-1));
-        existing.Set(9999, 0, 0, Now.AddDays(-1));
+        existing.Set(9999, 0, 0, 0, 0, Now.AddDays(-1));
 
         _powers.GetByPlayerAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(existing);
 

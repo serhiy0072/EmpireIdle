@@ -25,9 +25,9 @@ namespace EmpireIdle.Application.Power.Queries
             // Рядка ще немає, поки гравець не зробив нічого, що змінює армію.
             // Нулі, а не 404: сила нуль — це коректна відповідь, а не відсутність гравця
             return power is null
-                ? new PlayerPowerView(0, 0, 0, 0, _timeProvider.GetUtcNow().UtcDateTime)
+                ? new PlayerPowerView(0, 0, 0, 0, 0, 0, _timeProvider.GetUtcNow().UtcDateTime)
                 : new PlayerPowerView(power.TotalPower, power.ArmyPower, power.HeroPower,
-                    power.EquipmentPower, power.UpdatedAt);
+                    power.EquipmentPower, power.TechnologyPower, power.ClanTechnologyPower, power.UpdatedAt);
         }
     }
 }

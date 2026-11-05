@@ -6,5 +6,7 @@ namespace EmpireIdle.Application.Power.ReadModels
         double Army,
         double Hero,
         double Equipment,
+        double Technology,
+        double ClanTechnology,
         DateTime UpdatedAt);
 }

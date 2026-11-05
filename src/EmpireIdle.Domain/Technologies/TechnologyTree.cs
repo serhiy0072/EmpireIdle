@@ -101,6 +101,25 @@ namespace EmpireIdle.Domain.Technologies
                 : 1;
 
         /// <summary>
+        /// Сила вивчених рівнів: рівень × сила тіру × вага шкали вузла (рішення 05.11, кожен рівень дає силу).
+        /// Ключі, яких немає в дереві, пропускаються, а рівень понад стелю вузла не рахується, як і в бонусах.
+        /// </summary>
+        public double Power(IReadOnlyDictionary<string, int> levels, IReadOnlyDictionary<TechnologyScaling, double> weights)
+        {
+            var power = 0.0;
+
+            foreach (var (key, level) in levels)
+            {
+                if (level <= 0 || TechnologyKey.Parse(key) is not { } parsed || Node(parsed.Node) is not { } node || Tier(parsed.Tier) is not { } tier)
+                    continue;
+
+                power += Math.Min(level, node.Levels) * tier.PowerPerLevel * weights.GetValueOrDefault(node.Scaling, 1);
+            }
+
+            return power;
+        }
+
+        /// <summary>
         /// Усі вивчені рівні як бонуси: рівень × бонус за рівень × шкала тіру. Ключі, яких немає в дереві
         /// (вузол прибрали з конфігу), пропускаються, а не ламають розрахунок.
         /// </summary>

@@ -78,6 +78,8 @@ export default function RatingPage() {
                     army: compactPower(power.data.army),
                     heroes: compactPower(power.data.hero),
                     gear: compactPower(power.data.equipment),
+                    technologies: compactPower(power.data.technology),
+                    clan: compactPower(power.data.clanTechnology),
                   })
             }
           />

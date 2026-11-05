@@ -109,6 +109,9 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Technologies.Personal.MaxHelps >= 0 && c.Technologies.Personal.HelpShare >= 0
         && c.Technologies.Personal.MaxHelps * c.Technologies.Personal.HelpShare < 1,
         "GameConfig.Technologies.Personal help must not be negative and all helps together must leave some research time.")
+    .Validate(c => c.Technologies.PowerWeights.Values.All(weight => weight >= 0)
+        && c.Technologies.Personal.Tiers.Concat(c.Technologies.Clan.Tiers).All(tier => tier.PowerPerLevel >= 0),
+        "GameConfig.Technologies power weights and PowerPerLevel must not be negative: a learned level cannot weaken a player.")
     .Validate(c => c.Technologies.Clan is { BasePoints: > 0, RowGrowth: >= 1, LevelGrowth: >= 1, PointsRounding: >= 1 },
         "GameConfig.Technologies.Clan needs positive base points, growth of at least 1 and a rounding of at least 1.")
     .Validate(c => c.Technologies.Clan.Offering is { MaxAttempts: >= 1, AttemptRechargeSeconds: >= 1, ResourceRotationEvery: >= 1, PointsPerAttempt: >= 1, GemPoints: >= 1, GemPriceBase: >= 1, GemPriceBatch: >= 1, GemPriceGrowth: >= 1, GemDailyLimit: >= 0 }

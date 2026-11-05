@@ -28,7 +28,7 @@ namespace EmpireIdle.API.Controllers
             var power = await _mediator.Send(new GetPlayerPowerQuery(playerId), cancellationToken);
 
             var response = new PowerResponse(
-                power.Total, power.Army, power.Hero, power.Equipment, power.UpdatedAt);
+                power.Total, power.Army, power.Hero, power.Equipment, power.Technology, power.ClanTechnology, power.UpdatedAt);
 
             return Ok(response);
         }

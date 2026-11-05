@@ -2,6 +2,7 @@
   "GameConfig": {
     "Technologies": {
       "MaxMealUpkeepCut": 0.5,
+      "PowerWeights": { "Battle": 2, "Convoy": 2, "None": 1 },
       "Personal": {
         "BuildingKey": "laboratory",
         "Tabs": ["battle", "economy", "development"],
@@ -24,6 +25,7 @@
             "WorldLevel": 1,
             "TimeMultiplier": 1,
             "ReferenceTownHall": 8,
+            "PowerPerLevel": 30,
             "Scales": { "Battle": 1, "Convoy": 1 }
           },
           {
@@ -32,6 +34,7 @@
             "WorldLevel": 1,
             "TimeMultiplier": 5,
             "ReferenceTownHall": 10,
+            "PowerPerLevel": 120,
             "Scales": { "Battle": 1, "Convoy": 1 }
           },
           {
@@ -40,6 +43,7 @@
             "WorldLevel": 2,
             "TimeMultiplier": 10,
             "ReferenceTownHall": 16,
+            "PowerPerLevel": 400,
             "Scales": { "Battle": 1.5, "Convoy": 1 }
           },
           {
@@ -48,6 +52,7 @@
             "WorldLevel": 2,
             "TimeMultiplier": 18,
             "ReferenceTownHall": 20,
+            "PowerPerLevel": 800,
             "Scales": { "Battle": 1.5, "Convoy": 1.5 }
           },
           {
@@ -56,6 +61,7 @@
             "WorldLevel": 3,
             "TimeMultiplier": 30,
             "ReferenceTownHall": 25,
+            "PowerPerLevel": 1200,
             "Scales": { "Battle": 2, "Convoy": 1.5 }
           },
           {
@@ -64,6 +70,7 @@
             "WorldLevel": 3,
             "TimeMultiplier": 45,
             "ReferenceTownHall": 30,
+            "PowerPerLevel": 2000,
             "Scales": { "Battle": 2, "Convoy": 1.5 }
           }
         ],
@@ -320,11 +327,11 @@
         "LevelGrowth": 1.3,
         "PointsRounding": 100,
         "Tiers": [
-          { "Tier": 1, "WorldLevel": 1, "PointsMultiplier": 1, "Scales": { "Battle": 1 } },
-          { "Tier": 2, "WorldLevel": 2, "PointsMultiplier": 2.5, "Scales": { "Battle": 1 } },
-          { "Tier": 3, "WorldLevel": 3, "PointsMultiplier": 5, "Scales": { "Battle": 1.5 } },
-          { "Tier": 4, "WorldLevel": 4, "PointsMultiplier": 9, "Scales": { "Battle": 1.5 } },
-          { "Tier": 5, "WorldLevel": 5, "PointsMultiplier": 15, "Scales": { "Battle": 2 } }
+          { "Tier": 1, "WorldLevel": 1, "PointsMultiplier": 1, "PowerPerLevel": 40, "Scales": { "Battle": 1 } },
+          { "Tier": 2, "WorldLevel": 2, "PointsMultiplier": 2.5, "PowerPerLevel": 120, "Scales": { "Battle": 1 } },
+          { "Tier": 3, "WorldLevel": 3, "PointsMultiplier": 5, "PowerPerLevel": 350, "Scales": { "Battle": 1.5 } },
+          { "Tier": 4, "WorldLevel": 4, "PointsMultiplier": 9, "PowerPerLevel": 700, "Scales": { "Battle": 1.5 } },
+          { "Tier": 5, "WorldLevel": 5, "PointsMultiplier": 15, "PowerPerLevel": 1400, "Scales": { "Battle": 2 } }
         ],
         "Nodes": [
           {

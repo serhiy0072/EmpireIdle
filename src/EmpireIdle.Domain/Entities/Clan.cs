@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
@@ -139,6 +140,7 @@ namespace EmpireIdle.Domain.Entities
             var role = _roles.Single(r => r.IsDefaultRole);
             _members.Add(new ClanMember(Guid.NewGuid(), Id, playerId, role.Id, utcNow));
 
+            RaiseDomainEvent(new ClanMembershipChanged(playerId, Id, utcNow));
             Touch(utcNow);
         }
 
@@ -161,6 +163,8 @@ namespace EmpireIdle.Domain.Entities
             }
 
             _members.Remove(member);
+
+            RaiseDomainEvent(new ClanMembershipChanged(playerId, Id, utcNow));
             Touch(utcNow);
         }
 
@@ -189,6 +193,8 @@ namespace EmpireIdle.Domain.Entities
                     $"'{actor.Name}' cannot kick a '{targetRole.Name}'.", actor.Name, actor.Key ?? "");
 
             _members.Remove(target);
+
+            RaiseDomainEvent(new ClanMembershipChanged(targetId, Id, utcNow));
             Touch(utcNow);
         }
 

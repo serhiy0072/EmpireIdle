@@ -97,7 +97,7 @@ public class RecalculateAllRatingsCommandTests
         var rating = new PlayerRating(Guid.NewGuid(), playerId, 1, Now.AddDays(-1));
 
         var power = new PlayerPower(Guid.NewGuid(), playerId, 1, Now);
-        power.Set(army: 100, hero: 0, equipment: 0, Now);
+        power.Set(army: 100, hero: 0, equipment: 0, technology: 0, clanTechnology: 0, Now);
 
         Given([VillageFor(playerId)], [power], [rating]);
 

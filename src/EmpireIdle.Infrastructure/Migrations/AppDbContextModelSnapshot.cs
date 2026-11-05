@@ -2059,6 +2059,9 @@ namespace EmpireIdle.Infrastructure.Migrations
                     b.Property<double>("ArmyPower")
                         .HasColumnType("double precision");
 
+                    b.Property<double>("ClanTechnologyPower")
+                        .HasColumnType("double precision");
+
                     b.Property<double>("EquipmentPower")
                         .HasColumnType("double precision");
 
@@ -2070,6 +2073,9 @@ namespace EmpireIdle.Infrastructure.Migrations
 
                     b.Property<int>("ServerId")
                         .HasColumnType("integer");
+
+                    b.Property<double>("TechnologyPower")
+                        .HasColumnType("double precision");
 
                     b.Property<double>("TotalPower")
                         .HasColumnType("double precision");

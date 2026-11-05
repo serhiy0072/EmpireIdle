@@ -16,6 +16,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// без стелі пізні тіри довели б Їдальню до нуля, і провізія втратила б сенс.
         /// </summary>
         public double MaxMealUpkeepCut { get; set; } = 0.5;
+
+        /// <summary>Вага рівня в силі гравця за шкалою вузла: бойові важать більше за економічні. Немає в словнику — 1.</summary>
+        public Dictionary<TechnologyScaling, double> PowerWeights { get; set; } = new();
     }
 
     /// <summary>
@@ -118,6 +121,9 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Кланові: множник очок підношень тіру.</summary>
         public double PointsMultiplier { get; set; } = 1;
+
+        /// <summary>Сила за один рівень вузла на цьому тірі, до ваги шкали.</summary>
+        public double PowerPerLevel { get; set; }
 
         /// <summary>Множник бонусу вузлів за шкалою; шкали немає в словнику — множник 1.</summary>
         public Dictionary<TechnologyScaling, double> Scales { get; set; } = new();

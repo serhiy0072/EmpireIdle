@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Technologies;
 
@@ -103,6 +104,10 @@ namespace EmpireIdle.Domain.Entities
             Progress = progress;
             UnallocatedPoints -= points - left;
             UpdatedAt = utcNow;
+
+            // Одна подія на розподіл, скільки б рівнів він не закрив: перерахунок сили й так іде на весь клан
+            if (completed.Count > 0)
+                RaiseDomainEvent(new ClanTechnologyLevelsCompleted(ClanId, name, level, utcNow));
 
             return completed;
         }

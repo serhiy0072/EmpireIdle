@@ -14943,8 +14943,10 @@
       "PowerResponse": {
         "required": [
           "army",
+          "clanTechnology",
           "equipment",
           "hero",
+          "technology",
           "total",
           "updatedAt"
         ],
@@ -14963,6 +14965,14 @@
             "format": "double"
           },
           "equipment": {
+            "type": "number",
+            "format": "double"
+          },
+          "technology": {
+            "type": "number",
+            "format": "double"
+          },
+          "clanTechnology": {
             "type": "number",
             "format": "double"
           },
