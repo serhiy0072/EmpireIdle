@@ -2481,6 +2481,579 @@
         }
       }
     },
+    "/api/clan-technologies/{playerId}": {
+      "get": {
+        "tags": [
+          "ClanTechnologies"
+        ],
+        "operationId": "ClanTechnologies_Get",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanTechnologiesView"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanTechnologiesView"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanTechnologiesView"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clan-technologies/{playerId}/offer-resources": {
+      "post": {
+        "tags": [
+          "ClanTechnologies"
+        ],
+        "operationId": "ClanTechnologies_OfferResources",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferClanResourcesRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferClanResourcesRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferClanResourcesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanOfferingResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanOfferingResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanOfferingResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clan-technologies/{playerId}/offer-gems": {
+      "post": {
+        "tags": [
+          "ClanTechnologies"
+        ],
+        "operationId": "ClanTechnologies_OfferGems",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferClanGemsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferClanGemsRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferClanGemsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanOfferingResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanOfferingResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanOfferingResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clan-technologies/{playerId}/allocate": {
+      "post": {
+        "tags": [
+          "ClanTechnologies"
+        ],
+        "operationId": "ClanTechnologies_Allocate",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocateClanPointsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocateClanPointsRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocateClanPointsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanAllocationResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanAllocationResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanAllocationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clan-technologies/{playerId}/shop": {
+      "get": {
+        "tags": [
+          "ClanTechnologies"
+        ],
+        "operationId": "ClanTechnologies_GetShop",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanShopView"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanShopView"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClanShopView"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clan-technologies/{playerId}/shop/buy": {
+      "post": {
+        "tags": [
+          "ClanTechnologies"
+        ],
+        "operationId": "ClanTechnologies_Buy",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuyClanShopItemRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuyClanShopItemRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/BuyClanShopItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clan-technologies/{playerId}/shop/claim-free": {
+      "post": {
+        "tags": [
+          "ClanTechnologies"
+        ],
+        "operationId": "ClanTechnologies_ClaimFree",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimClanFreeItemRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimClanFreeItemRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimClanFreeItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dungeons/{playerId}": {
       "get": {
         "tags": [
@@ -9842,6 +10415,28 @@
         },
         "additionalProperties": false
       },
+      "AllocateClanPointsRequest": {
+        "required": [
+          "node",
+          "points",
+          "tier"
+        ],
+        "type": "object",
+        "properties": {
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "node": {
+            "type": "string"
+          },
+          "points": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "AnnouncementView": {
         "required": [
           "body",
@@ -10774,6 +11369,32 @@
             "type": "number",
             "format": "double",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BuyClanShopItemRequest": {
+        "required": [
+          "expectedPrice",
+          "itemKey",
+          "kind",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ClanShopKind"
+          },
+          "itemKey": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expectedPrice": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -12006,6 +12627,23 @@
         },
         "additionalProperties": false
       },
+      "ClaimClanFreeItemRequest": {
+        "required": [
+          "itemKey",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemKey": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClaimView": {
         "required": [
           "letters",
@@ -12022,6 +12660,26 @@
             "items": {
               "$ref": "#/components/schemas/MailRewardView"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanAllocationResult": {
+        "required": [
+          "levelsCompleted",
+          "unallocatedPoints"
+        ],
+        "type": "object",
+        "properties": {
+          "levelsCompleted": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unallocatedPoints": {
+            "type": "integer",
+            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -12081,6 +12739,123 @@
           "contribution": {
             "type": "integer",
             "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanContributorView": {
+        "required": [
+          "name",
+          "playerId",
+          "today",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "today": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanDailyContributionView": {
+        "required": [
+          "pointsToday",
+          "rewards"
+        ],
+        "type": "object",
+        "properties": {
+          "pointsToday": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rewards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanDailyRewardView"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanDailyRewardView": {
+        "required": [
+          "points",
+          "reached",
+          "rewards"
+        ],
+        "type": "object",
+        "properties": {
+          "points": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rewards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RewardConfig"
+            }
+          },
+          "reached": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanFreeItemView": {
+        "required": [
+          "claimed",
+          "itemKey",
+          "limit",
+          "requiresClan"
+        ],
+        "type": "object",
+        "properties": {
+          "itemKey": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "claimed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "requiresClan": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanFreeShowcaseView": {
+        "required": [
+          "items",
+          "refreshesAt"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshesAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanFreeItemView"
+            }
           }
         },
         "additionalProperties": false
@@ -12378,6 +13153,99 @@
         },
         "additionalProperties": false
       },
+      "ClanOfferingResult": {
+        "required": [
+          "clanPoints",
+          "coins",
+          "dailyRewardsReached",
+          "totalCoins"
+        ],
+        "type": "object",
+        "properties": {
+          "coins": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCoins": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "clanPoints": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dailyRewardsReached": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanOfferingStateView": {
+        "required": [
+          "attempts",
+          "gemDailyLimit",
+          "gemOfferingsToday",
+          "gemPoints",
+          "maxAttempts",
+          "offeringsUntilRotation",
+          "pointsPerAttempt"
+        ],
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "nullable": true
+          },
+          "resourceCost": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "offeringsUntilRotation": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextAttemptAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "pointsPerAttempt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gemPrice": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "gemOfferingsToday": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gemDailyLimit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gemPoints": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClanProfileResponse": {
         "required": [
           "capacity",
@@ -12514,6 +13382,100 @@
         },
         "additionalProperties": false
       },
+      "ClanShopKind": {
+        "enum": [
+          0,
+          1
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "ClanShopOfferView": {
+        "required": [
+          "basePrice",
+          "discountPercent",
+          "itemKey",
+          "limit",
+          "price",
+          "purchased"
+        ],
+        "type": "object",
+        "properties": {
+          "itemKey": {
+            "type": "string"
+          },
+          "basePrice": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "price": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "discountPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "purchased": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanShopShowcaseView": {
+        "required": [
+          "offers",
+          "refreshesAt"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshesAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "offers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanShopOfferView"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanShopView": {
+        "required": [
+          "coins",
+          "daily",
+          "free",
+          "inClan",
+          "weekly"
+        ],
+        "type": "object",
+        "properties": {
+          "coins": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "inClan": {
+            "type": "boolean"
+          },
+          "daily": {
+            "$ref": "#/components/schemas/ClanShopShowcaseView"
+          },
+          "weekly": {
+            "$ref": "#/components/schemas/ClanShopShowcaseView"
+          },
+          "free": {
+            "$ref": "#/components/schemas/ClanFreeShowcaseView"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClanSlotUnlockResponse": {
         "required": [
           "unlocked"
@@ -12574,6 +13536,153 @@
           "myUnits": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanTechnologiesView": {
+        "required": [
+          "bonuses",
+          "coins",
+          "contributors",
+          "daily",
+          "nodes",
+          "offering",
+          "tabs",
+          "tiers",
+          "unallocatedPoints"
+        ],
+        "type": "object",
+        "properties": {
+          "tabs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanTechnologyTierView"
+            }
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanTechnologyNodeView"
+            }
+          },
+          "unallocatedPoints": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "coins": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bonuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TechnologyBonusView"
+            }
+          },
+          "offering": {
+            "$ref": "#/components/schemas/ClanOfferingStateView"
+          },
+          "daily": {
+            "$ref": "#/components/schemas/ClanDailyContributionView"
+          },
+          "contributors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanContributorView"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanTechnologyNodeView": {
+        "required": [
+          "availability",
+          "effects",
+          "level",
+          "maxLevel",
+          "node",
+          "progress",
+          "requires",
+          "row",
+          "tab",
+          "tier"
+        ],
+        "type": "object",
+        "properties": {
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "node": {
+            "type": "string"
+          },
+          "tab": {
+            "type": "string"
+          },
+          "row": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "requires": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "availability": {
+            "type": "string"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TechnologyEffectView"
+            }
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextPoints": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanTechnologyTierView": {
+        "required": [
+          "open",
+          "tier",
+          "worldLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "worldLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "open": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -14833,6 +15942,31 @@
         },
         "additionalProperties": false
       },
+      "OfferClanGemsRequest": {
+        "required": [
+          "expectedPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedPrice": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OfferClanResourcesRequest": {
+        "required": [
+          "resource"
+        ],
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "OpenWeaponChestsRequest": {
         "required": [
           "count",
@@ -16803,6 +17937,9 @@
     },
     {
       "name": "ClanRequest"
+    },
+    {
+      "name": "ClanTechnologies"
     },
     {
       "name": "Dungeons"
