@@ -7,7 +7,13 @@ namespace EmpireIdle.Application.Interfaces
     {
         Task<ClanOfferingLedger?> GetLedgerAsync(Guid playerId, CancellationToken cancellationToken = default);
 
+        /// <summary>Особиста книга для екрана, без відстеження; null — гравець ще нічого не підносив і не забирав.</summary>
+        Task<ClanOfferingLedger?> GetLedgerReadOnlyAsync(Guid playerId, CancellationToken cancellationToken = default);
+
         Task AddLedgerAsync(ClanOfferingLedger ledger, CancellationToken cancellationToken = default);
+
+        /// <summary>Внески нинішніх учасників клану для рейтингу: той, хто пішов, зі списку зникає, але рядок лишається.</summary>
+        Task<IReadOnlyList<ClanContribution>> GetMemberContributionsAsync(Guid clanId, CancellationToken cancellationToken = default);
 
         Task<ClanContribution?> GetContributionAsync(Guid clanId, Guid playerId, CancellationToken cancellationToken = default);
 

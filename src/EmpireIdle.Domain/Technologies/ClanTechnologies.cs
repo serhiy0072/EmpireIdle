@@ -63,6 +63,18 @@ namespace EmpireIdle.Domain.Technologies
             return rotation[(int)(period % rotation.Count)];
         }
 
+        /// <summary>Скільки підношень ресурсом лишилось до зміни ресурсу в черзі.</summary>
+        public long OfferingsUntilRotation(long resourceOfferings)
+        {
+            var every = Math.Max(_config.Offering.ResourceRotationEvery, 1);
+
+            return every - Math.Max(resourceOfferings, 0) % every;
+        }
+
+        /// <summary>Стеля спроб гравця: базова плюс технологія клану.</summary>
+        public int MaxAttempts(IReadOnlyDictionary<string, int> levels)
+            => _config.Offering.MaxAttempts + (int)Tree.Bonuses(levels).Of(TechnologyStat.OfferingAttempts);
+
         /// <summary>Ціна n-го (від 1) gems-підношення за добу UTC: база × ріст^(номер партії від нуля).</summary>
         public int GemOfferingPrice(int nth)
         {

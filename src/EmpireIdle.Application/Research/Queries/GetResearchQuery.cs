@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.ReadModels;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.Technologies;
@@ -78,7 +79,7 @@ namespace EmpireIdle.Application.Research.Queries
                     mainBuildingLevel >= t.MainBuildingLevel && worldLevel >= t.WorldLevel)).ToList(),
                 nodes,
                 activeView,
-                Totals(bonuses));
+                TechnologyBonusTotals.Of(bonuses, _catalog.Config));
         }
 
         private ResearchNodeView NodeView(IReadOnlyDictionary<string, int> levels, int tier, TechnologyNodeConfig node,
@@ -100,21 +101,6 @@ namespace EmpireIdle.Application.Research.Queries
                 node.Effects.Select(e => new TechnologyEffectView(e.Stat, e.Target, e.PerLevel * scale)).ToList(),
                 maxed ? null : _technologies.Cost(tier, node, level + 1),
                 maxed ? null : (int)Math.Round(_technologies.Duration(tier, node, level + 1).TotalSeconds / speed));
-        }
-
-        /// <summary>Сума за статами й цілями, лише ненульові — те, що екран показує як «що вже дають технології».</summary>
-        private List<TechnologyBonusView> Totals(TechnologyBonuses bonuses)
-        {
-            var targets = new List<string?> { null };
-            targets.AddRange(_catalog.Config.Units.Select(u => u.Key));
-            targets.AddRange(_catalog.Config.Resources.Select(r => r.Key));
-
-            return Enum.GetValues<TechnologyStat>()
-                .SelectMany(stat => targets.Select(target => (stat, target,
-                    value: target is null ? bonuses.Of(stat) : bonuses.Of(stat, target) - bonuses.Of(stat))))
-                .Where(x => Math.Abs(x.value) > 1e-9)
-                .Select(x => new TechnologyBonusView(x.stat, x.target, x.value))
-                .ToList();
         }
     }
 }

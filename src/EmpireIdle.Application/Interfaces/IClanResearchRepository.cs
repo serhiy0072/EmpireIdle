@@ -8,6 +8,9 @@ namespace EmpireIdle.Application.Interfaces
         /// <summary>Технології клану для зміни або null, якщо клан ще нічого не вивчав.</summary>
         Task<ClanResearch?> GetByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
 
+        /// <summary>Технології клану для екрана, без відстеження; null — клан ще не робив підношень.</summary>
+        Task<ClanResearch?> GetByClanReadOnlyAsync(Guid clanId, CancellationToken cancellationToken = default);
+
         /// <summary>Вивчені рівні клану лише для читання; клан нічого не вивчив — null.</summary>
         Task<IReadOnlyDictionary<string, int>?> GetLevelsByClanAsync(Guid clanId, CancellationToken cancellationToken = default);
 

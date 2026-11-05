@@ -51,6 +51,14 @@ namespace EmpireIdle.Domain.Entities
         public int AttemptsAvailable(int maxAttempts, TimeSpan recharge, DateTime utcNow)
             => Math.Max(maxAttempts - SpentAt(recharge, utcNow), 0);
 
+        /// <summary>Коли відновиться наступна спроба; null — шкала повна, чекати нічого.</summary>
+        public DateTime? NextAttemptAt(TimeSpan recharge, DateTime utcNow)
+        {
+            var spent = SpentAt(recharge, utcNow);
+
+            return spent == 0 ? null : AttemptsAnchor + recharge * (AttemptsSpent - spent + 1);
+        }
+
         /// <summary>Витрачає спробу; порожня шкала — чесна відмова, гравець бачить її за двома вкладками.</summary>
         public void SpendAttempt(int maxAttempts, TimeSpan recharge, DateTime utcNow)
         {
@@ -84,6 +92,9 @@ namespace EmpireIdle.Domain.Entities
 
             return (before, PointsToday);
         }
+
+        /// <summary>Очки цієї доби: вчорашній лічильник уже не рахується, хоч рядок ще не оновлено.</summary>
+        public int PointsTodayAt(DateTime utcNow) => IsToday(utcNow) ? PointsToday : 0;
 
         public void AddCoins(int coins) => Coins += Math.Max(coins, 0);
 

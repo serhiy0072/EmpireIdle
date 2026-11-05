@@ -36,6 +36,16 @@ namespace EmpireIdle.Domain.Technologies
         /// <summary>Тиждень безкоштовної вітрини; окремий префікс, щоб ліміт не змішувався з покупками за монети.</summary>
         public static string FreePeriod(DateTime utcNow) => $"free:{MondayOf(utcNow):yyyy-MM-dd}";
 
+        /// <summary>Коли зміниться вітрина: наступна північ UTC або наступний понеділок. Безкоштовна живе за тижневим.</summary>
+        public static DateTime RefreshesAt(ClanShopKind kind, DateTime utcNow)
+        {
+            var next = kind == ClanShopKind.Daily
+                ? DateOnly.FromDateTime(utcNow).AddDays(1)
+                : MondayOf(utcNow).AddDays(7);
+
+            return next.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        }
+
         private static DateOnly MondayOf(DateTime utcNow)
         {
             var date = DateOnly.FromDateTime(utcNow);

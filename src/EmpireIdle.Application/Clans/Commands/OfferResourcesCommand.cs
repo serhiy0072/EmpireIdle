@@ -59,9 +59,8 @@ namespace EmpireIdle.Application.Clans.Commands
 
             var ledger = await _offerings.LedgerOfAsync(request.PlayerId, now, cancellationToken);
             var offering = _technologies.Offering;
-            var bonus = (int)_technologies.Tree.Bonuses(research.Levels).Of(TechnologyStat.OfferingAttempts);
 
-            ledger.SpendAttempt(offering.MaxAttempts + bonus, TimeSpan.FromSeconds(offering.AttemptRechargeSeconds), now);
+            ledger.SpendAttempt(_technologies.MaxAttempts(research.Levels), TimeSpan.FromSeconds(offering.AttemptRechargeSeconds), now);
             village.ChargeCost([new ResourceCost { Resource = request.Resource, Amount = cost }], now);
             research.CountResourceOffering();
 
