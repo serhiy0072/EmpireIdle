@@ -110,17 +110,20 @@ namespace EmpireIdle.Domain.Services
 
             ValidateTechnologyTree(config, "Clan", clan.Tabs, clan.Tiers, clan.Nodes, clan: true);
 
-            foreach (var (resource, cost) in clan.Offering.AttemptCostPerTownHall)
+            foreach (var (resource, rate) in clan.Offering.ResourceRates)
             {
-                if (config.Resources.All(r => r.Key != resource) || cost <= 0)
+                if (config.Resources.All(r => r.Key != resource) || rate <= 0)
                     throw new InvalidOperationException(
-                        $"Technologies.Clan.Offering costs '{resource}', which must be a resource with a positive price.");
+                        $"Technologies.Clan.Offering.ResourceRates prices {resource}, which must be a resource with a positive rate.");
             }
 
-            // Обидва напрямки: ресурс без ціни зламав би підношення, а ціна поза чергою ніколи б не спрацювала
-            if (!clan.Offering.AttemptCostPerTownHall.Keys.ToHashSet().SetEquals(clan.Offering.ResourceRotation))
+            // Вузол без ціненого ресурсу не приймав би підношень ресурсом зовсім
+            foreach (var node in clan.Nodes.Where(n => n.Resource is null || !clan.Offering.ResourceRates.ContainsKey(n.Resource)))
                 throw new InvalidOperationException(
-                    "Technologies.Clan.Offering.ResourceRotation must list exactly the resources priced in AttemptCostPerTownHall.");
+                    $"Technologies.Clan node {node.Key} needs a Resource priced in Offering.ResourceRates.");
+
+            if (clan.Tiers.Any(t => t.AttemptCostMultiplier <= 0))
+                throw new InvalidOperationException("Technologies.Clan.Tiers need a positive AttemptCostMultiplier.");
 
             if (clan.Coins.Multipliers.Count == 0)
                 throw new InvalidOperationException("Technologies.Clan.Coins.Multipliers is empty — an offering would roll no coins.");

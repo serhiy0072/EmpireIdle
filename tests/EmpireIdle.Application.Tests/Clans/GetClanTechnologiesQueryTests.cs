@@ -28,7 +28,6 @@ public class GetClanTechnologiesQueryTests
     {
         t.Clan.BasePoints = 100;
         t.Clan.PointsRounding = 10;
-        t.Clan.Offering.ResourceRotationEvery = 100;
         t.Clan.Offering.GemDailyLimit = 1;
         t.Clan.DailyContributionRewards =
         [
@@ -51,8 +50,8 @@ public class GetClanTechnologiesQueryTests
     {
         var catalog = new GameCatalog(_config);
 
-        return new GetClanTechnologiesQueryHandler(_clans, _research, _offerings, _players, _villages, _servers, _serverContext,
-                new ClanTechnologies(_config.Technologies.Clan), new VillageStatus(catalog), catalog, new FakeTimeProvider(at ?? Now))
+        return new GetClanTechnologiesQueryHandler(_clans, _research, _offerings, _players, _servers, _serverContext,
+                new ClanTechnologies(_config.Technologies.Clan), catalog, new FakeTimeProvider(at ?? Now))
             .Handle(new GetClanTechnologiesQuery(_village.PlayerId), CancellationToken.None);
     }
 
@@ -80,7 +79,7 @@ public class GetClanTechnologiesQueryTests
         Assert.Null(await Query());
     }
 
-    /// <summary>Клан ще нічого не підносив: екран показує повну шкалу й перший ресурс черги, а не падає.</summary>
+    /// <summary>Клан ще нічого не підносив: екран показує повну шкалу й ціни вузлів, а не падає.</summary>
     [Fact]
     public async Task Handle_ShouldShowAFreshState_BeforeTheFirstOffering()
     {
@@ -89,11 +88,9 @@ public class GetClanTechnologiesQueryTests
         Assert.NotNull(view);
         Assert.Equal(4, view.Nodes.Count);
         Assert.Equal([true, false], view.Tiers.Select(t => t.Open));
-        Assert.Equal((0L, 0L), (view.UnallocatedPoints, view.Coins));
+        Assert.Equal(0L, view.Coins);
 
         var offering = view.Offering;
-        Assert.Equal((TestKeys.Gold, 300), (offering.Resource, offering.ResourceCost));
-        Assert.Equal(100, offering.OfferingsUntilRotation);
         Assert.Equal(offering.MaxAttempts, offering.Attempts);
         Assert.Null(offering.NextAttemptAt);
         Assert.Equal(10, offering.GemPrice);
@@ -103,14 +100,12 @@ public class GetClanTechnologiesQueryTests
     public async Task Handle_ShouldShowProgress_AndTheCostOfTheNextLevel()
     {
         var research = GivenResearch();
-        research.AddPoints(160, Now);
-        research.Allocate(new TechnologyKey(1, "v_attack_all"), 150, new ClanTechnologies(_config.Technologies.Clan), Now);
+        research.Invest(new TechnologyKey(1, "v_attack_all"), 150, new ClanTechnologies(_config.Technologies.Clan), Now);
 
         var view = await Query();
 
         var node = view!.Nodes.Single(n => n.Tier == 1 && n.Node == "v_attack_all");
         Assert.Equal((1, 50, 130, "Available"), (node.Level, node.Progress, node.NextPoints, node.Availability));
-        Assert.Equal(10, view.UnallocatedPoints);
         Assert.Equal("Available", view.Nodes.Single(n => n.Tier == 1 && n.Node == "c_coins").Availability);
         Assert.Contains(view.Bonuses, b => b.Stat == TechnologyStat.Attack && b.Target == null);
     }
@@ -119,8 +114,7 @@ public class GetClanTechnologiesQueryTests
     public async Task Handle_ShouldHaveNoNextPoints_OnAMaxedNode()
     {
         var research = GivenResearch();
-        research.AddPoints(100_000, Now);
-        research.Allocate(new TechnologyKey(1, "v_attack_all"), 100_000, new ClanTechnologies(_config.Technologies.Clan), Now);
+        research.Invest(new TechnologyKey(1, "v_attack_all"), 100_000, new ClanTechnologies(_config.Technologies.Clan), Now);
 
         var node = (await Query())!.Nodes.Single(n => n.Tier == 1 && n.Node == "v_attack_all");
 
@@ -128,19 +122,22 @@ public class GetClanTechnologiesQueryTests
         Assert.Null(node.NextPoints);
     }
 
-    /// <summary>Після сотні підношень клан приймає наступний ресурс, а лічильник іде вже до наступної зміни.</summary>
+    /// <summary>Кожен вузол несе свій ресурс і ціну спроби на своєму тірі; ратуша 6 на неї не впливає.</summary>
     [Fact]
-    public async Task Handle_ShouldShowTheNextResource_AfterARotation()
+    public async Task Handle_ShouldPriceEachNode_ByItsResourceAndTier()
     {
-        var research = GivenResearch();
+        var nodes = (await Query())!.Nodes;
 
-        for (var i = 0; i < 101; i++)
-            research.CountResourceOffering();
+        Assert.Equal((TestKeys.Gold, 100), Price(nodes, 1, "v_attack_all"));
+        Assert.Equal((TestKeys.Gold, 200), Price(nodes, 2, "v_attack_all"));
+        Assert.Equal((TestKeys.Wood, 50), Price(nodes, 1, "c_coins"));
+    }
 
-        var offering = (await Query())!.Offering;
+    private static (string?, int?) Price(List<ClanTechnologyNodeView> nodes, int tier, string node)
+    {
+        var view = nodes.Single(n => n.Tier == tier && n.Node == node);
 
-        Assert.Equal((TestKeys.Wood, 240), (offering.Resource, offering.ResourceCost));
-        Assert.Equal(99, offering.OfferingsUntilRotation);
+        return (view.Resource, view.AttemptCost);
     }
 
     [Fact]

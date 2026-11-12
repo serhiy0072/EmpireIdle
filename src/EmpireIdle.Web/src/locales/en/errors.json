@@ -240,7 +240,6 @@
       "notActive": "The Laboratory isn't researching anything"
     },
     "clantech": {
-      "notEnoughPoints": "The clan's pool is short of points: {{need}} needed, it has {{have}}",
       "tierLocked": "Tier {{tier}} opens at world level {{worldLevel}}",
       "noAttempts": "No offering attempts left — a new one recharges soon",
       "resourceRejected": "Offerings don't accept {{resource}} right now",

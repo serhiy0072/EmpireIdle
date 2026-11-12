@@ -133,13 +133,6 @@
     "need",
     "have"
   ],
-  "clantech.notEnoughPoints": [
-    "need",
-    "have"
-  ],
-  "clantech.resourceRejected": [
-    "resource"
-  ],
   "clantech.shopItemGone": [],
   "clantech.shopLimit": [
     "limit",

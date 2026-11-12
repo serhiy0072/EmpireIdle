@@ -39,36 +39,25 @@ namespace EmpireIdle.Domain.Technologies
         }
 
         /// <summary>
-        /// Ціна однієї спроби ресурсом: ціна за рівень ратуші × рівень ратуші. Ціна росте з гравцем,
-        /// а очки однакові — так внесок великого й малого села рівноцінний. null — ресурс не приймають.
+        /// Ціна однієї спроби у вузол на тірі (рішення 12.11): база × множник тіру × курс ресурсу вузла,
+        /// з округленням. Ратуша гравця на ціну не впливає. null — вузол не має ціненого ресурсу.
         /// </summary>
-        public int? AttemptCost(string resource, int mainBuildingLevel)
-            => _config.Offering.AttemptCostPerTownHall.TryGetValue(resource, out var perLevel)
-                ? perLevel * Math.Max(mainBuildingLevel, 1)
-                : null;
-
-        /// <summary>
-        /// Ресурс, який клан приймає зараз: черга зсувається що ResourceRotationEvery підношень ресурсом.
-        /// null — черги немає, і підношення ресурсом не приймаються.
-        /// </summary>
-        public string? OfferedResource(long resourceOfferings)
+        public ResourceCost? AttemptCost(int tier, TechnologyNodeConfig node)
         {
-            var rotation = _config.Offering.ResourceRotation;
+            var offering = _config.Offering;
 
-            if (rotation.Count == 0)
+            if (Tree.Tier(tier) is not { } tierConfig || node.Resource is not { } resource
+                || !offering.ResourceRates.TryGetValue(resource, out var rate))
                 return null;
 
-            var period = Math.Max(resourceOfferings, 0) / Math.Max(_config.Offering.ResourceRotationEvery, 1);
+            var rounding = Math.Max(offering.CostRounding, 1);
+            var raw = offering.AttemptCost * tierConfig.AttemptCostMultiplier * rate;
 
-            return rotation[(int)(period % rotation.Count)];
-        }
-
-        /// <summary>Скільки підношень ресурсом лишилось до зміни ресурсу в черзі.</summary>
-        public long OfferingsUntilRotation(long resourceOfferings)
-        {
-            var every = Math.Max(_config.Offering.ResourceRotationEvery, 1);
-
-            return every - Math.Max(resourceOfferings, 0) % every;
+            return new ResourceCost
+            {
+                Resource = resource,
+                Amount = (int)Math.Max(rounding, Math.Round(raw / rounding, MidpointRounding.AwayFromZero) * rounding)
+            };
         }
 
         /// <summary>Стеля спроб гравця: базова плюс технологія клану.</summary>

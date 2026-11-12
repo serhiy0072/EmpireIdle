@@ -2627,6 +2627,26 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -2699,115 +2719,6 @@
           },
           "400": {
             "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/clan-technologies/{playerId}/allocate": {
-      "post": {
-        "tags": [
-          "ClanTechnologies"
-        ],
-        "operationId": "ClanTechnologies_Allocate",
-        "parameters": [
-          {
-            "name": "playerId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AllocateClanPointsRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AllocateClanPointsRequest"
-              }
-            },
-            "application/*\u002Bjson": {
-              "schema": {
-                "$ref": "#/components/schemas/AllocateClanPointsRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ClanAllocationResult"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ClanAllocationResult"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ClanAllocationResult"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
             "content": {
               "text/plain": {
                 "schema": {
@@ -10415,28 +10326,6 @@
         },
         "additionalProperties": false
       },
-      "AllocateClanPointsRequest": {
-        "required": [
-          "node",
-          "points",
-          "tier"
-        ],
-        "type": "object",
-        "properties": {
-          "tier": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "node": {
-            "type": "string"
-          },
-          "points": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
       "AnnouncementView": {
         "required": [
           "body",
@@ -12664,26 +12553,6 @@
         },
         "additionalProperties": false
       },
-      "ClanAllocationResult": {
-        "required": [
-          "levelsCompleted",
-          "unallocatedPoints"
-        ],
-        "type": "object",
-        "properties": {
-          "levelsCompleted": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "unallocatedPoints": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "additionalProperties": false
-      },
       "ClanApplicationResponse": {
         "required": [
           "createdAt",
@@ -13155,9 +13024,11 @@
       },
       "ClanOfferingResult": {
         "required": [
-          "clanPoints",
           "coins",
           "dailyRewardsReached",
+          "level",
+          "levelsCompleted",
+          "progress",
           "totalCoins"
         ],
         "type": "object",
@@ -13170,9 +13041,20 @@
             "type": "integer",
             "format": "int64"
           },
-          "clanPoints": {
+          "level": {
             "type": "integer",
-            "format": "int64"
+            "format": "int32"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "levelsCompleted": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
           },
           "dailyRewardsReached": {
             "type": "array",
@@ -13191,24 +13073,10 @@
           "gemOfferingsToday",
           "gemPoints",
           "maxAttempts",
-          "offeringsUntilRotation",
           "pointsPerAttempt"
         ],
         "type": "object",
         "properties": {
-          "resource": {
-            "type": "string",
-            "nullable": true
-          },
-          "resourceCost": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "offeringsUntilRotation": {
-            "type": "integer",
-            "format": "int64"
-          },
           "attempts": {
             "type": "integer",
             "format": "int32"
@@ -13549,8 +13417,7 @@
           "nodes",
           "offering",
           "tabs",
-          "tiers",
-          "unallocatedPoints"
+          "tiers"
         ],
         "type": "object",
         "properties": {
@@ -13571,10 +13438,6 @@
             "items": {
               "$ref": "#/components/schemas/ClanTechnologyNodeView"
             }
-          },
-          "unallocatedPoints": {
-            "type": "integer",
-            "format": "int64"
           },
           "coins": {
             "type": "integer",
@@ -13658,6 +13521,15 @@
             "format": "int32"
           },
           "nextPoints": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "resource": {
+            "type": "string",
+            "nullable": true
+          },
+          "attemptCost": {
             "type": "integer",
             "format": "int32",
             "nullable": true
@@ -15944,10 +15816,19 @@
       },
       "OfferClanGemsRequest": {
         "required": [
-          "expectedPrice"
+          "expectedPrice",
+          "node",
+          "tier"
         ],
         "type": "object",
         "properties": {
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "node": {
+            "type": "string"
+          },
           "expectedPrice": {
             "type": "integer",
             "format": "int32"
@@ -15957,11 +15838,16 @@
       },
       "OfferClanResourcesRequest": {
         "required": [
-          "resource"
+          "node",
+          "tier"
         ],
         "type": "object",
         "properties": {
-          "resource": {
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "node": {
             "type": "string"
           }
         },

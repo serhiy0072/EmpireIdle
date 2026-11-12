@@ -5,9 +5,8 @@ using EmpireIdle.Domain.Technologies;
 namespace EmpireIdle.Domain.Entities
 {
     /// <summary>
-    /// Кланові технології (рішення 04.11): підношення лише наповнюють запас очок, а офіцер потім
-    /// розподіляє його по вузлах. Так внесок і нагорода ніколи не залежать від того, чи зайшов офіцер.
-    /// Окремий агрегат, а не частина клану: підношення йдуть часто й паралельно, а токен кореня клану
+    /// Кланові технології (рішення 12.11): гравець сам вкладає підношення у вибрану технологію, запасу очок
+    /// немає. Окремий агрегат, а не частина клану: підношення йдуть часто й паралельно, а токен кореня клану
     /// серіалізував би разом із ними вступи, ролі й споруди.
     /// </summary>
     public class ClanResearch : Entity
@@ -21,12 +20,6 @@ namespace EmpireIdle.Domain.Entities
 
         /// <summary>Вкладені очки до наступного рівня: «тір:вузол» → очки.</summary>
         public IReadOnlyDictionary<string, int> Progress { get; private set; } = new Dictionary<string, int>();
-
-        /// <summary>Запас очок, які офіцер ще не розподілив.</summary>
-        public long UnallocatedPoints { get; private set; }
-
-        /// <summary>Скільки підношень ресурсом зробив клан; за цим лічильником зсувається черга ресурсів.</summary>
-        public long ResourceOfferings { get; private set; }
 
         public DateTime UpdatedAt { get; private set; }
 
@@ -45,26 +38,12 @@ namespace EmpireIdle.Domain.Entities
 
         public int ProgressOf(TechnologyKey key) => Progress.GetValueOrDefault(key.ToString());
 
-        /// <summary>Підношення за gems ресурс не витрачає, тому чергу зсуває лише підношення ресурсом.</summary>
-        public void CountResourceOffering() => ResourceOfferings++;
-
-        /// <summary>Очки підношення йдуть у запас клану.</summary>
-        public void AddPoints(int points, DateTime utcNow)
-        {
-            UnallocatedPoints += Math.Max(points, 0);
-            UpdatedAt = utcNow;
-        }
-
         /// <summary>
-        /// Вкладає очки із запасу у вузол і повертає закриті рівні. Чи відкритий вузол, вирішує дерево — це
-        /// робить той, хто кличе. Вузол бере лише те, що йому ще потрібно: надлишок лишається в запасі.
+        /// Вкладає очки підношення у вузол і повертає закриті рівні. Чи відкритий вузол, вирішує дерево — це
+        /// робить той, хто кличе. Очки понад останній рівень пропадають: це щонайбільше залишок одного підношення.
         /// </summary>
-        public IReadOnlyList<(TechnologyKey Key, int Level)> Allocate(TechnologyKey key, int points, ClanTechnologies technologies, DateTime utcNow)
+        public IReadOnlyList<(TechnologyKey Key, int Level)> Invest(TechnologyKey key, int points, ClanTechnologies technologies, DateTime utcNow)
         {
-            if (points > UnallocatedPoints)
-                throw new RequirementNotMetException(RefusalReasons.ClanTechNotEnoughPoints,
-                    $"Clan {ClanId} has {UnallocatedPoints} unallocated points, {points} requested.", points, UnallocatedPoints);
-
             var node = technologies.Tree.Node(key.Node)
                 ?? throw new EntityNotFoundException("Technology", key.Node);
 
@@ -74,7 +53,7 @@ namespace EmpireIdle.Domain.Entities
 
             var level = levels.GetValueOrDefault(name);
             var invested = progress.GetValueOrDefault(name);
-            var left = points;
+            var left = Math.Max(points, 0);
             var completed = new List<(TechnologyKey, int)>();
 
             while (left > 0 && level < node.Levels)
@@ -84,7 +63,6 @@ namespace EmpireIdle.Domain.Entities
                 if (left < needed)
                 {
                     invested += left;
-                    left = 0;
                     break;
                 }
 
@@ -95,17 +73,16 @@ namespace EmpireIdle.Domain.Entities
                 completed.Add((key, level));
             }
 
-            if (invested > 0)
+            if (invested > 0 && level < node.Levels)
                 progress[name] = invested;
             else
                 progress.Remove(name);
 
             Levels = levels;
             Progress = progress;
-            UnallocatedPoints -= points - left;
             UpdatedAt = utcNow;
 
-            // Одна подія на розподіл, скільки б рівнів він не закрив: перерахунок сили й так іде на весь клан
+            // Одна подія на підношення, скільки б рівнів воно не закрило: перерахунок сили й так іде на весь клан
             if (completed.Count > 0)
                 RaiseDomainEvent(new ClanTechnologyLevelsCompleted(ClanId, name, level, utcNow));
 

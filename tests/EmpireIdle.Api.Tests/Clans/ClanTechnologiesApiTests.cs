@@ -133,81 +133,72 @@ public class ClanTechnologiesApiTests : IAsyncLifetime
         Assert.Equal(RefusalReasons.ClanNotMember.Key, await ReasonAsync(response));
     }
 
-    /// <summary>Повний цикл: екран показує ресурс, підношення дає очки й монети, лідер вкладає очки у вузол.</summary>
+    /// <summary>Повний цикл: екран показує ресурс і ціну вузла, підношення списує саме їх і рухає цей вузол.</summary>
     [Fact]
-    public async Task OfferThenAllocate_ShouldMoveTheTreeForward()
+    public async Task OfferResources_ShouldMoveTheChosenNodeForward()
     {
         await JoinClanAsync();
-        await GrantEnoughFoodAsync();
 
         var fresh = await GetViewAsync();
-        Assert.Equal("food", fresh.Offering.Resource);
         Assert.Equal(fresh.Offering.MaxAttempts, fresh.Offering.Attempts);
         Assert.Empty(fresh.Contributors);
 
-        var offered = await PostAsync("/offer-resources", new OfferClanResourcesRequest(fresh.Offering.Resource!));
+        var node = fresh.Nodes.First(n => n.Tier == 1 && n.Availability == "Available");
+        Assert.NotNull(node.Resource);
+        Assert.True(node.AttemptCost > 0);
+        await GrantResourceAsync(node.Resource!, node.AttemptCost!.Value);
+
+        var offered = await PostAsync("/offer-resources", new OfferClanResourcesRequest(1, node.Node));
         Assert.Equal(HttpStatusCode.OK, offered.StatusCode);
 
         var result = (await offered.Content.ReadFromJsonAsync<ClanOfferingResult>())!;
         Assert.True(result.Coins > 0);
-        Assert.Equal(fresh.Offering.PointsPerAttempt, result.ClanPoints);
+        Assert.Equal(fresh.Offering.PointsPerAttempt, result.Progress);
 
-        var afterOffer = await GetViewAsync();
-        Assert.Equal(result.TotalCoins, afterOffer.Coins);
-        Assert.Equal(result.ClanPoints, afterOffer.UnallocatedPoints);
-        Assert.Equal(fresh.Offering.MaxAttempts - 1, afterOffer.Offering.Attempts);
-        Assert.NotNull(afterOffer.Offering.NextAttemptAt);
+        var after = await GetViewAsync();
+        Assert.Equal(result.TotalCoins, after.Coins);
+        Assert.Equal(fresh.Offering.MaxAttempts - 1, after.Offering.Attempts);
+        Assert.NotNull(after.Offering.NextAttemptAt);
+        Assert.Equal(result.Progress, after.Nodes.Single(n => n.Tier == 1 && n.Node == node.Node).Progress);
 
-        var me = Assert.Single(afterOffer.Contributors);
+        var me = Assert.Single(after.Contributors);
         Assert.Equal(_playerId, me.PlayerId);
-        Assert.Equal(result.ClanPoints, me.Today);
-
-        var node = afterOffer.Nodes.First(n => n.Tier == 1 && n.Availability == "Available");
-        var allocated = await PostAsync("/allocate", new AllocateClanPointsRequest(1, node.Node, (int)result.ClanPoints));
-        Assert.Equal(HttpStatusCode.OK, allocated.StatusCode);
-
-        var afterAllocate = await GetViewAsync();
-        Assert.Equal(0, afterAllocate.UnallocatedPoints);
-        Assert.Equal(result.ClanPoints, afterAllocate.Nodes.Single(n => n.Tier == 1 && n.Node == node.Node).Progress);
+        Assert.Equal(fresh.Offering.PointsPerAttempt, me.Today);
     }
 
-    /// <summary>Черга зсунулась, а клієнт шле старий ресурс: відмова, а не списання іншого ресурсу.</summary>
+    /// <summary>У закритий вузол підносити не можна: відмова за контрактом, а не списання.</summary>
     [Fact]
-    public async Task OfferResources_ShouldRefuseAResourceTheClanDoesNotTakeNow()
-    {
-        await JoinClanAsync();
-
-        var response = await PostAsync("/offer-resources", new OfferClanResourcesRequest("wood"));
-
-        Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(RefusalReasons.ClanTechResourceRejected.Key, await ReasonAsync(response));
-    }
-
-    [Fact]
-    public async Task Allocate_ShouldRefuse_WithoutPointsInThePool()
+    public async Task OfferResources_ShouldRefuse_ANodeWhosePrerequisitesAreMissing()
     {
         await JoinClanAsync();
 
         var view = await GetViewAsync();
-        var node = view.Nodes.First(n => n.Tier == 1 && n.Availability == "Available");
+        var closed = view.Nodes.First(n => n.Tier == 1 && n.Availability == "PrerequisitesMissing");
 
-        var response = await PostAsync("/allocate", new AllocateClanPointsRequest(1, node.Node, 1));
+        var response = await PostAsync("/offer-resources", new OfferClanResourcesRequest(1, closed.Node));
 
         Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(RefusalReasons.ClanTechNotEnoughPoints.Key, await ReasonAsync(response));
+        Assert.Equal(RefusalReasons.ResearchPrerequisites.Key, await ReasonAsync(response));
     }
 
-    /// <summary>Ціну спроби знає лише сервер, тому дорощуємо запас уже з її значенням.</summary>
-    private async Task GrantEnoughFoodAsync()
+    [Fact]
+    public async Task OfferResources_ShouldNotFind_AnUnknownTechnology()
     {
-        var cost = (await GetViewAsync()).Offering.ResourceCost!.Value;
+        await JoinClanAsync();
 
+        var response = await PostAsync("/offer-resources", new OfferClanResourcesRequest(1, "nope"));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private async Task GrantResourceAsync(string resource, int amount)
+    {
         using var scope = _factory.Services.CreateScope();
         scope.ServiceProvider.GetRequiredService<IServerContext>().UseServer(ServerId);
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var village = await context.Villages.IgnoreQueryFilters().Include(v => v.Resources).FirstAsync(v => v.PlayerId == _playerId);
-        village.GrantResource("food", cost, DateTime.UtcNow);
+        village.GrantResource(resource, amount, DateTime.UtcNow);
 
         await context.SaveChangesAsync();
     }

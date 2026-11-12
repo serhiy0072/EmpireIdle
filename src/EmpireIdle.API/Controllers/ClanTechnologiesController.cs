@@ -20,7 +20,7 @@ namespace EmpireIdle.API.Controllers
         public ClanTechnologiesController(IMediator mediator) => _mediator = mediator;
 
         /// <summary>
-        /// Дерево з поступом, запас очок, стан підношень гравця й денний рейтинг клану.
+        /// Дерево з поступом і цінами, стан підношень гравця й денний рейтинг клану.
         /// Гравець без клану отримує порожню відповідь: це нормальний стан екрана, а не помилка.
         /// </summary>
         [HttpGet("{playerId:guid}")]
@@ -29,31 +29,23 @@ namespace EmpireIdle.API.Controllers
         public async Task<IActionResult> Get(Guid playerId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new GetClanTechnologiesQuery(playerId), cancellationToken));
 
-        /// <summary>Підношення ресурсом, який клан приймає зараз. Ідемпотентна за заголовком Idempotency-Key.</summary>
+        /// <summary>Підношення ресурсом у вибраний вузол. Ідемпотентна за заголовком Idempotency-Key.</summary>
         [HttpPost("{playerId:guid}/offer-resources")]
         [ProducesResponseType(typeof(ClanOfferingResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ClanOfferingResult>> OfferResources(Guid playerId,
             [FromBody] OfferClanResourcesRequest request, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OfferResourcesCommand(playerId, request.Resource), cancellationToken));
+            => Ok(await _mediator.Send(new OfferResourcesCommand(playerId, request.Tier, request.Node), cancellationToken));
 
-        /// <summary>Підношення за gems за показаною ціною. Ідемпотентна за заголовком Idempotency-Key.</summary>
+        /// <summary>Підношення за gems у вибраний вузол за показаною ціною. Ідемпотентна за заголовком Idempotency-Key.</summary>
         [HttpPost("{playerId:guid}/offer-gems")]
         [ProducesResponseType(typeof(ClanOfferingResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ClanOfferingResult>> OfferGems(Guid playerId,
             [FromBody] OfferClanGemsRequest request, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OfferGemsCommand(playerId, request.ExpectedPrice), cancellationToken));
-
-        /// <summary>Вкласти очки із запасу клану у вузол; потрібен дозвіл ManageTechnologies. Ідемпотентна за заголовком Idempotency-Key.</summary>
-        [HttpPost("{playerId:guid}/allocate")]
-        [ProducesResponseType(typeof(ClanAllocationResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ClanAllocationResult>> Allocate(Guid playerId,
-            [FromBody] AllocateClanPointsRequest request, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new AllocateClanPointsCommand(playerId, request.Tier, request.Node, request.Points), cancellationToken));
+            => Ok(await _mediator.Send(new OfferGemsCommand(playerId, request.Tier, request.Node, request.ExpectedPrice), cancellationToken));
 
         /// <summary>Вітрини за монети й безкоштовна тижнева з особистими лімітами. Доступно й без клану.</summary>
         [HttpGet("{playerId:guid}/shop")]

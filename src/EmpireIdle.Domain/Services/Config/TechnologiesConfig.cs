@@ -97,6 +97,9 @@ namespace EmpireIdle.Domain.Services.Config
 
         public int Levels { get; set; }
 
+        /// <summary>Кланові: ресурс, яким підносять у цей вузол (рішення 12.11, у кожного вузла свій).</summary>
+        public string? Resource { get; set; }
+
         public TechnologyScaling Scaling { get; set; }
 
         public List<TechnologyEffectConfig> Effects { get; set; } = new();
@@ -121,6 +124,9 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Кланові: множник очок підношень тіру.</summary>
         public double PointsMultiplier { get; set; } = 1;
+
+        /// <summary>Кланові: множник ціни спроби ресурсом на цьому тірі.</summary>
+        public double AttemptCostMultiplier { get; set; } = 1;
 
         /// <summary>Сила за один рівень вузла на цьому тірі, до ваги шкали.</summary>
         public double PowerPerLevel { get; set; }
@@ -213,14 +219,17 @@ namespace EmpireIdle.Domain.Services.Config
 
         public int PointsPerAttempt { get; set; } = 10;
 
-        /// <summary>Ресурс → ціна однієї спроби за кожен рівень ратуші гравця.</summary>
-        public Dictionary<string, int> AttemptCostPerTownHall { get; set; } = new();
+        /// <summary>
+        /// Ціна однієї спроби на тірі 1 у ресурсі з курсом 1 (рішення 12.11: ратуша на ціну не впливає).
+        /// Ціна вузла: AttemptCost × тір.AttemptCostMultiplier × ResourceRates[ресурс вузла], з округленням.
+        /// </summary>
+        public int AttemptCost { get; set; } = 5000;
 
-        /// <summary>Ресурси, які клан приймає по черзі, по колу; перший — від створення клану.</summary>
-        public List<string> ResourceRotation { get; set; } = new();
+        /// <summary>Ресурс → курс до базової ціни за рідкістю: м'ясо й дерево 1, залізо 0,25.</summary>
+        public Dictionary<string, double> ResourceRates { get; set; } = new();
 
-        /// <summary>Скільки підношень ресурсом клану відбувається до зміни ресурсу (рішення 05.11).</summary>
-        public int ResourceRotationEvery { get; set; } = 10000;
+        /// <summary>Ціна спроби округлюється до кратного цього числа.</summary>
+        public int CostRounding { get; set; } = 50;
 
         public int GemPoints { get; set; } = 50;
 

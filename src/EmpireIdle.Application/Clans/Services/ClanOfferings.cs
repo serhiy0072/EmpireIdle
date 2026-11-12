@@ -1,6 +1,8 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Entities;
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
@@ -9,12 +11,16 @@ using EmpireIdle.Domain.Technologies;
 namespace EmpireIdle.Application.Clans.Services
 {
     /// <summary>Що принесло одне підношення.</summary>
+    /// <param name="Level">Рівень вузла після підношення.</param>
+    /// <param name="Progress">Вкладено в наступний рівень вузла після підношення.</param>
+    /// <param name="LevelsCompleted">Рівні, які закрило саме це підношення.</param>
     /// <param name="DailyRewardsReached">Пороги денного внеску, які перетнуло це підношення; нагороди вже видано.</param>
-    public record ClanOfferingResult(int Coins, long TotalCoins, long ClanPoints, IReadOnlyList<int> DailyRewardsReached);
+    public record ClanOfferingResult(int Coins, long TotalCoins, int Level, int Progress, IReadOnlyList<int> LevelsCompleted,
+        IReadOnlyList<int> DailyRewardsReached);
 
     /// <summary>
-    /// Спільне для підношень ресурсом і за gems: особиста книга й те, що дає саме підношення — очки в запас
-    /// клану, внесок гравця й монети. Платіж лишається за командою: саме він у них різний.
+    /// Спільне для підношень ресурсом і за gems: доступність вузла, особиста книга й те, що дає саме
+    /// підношення — очки у вузол, внесок гравця й монети. Платіж лишається за командою: саме він у них різний.
     /// </summary>
     public sealed class ClanOfferings
     {
@@ -22,20 +28,25 @@ namespace EmpireIdle.Application.Clans.Services
         private readonly IClanResearchRepository _research;
         private readonly IClanOfferingRepository _offerings;
         private readonly IServerContext _serverContext;
+        private readonly IServerRepository _servers;
         private readonly ClanTechnologies _technologies;
         private readonly IRandomSource _random;
         private readonly RewardDispatcher _rewards;
+        private readonly ResearchSettlement _settlement;
 
         public ClanOfferings(IClanRepository clans, IClanResearchRepository research, IClanOfferingRepository offerings,
-            IServerContext serverContext, ClanTechnologies technologies, IRandomSource random, RewardDispatcher rewards)
+            IServerContext serverContext, IServerRepository servers, ClanTechnologies technologies, IRandomSource random,
+            RewardDispatcher rewards, ResearchSettlement settlement)
         {
             _clans = clans;
             _research = research;
             _offerings = offerings;
             _serverContext = serverContext;
+            _servers = servers;
             _technologies = technologies;
             _random = random;
             _rewards = rewards;
+            _settlement = settlement;
         }
 
         public async Task<Clan> ClanOfAsync(Guid playerId, CancellationToken cancellationToken)
@@ -69,14 +80,63 @@ namespace EmpireIdle.Application.Clans.Services
             return ledger;
         }
 
-        /// <summary>Зараховує оплачене підношення: очки в запас клану, внесок гравця в цей клан, монети.</summary>
+        /// <summary>
+        /// Вузол, у який можна підносити зараз. Перевіряється до платежу: підношення в закритий чи вивчений
+        /// вузол нічого б не дало, а гравець заплатив би. У клану ратуші немає — її гейт дерево пропускає.
+        /// </summary>
+        public async Task<TechnologyNodeConfig> AvailableNodeAsync(ClanResearch research, TechnologyKey key, CancellationToken cancellationToken)
+        {
+            var node = _technologies.Tree.Node(key.Node)
+                ?? throw new EntityNotFoundException("Technology", key.Node);
+
+            var worldLevel = await _servers.GetLevelAsync(_serverContext.ServerId, cancellationToken);
+
+            switch (_technologies.Tree.Availability(research.Levels, key.Tier, node.Key, int.MaxValue, worldLevel))
+            {
+                case TechnologyAvailability.Maxed:
+                    throw new RequirementNotMetException(RefusalReasons.ResearchMaxed, $"{node.Key} is maxed on tier {key.Tier}.");
+
+                case TechnologyAvailability.PreviousTierIncomplete:
+                    throw new RequirementNotMetException(RefusalReasons.ResearchPreviousTier,
+                        $"Tier {key.Tier - 1} of {node.Tab} is not finished.", key.Tier - 1);
+
+                case TechnologyAvailability.PrerequisitesMissing:
+                    var missing = node.Requires.Where(r => TechnologyTree.LevelOf(research.Levels, key.Tier, r) < 1);
+                    throw new RequirementNotMetException(RefusalReasons.ResearchPrerequisites,
+                        $"{node.Key} needs a level of its prerequisites first.", string.Join(",", missing));
+
+                case TechnologyAvailability.TierGated:
+                    var tier = _technologies.Tree.Tier(key.Tier)!;
+                    throw new RequirementNotMetException(RefusalReasons.ClanTechTierLocked,
+                        $"Tier {key.Tier} needs world level {tier.WorldLevel}.", key.Tier, tier.WorldLevel);
+
+                case TechnologyAvailability.UnknownNode:
+                    throw new EntityNotFoundException("Technology", key.ToString());
+            }
+
+            return node;
+        }
+
+        /// <summary>
+        /// Зараховує оплачене підношення: очки у вузол, внесок гравця в цей клан, монети. Новий рівень виробітку
+        /// діє лише відтепер, тож кожне село клану спершу фіксує вироблене за старою ставкою.
+        /// </summary>
         public async Task<ClanOfferingResult> RecordAsync(Clan clan, ClanResearch research, ClanOfferingLedger ledger, Guid playerId,
-            int points, DateTime utcNow, CancellationToken cancellationToken)
+            TechnologyKey key, TechnologyNodeConfig node, int points, DateTime utcNow, CancellationToken cancellationToken)
         {
             var coinBonus = _technologies.Tree.Bonuses(research.Levels).Of(TechnologyStat.CoinBonus);
             var coins = _technologies.RollCoins(_random, coinBonus);
 
-            research.AddPoints(points, utcNow);
+            // Сотні сіл в одній транзакції, але рівень виробітку закривається рідко. Ставку ще віддає БД,
+            // тому фіксуємо до вкладення
+            var completesProduction = node.Effects.Any(e => e.Stat == TechnologyStat.Production)
+                && research.ProgressOf(key) + points >= _technologies.Points(key.Tier, node, research.LevelOf(key) + 1);
+
+            if (completesProduction)
+                foreach (var member in clan.Members)
+                    await _settlement.SettleVillageAsync(member.PlayerId, utcNow, cancellationToken);
+
+            var completed = research.Invest(key, points, _technologies, utcNow);
             ledger.AddCoins(coins);
 
             // Пороги — за денною сумою гравця, а не внеском у клан: інакше перехід у інший клан дав би їх удруге
@@ -97,7 +157,8 @@ namespace EmpireIdle.Application.Clans.Services
             contribution.Add(points, utcNow);
             clan.RecordActivity(playerId, utcNow);
 
-            return new ClanOfferingResult(coins, ledger.Coins, research.UnallocatedPoints, reached.Select(r => r.Points).ToList());
+            return new ClanOfferingResult(coins, ledger.Coins, research.LevelOf(key), research.ProgressOf(key),
+                completed.Select(c => c.Level).ToList(), reached.Select(r => r.Points).ToList());
         }
     }
 }

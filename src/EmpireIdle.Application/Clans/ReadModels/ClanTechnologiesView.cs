@@ -4,16 +4,14 @@ using EmpireIdle.Domain.Services.Config;
 namespace EmpireIdle.Application.Clans.ReadModels
 {
     /// <summary>
-    /// Кланові технології для екрана: дерево з поступом, запас очок, стан підношень гравця, його монети
+    /// Кланові технології для екрана: дерево з поступом і ціною підношень, стан підношень гравця, його монети
     /// й денний рейтинг клану. Дерево приходить із сервера, бо очки й доступність рахує він.
     /// </summary>
-    /// <param name="UnallocatedPoints">Запас клану, який офіцер ще не розподілив.</param>
     /// <param name="Coins">Особисті кланові монети: лишаються при виході з клану.</param>
     public record ClanTechnologiesView(
         List<string> Tabs,
         List<ClanTechnologyTierView> Tiers,
         List<ClanTechnologyNodeView> Nodes,
-        long UnallocatedPoints,
         long Coins,
         List<TechnologyBonusView> Bonuses,
         ClanOfferingStateView Offering,
@@ -26,6 +24,8 @@ namespace EmpireIdle.Application.Clans.ReadModels
     /// <summary>Вузол на тірі. NextPoints — скільки всього коштує наступний рівень; null, коли вузол уже на найвищому.</summary>
     /// <param name="Availability">TechnologyAvailability: Available, Maxed, TierGated, PreviousTierIncomplete, PrerequisitesMissing.</param>
     /// <param name="Progress">Уже вкладено в наступний рівень.</param>
+    /// <param name="Resource">Ресурс підношення в цей вузол.</param>
+    /// <param name="AttemptCost">Ціна однієї спроби ресурсом на цьому тірі.</param>
     public record ClanTechnologyNodeView(
         int Tier,
         string Node,
@@ -37,18 +37,14 @@ namespace EmpireIdle.Application.Clans.ReadModels
         string Availability,
         List<TechnologyEffectView> Effects,
         int Progress,
-        int? NextPoints);
+        int? NextPoints,
+        string? Resource,
+        int? AttemptCost);
 
     /// <summary>Підношення гравця зараз.</summary>
-    /// <param name="Resource">Ресурс, який клан приймає зараз; клієнт шле саме його, щоб зсув черги дав відмову, а не несподіване списання.</param>
-    /// <param name="ResourceCost">Ціна спроби за нинішньої ратуші гравця.</param>
-    /// <param name="OfferingsUntilRotation">Скільки підношень ресурсом клану до зміни ресурсу.</param>
     /// <param name="NextAttemptAt">Коли відновиться наступна спроба; null — шкала повна.</param>
     /// <param name="GemPrice">Ціна наступного підношення за gems; null — денний ліміт вичерпано.</param>
     public record ClanOfferingStateView(
-        string? Resource,
-        int? ResourceCost,
-        long OfferingsUntilRotation,
         int Attempts,
         int MaxAttempts,
         DateTime? NextAttemptAt,

@@ -8,7 +8,8 @@ namespace EmpireIdle.Application.Clans.Validators
         public OfferResourcesCommandValidator()
         {
             RuleFor(x => x.PlayerId).NotEmpty();
-            RuleFor(x => x.Resource).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.Tier).InclusiveBetween(1, 100);
+            RuleFor(x => x.Node).NotEmpty().MaximumLength(50);
         }
     }
 
@@ -17,6 +18,8 @@ namespace EmpireIdle.Application.Clans.Validators
         public OfferGemsCommandValidator()
         {
             RuleFor(x => x.PlayerId).NotEmpty();
+            RuleFor(x => x.Tier).InclusiveBetween(1, 100);
+            RuleFor(x => x.Node).NotEmpty().MaximumLength(50);
             RuleFor(x => x.ExpectedPrice).GreaterThan(0);
         }
     }

@@ -1,4 +1,6 @@
 using EmpireIdle.Application.Clans.Commands;
+using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Entities;
@@ -6,6 +8,7 @@ using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.Technologies;
+using EmpireIdle.Domain.ValueObjects;
 using EmpireIdle.TestKit;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
@@ -122,50 +125,71 @@ public class ClanProductionSettlementTests
     }
 
     [Fact]
-    public async Task AllocationThatClosesAProductionLevel_ShouldBankEveryMembersVillage_AtTheOldRate()
+    public async Task OfferingThatClosesAProductionLevel_ShouldBankEveryMembersVillage_AtTheOldRate()
     {
         var leaderFarm = GivenFarm(LeaderId);
         var memberFarm = GivenFarm(PlayerId);
         GivenClanLevels(LeaderId, 0);
         GivenClanLevels(PlayerId, 0);
-        GivenClanWithPoints();
+        GivenClanWithProgress(_technologies.Points(1, _technologies.Tree.Node(Standard.Node)!, 1) - GemPoints);
 
-        var result = await Allocate(_technologies.Points(1, _technologies.Tree.Node(Standard.Node)!, 1));
+        var result = await OfferGems();
 
-        Assert.Single(result.LevelsCompleted);
+        Assert.Equal([1], result.LevelsCompleted);
         Assert.Equal(600, leaderFarm.AccruedAmount);
         Assert.Equal(600, memberFarm.AccruedAmount);
         Assert.Equal(Now, memberFarm.LastAccruedAt);
     }
 
-    /// <summary>Розподіл, що рівня не закрив, ставки не змінює — чужих сіл не чіпає.</summary>
+    /// <summary>Підношення, що рівня не закрило, ставки не змінює — чужих сіл не чіпає.</summary>
     [Fact]
-    public async Task AllocationThatClosesNothing_ShouldLeaveVillagesAlone()
+    public async Task OfferingThatClosesNothing_ShouldLeaveVillagesAlone()
     {
         GivenFarm(LeaderId);
         var memberFarm = GivenFarm(PlayerId);
         GivenClanLevels(LeaderId, 0);
         GivenClanLevels(PlayerId, 0);
-        GivenClanWithPoints();
+        GivenClanWithProgress(0);
 
-        await Allocate(10);
+        await OfferGems();
 
         Assert.Equal(0, memberFarm.AccruedAmount);
     }
 
-    private void GivenClanWithPoints()
+    private int GemPoints => _catalog.Config.Technologies.Clan.Offering.GemPoints;
+
+    private void GivenClanWithProgress(int points)
     {
         var clan = new Clan(Guid.NewGuid(), 1, "Alpha", "ALP", LeaderId, Now);
         clan.Join(PlayerId, capacity: 50, Now);
         _clans.GetByMemberAsync(LeaderId, Arg.Any<CancellationToken>()).Returns(clan);
 
         var research = new ClanResearch(Guid.NewGuid(), clan.Id, 1, Now);
-        research.AddPoints(100_000, Now);
+        research.Invest(Standard, points, _technologies, Now);
         _clanResearch.GetByClanAsync(clan.Id, Arg.Any<CancellationToken>()).Returns(research);
     }
 
-    private Task<ClanAllocationResult> Allocate(int points)
-        => new AllocateClanPointsCommandHandler(_clans, _clanResearch, _servers, _serverContext, _unitOfWork, _technologies,
-                Settlement(), new FakeTimeProvider(Now), NullLogger<AllocateClanPointsCommandHandler>.Instance)
-            .Handle(new AllocateClanPointsCommand(LeaderId, 1, Standard.Node, points), CancellationToken.None);
+    private Task<ClanOfferingResult> OfferGems()
+    {
+        var offerings = Substitute.For<IClanOfferingRepository>();
+        offerings.GetLedgerAsync(LeaderId, Arg.Any<CancellationToken>())
+            .Returns(new ClanOfferingLedger(Guid.NewGuid(), LeaderId, 1, Now));
+
+        var wallet = new PlayerWallet(Guid.NewGuid(), "leader");
+        wallet.AddGems(new GemAmount(100), "test", Now);
+        var wallets = Substitute.For<IPlayerWalletRepository>();
+        wallets.GetByUserIdAsync("leader", Arg.Any<CancellationToken>()).Returns(wallet);
+        var currentPlayer = Substitute.For<ICurrentPlayer>();
+        currentPlayer.UserId.Returns("leader");
+
+        var random = Substitute.For<IRandomSource>();
+        random.NextDouble().Returns(0.5);
+
+        var clanOfferings = new ClanOfferings(_clans, _clanResearch, offerings, _serverContext, _servers, _technologies, random,
+            new RewardDispatcher([]), Settlement());
+
+        return new OfferGemsCommandHandler(clanOfferings, wallets, currentPlayer, _unitOfWork, _technologies,
+                new FakeTimeProvider(Now), NullLogger<OfferGemsCommandHandler>.Instance)
+            .Handle(new OfferGemsCommand(LeaderId, Standard.Tier, Standard.Node, ExpectedPrice: 10), CancellationToken.None);
+    }
 }

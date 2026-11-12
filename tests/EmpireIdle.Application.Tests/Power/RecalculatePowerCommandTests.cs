@@ -170,8 +170,7 @@ public class RecalculatePowerCommandTests
         var key = new TechnologyKey(1, TechNode);
         var points = technologies.Points(1, technologies.Tree.Node(TechNode)!, 1);
 
-        research.AddPoints(points, Now);
-        research.Allocate(key, points, technologies, Now);
+        research.Invest(key, points, technologies, Now);
 
         _clanResearch.GetByClanAsync(clanId, Arg.Any<CancellationToken>()).Returns(research);
         _clans.GetClanIdByMemberAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(isMember ? clanId : null);

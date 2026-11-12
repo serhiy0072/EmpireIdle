@@ -104,7 +104,7 @@ public class TechnologyPowerTests
     }
 
     [Fact]
-    public void Allocate_ShouldRaiseOnce_OnlyWhenALevelCloses()
+    public void Invest_ShouldRaiseOnce_OnlyWhenALevelCloses()
     {
         var config = new ClanTechnologiesConfig
         {
@@ -116,12 +116,11 @@ public class TechnologyPowerTests
         var key = new TechnologyKey(1, "battle");
         var perLevel = technologies.Points(1, technologies.Tree.Node("battle")!, 1);
         var research = new ClanResearch(Guid.NewGuid(), Guid.NewGuid(), 1, Now);
-        research.AddPoints(perLevel * 10, Now);
 
-        research.Allocate(key, perLevel - 1, technologies, Now);
+        research.Invest(key, perLevel - 1, technologies, Now);
         Assert.Empty(research.DomainEvents);
 
-        research.Allocate(key, perLevel * 3, technologies, Now);
+        research.Invest(key, perLevel * 3, technologies, Now);
         Assert.IsType<ClanTechnologyLevelsCompleted>(Assert.Single(research.DomainEvents));
     }
 }

@@ -110,28 +110,46 @@ public class TechnologyTreeTests
     public void ClanLevel_ShouldCostPointsByTheFormula()
         => Assert.Equal(6100, Clan.Points(2, Clan.Tree.Node("c_coins")!, 3));
 
-    [Fact]
-    public void AttemptCost_ShouldGrowWithTheTownHall_AndRefuseUnpricedResources()
+    /// <summary>
+    /// Ціна спроби: база × множник тіру × курс ресурсу вузла (рішення 12.11). У тестовому конфігу база 100,
+    /// золото 1, дерево 0,5, множник тіру дорівнює тіру.
+    /// </summary>
+    [Theory]
+    [InlineData(1, "v_attack_all", TestKeys.Gold, 100)]
+    [InlineData(2, "v_attack_all", TestKeys.Gold, 200)]
+    [InlineData(1, "c_coins", TestKeys.Wood, 50)]
+    [InlineData(2, "c_coins", TestKeys.Wood, 100)]
+    public void AttemptCost_ShouldUseTheNodesResource_AndGrowWithTheTier(int tier, string node, string resource, int amount)
     {
-        Assert.Equal(500, Clan.AttemptCost(TestKeys.Gold, 10));
-        Assert.Null(Clan.AttemptCost(TestKeys.Iron, 10));
+        var cost = Clan.AttemptCost(tier, Clan.Tree.Node(node)!);
+
+        Assert.NotNull(cost);
+        Assert.Equal(resource, cost.Resource);
+        Assert.Equal(amount, cost.Amount);
     }
 
-    [Theory]
-    [InlineData(0, TestKeys.Gold)]
-    [InlineData(9_999, TestKeys.Gold)]
-    [InlineData(10_000, TestKeys.Wood)]
-    [InlineData(19_999, TestKeys.Wood)]
-    [InlineData(20_000, TestKeys.Gold)]
-    public void OfferedResource_ShouldShiftEveryTenThousandOfferings_AndGoRound(long offerings, string resource)
-        => Assert.Equal(resource, Clan.OfferedResource(offerings));
-
     [Fact]
-    public void OfferedResource_ShouldBeNull_WithoutARotation()
+    public void AttemptCost_ShouldBeNull_ForANodeWithoutAPricedResource()
     {
-        var config = new GameConfigBuilder().WithTechnologies(t => t.Clan.Offering.ResourceRotation = []).Build();
+        var config = new GameConfigBuilder().WithTechnologies(t => t.Clan.Nodes[0].Resource = TestKeys.Iron).Build();
+        var clan = new ClanTechnologies(config.Technologies.Clan);
 
-        Assert.Null(new ClanTechnologies(config.Technologies.Clan).OfferedResource(0));
+        Assert.Null(clan.AttemptCost(1, clan.Tree.Node("v_attack_all")!));
+    }
+
+    /// <summary>Половина кроку округлення йде вгору, а не до парного: 1125 → 1150, а не 1100.</summary>
+    [Fact]
+    public void AttemptCost_ShouldRoundHalfAwayFromZero()
+    {
+        var config = new GameConfigBuilder().WithTechnologies(t =>
+        {
+            t.Clan.Offering.AttemptCost = 4500;
+            t.Clan.Offering.CostRounding = 50;
+            t.Clan.Offering.ResourceRates[TestKeys.Gold] = 0.25;
+        }).Build();
+        var clan = new ClanTechnologies(config.Technologies.Clan);
+
+        Assert.Equal(1150, clan.AttemptCost(1, clan.Tree.Node("v_attack_all")!)!.Amount);
     }
 
     [Theory]

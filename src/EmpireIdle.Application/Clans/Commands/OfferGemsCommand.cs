@@ -10,11 +10,11 @@ using Microsoft.Extensions.Logging;
 namespace EmpireIdle.Application.Clans.Commands
 {
     /// <summary>
-    /// Підношення за gems (рішення 03.11): ціна подвоюється кожні п'ять підношень за добу UTC.
+    /// Підношення за gems у вибрану технологію (рішення 03.11 і 12.11): ціна подвоюється кожні п'ять підношень за добу UTC.
     /// Клієнт шле ціну, яку показав: остання за день коштує тисячі gems, і друга вкладка не має
     /// мовчки взяти більше, ніж гравець бачив.
     /// </summary>
-    public record OfferGemsCommand(Guid PlayerId, int ExpectedPrice)
+    public record OfferGemsCommand(Guid PlayerId, int Tier, string Node, int ExpectedPrice)
         : IRequest<ClanOfferingResult>, IPlayerScopedRequest, IIdempotentRequest;
 
     public sealed class OfferGemsCommandHandler : IRequestHandler<OfferGemsCommand, ClanOfferingResult>
@@ -45,6 +45,8 @@ namespace EmpireIdle.Application.Clans.Commands
 
             var clan = await _offerings.ClanOfAsync(request.PlayerId, cancellationToken);
             var research = await _offerings.ResearchOfAsync(clan, now, cancellationToken);
+            var key = new TechnologyKey(request.Tier, request.Node);
+            var node = await _offerings.AvailableNodeAsync(research, key, cancellationToken);
             var ledger = await _offerings.LedgerOfAsync(request.PlayerId, now, cancellationToken);
 
             var nth = ledger.NextGemOffering(now);
@@ -68,12 +70,13 @@ namespace EmpireIdle.Application.Clans.Commands
             wallet.SpendGems(new GemAmount(price), "clan-offering", request.PlayerId, now);
             ledger.RecordGemOffering(now);
 
-            var result = await _offerings.RecordAsync(clan, research, ledger, request.PlayerId, offering.GemPoints, now, cancellationToken);
+            var result = await _offerings.RecordAsync(clan, research, ledger, request.PlayerId, key, node,
+                offering.GemPoints, now, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Player {PlayerId} offered {Price} gems to clan {ClanId}: {Coins} coins",
-                request.PlayerId, price, clan.Id, result.Coins);
+            _logger.LogInformation("Player {PlayerId} offered {Price} gems to {Technology} of clan {ClanId}: {Coins} coins",
+                request.PlayerId, price, key, clan.Id, result.Coins);
 
             return result;
         }

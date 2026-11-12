@@ -327,11 +327,11 @@
         "LevelGrowth": 1.3,
         "PointsRounding": 100,
         "Tiers": [
-          { "Tier": 1, "WorldLevel": 1, "PointsMultiplier": 1, "PowerPerLevel": 40, "Scales": { "Battle": 1 } },
-          { "Tier": 2, "WorldLevel": 2, "PointsMultiplier": 2.5, "PowerPerLevel": 120, "Scales": { "Battle": 1 } },
-          { "Tier": 3, "WorldLevel": 3, "PointsMultiplier": 5, "PowerPerLevel": 350, "Scales": { "Battle": 1.5 } },
-          { "Tier": 4, "WorldLevel": 4, "PointsMultiplier": 9, "PowerPerLevel": 700, "Scales": { "Battle": 1.5 } },
-          { "Tier": 5, "WorldLevel": 5, "PointsMultiplier": 15, "PowerPerLevel": 1400, "Scales": { "Battle": 2 } }
+          { "Tier": 1, "WorldLevel": 1, "PointsMultiplier": 1, "AttemptCostMultiplier": 1, "PowerPerLevel": 40, "Scales": { "Battle": 1 } },
+          { "Tier": 2, "WorldLevel": 2, "PointsMultiplier": 2.5, "AttemptCostMultiplier": 1.5, "PowerPerLevel": 120, "Scales": { "Battle": 1 } },
+          { "Tier": 3, "WorldLevel": 3, "PointsMultiplier": 5, "AttemptCostMultiplier": 2.25, "PowerPerLevel": 350, "Scales": { "Battle": 1.5 } },
+          { "Tier": 4, "WorldLevel": 4, "PointsMultiplier": 9, "AttemptCostMultiplier": 3.25, "PowerPerLevel": 700, "Scales": { "Battle": 1.5 } },
+          { "Tier": 5, "WorldLevel": 5, "PointsMultiplier": 15, "AttemptCostMultiplier": 4.5, "PowerPerLevel": 1400, "Scales": { "Battle": 2 } }
         ],
         "Nodes": [
           {
@@ -340,6 +340,7 @@
             "Row": 1,
             "Requires": [],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
             "Effects": [ { "Stat": "ResearchSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
@@ -349,6 +350,7 @@
             "Row": 2,
             "Requires": ["c_research"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "None",
             "Effects": [ { "Stat": "Production", "Target": null, "PerLevel": 0.01 } ]
           },
@@ -358,6 +360,7 @@
             "Row": 2,
             "Requires": ["c_research"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
             "Effects": [ { "Stat": "ConstructionSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
@@ -367,6 +370,7 @@
             "Row": 2,
             "Requires": ["c_research"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "None",
             "Effects": [ { "Stat": "TrainingSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
@@ -376,6 +380,7 @@
             "Row": 3,
             "Requires": ["c_production", "c_construction", "c_training"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "None",
             "Effects": [ { "Stat": "HelpShareCap", "Target": null, "PerLevel": 0.02 } ]
           },
@@ -385,6 +390,7 @@
             "Row": 4,
             "Requires": ["c_helpcap"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
             "Effects": [ { "Stat": "OfferingAttempts", "Target": null, "PerLevel": 1 } ]
           },
@@ -394,6 +400,7 @@
             "Row": 4,
             "Requires": ["c_helpcap"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "None",
             "Effects": [ { "Stat": "CoinBonus", "Target": null, "PerLevel": 0.02 } ]
           },
@@ -403,6 +410,7 @@
             "Row": 1,
             "Requires": [],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
             "Effects": [ { "Stat": "StructureBuildSpeed", "Target": null, "PerLevel": 0.05 } ]
           },
@@ -412,6 +420,7 @@
             "Row": 2,
             "Requires": ["l_buildspeed"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "None",
             "Effects": [ { "Stat": "TerritoryAttack", "Target": null, "PerLevel": 0.01 } ]
           },
@@ -421,6 +430,7 @@
             "Row": 2,
             "Requires": ["l_buildspeed"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
             "Effects": [ { "Stat": "TerritoryDefense", "Target": null, "PerLevel": 0.01 } ]
           },
@@ -430,6 +440,7 @@
             "Row": 3,
             "Requires": ["l_attack", "l_defense"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "None",
             "Effects": [ { "Stat": "StructureGarrison", "Target": null, "PerLevel": 0.1 } ]
           },
@@ -439,6 +450,7 @@
             "Row": 4,
             "Requires": ["l_garrison"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "None",
             "Effects": [ { "Stat": "LootCashback", "Target": null, "PerLevel": 0.005 } ]
           },
@@ -448,6 +460,7 @@
             "Row": 4,
             "Requires": ["l_garrison"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
             "Effects": [ { "Stat": "StructureCost", "Target": null, "PerLevel": 0.03 } ]
           },
@@ -457,6 +470,7 @@
             "Row": 1,
             "Requires": [],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "Battle",
             "Effects": [ { "Stat": "Attack", "Target": null, "PerLevel": 0.01 } ]
           },
@@ -466,6 +480,7 @@
             "Row": 2,
             "Requires": ["v_attack_all"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "Battle",
             "Effects": [ { "Stat": "Attack", "Target": "infantry", "PerLevel": 0.005 } ]
           },
@@ -475,6 +490,7 @@
             "Row": 2,
             "Requires": ["v_attack_all"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "Battle",
             "Effects": [ { "Stat": "Attack", "Target": "spearman", "PerLevel": 0.005 } ]
           },
@@ -484,6 +500,7 @@
             "Row": 2,
             "Requires": ["v_attack_all"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "Battle",
             "Effects": [ { "Stat": "Attack", "Target": "archer", "PerLevel": 0.005 } ]
           },
@@ -493,6 +510,7 @@
             "Row": 3,
             "Requires": ["v_attack_infantry", "v_attack_spearman", "v_attack_archer"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "Battle",
             "Effects": [ { "Stat": "Defense", "Target": null, "PerLevel": 0.01 } ]
           },
@@ -502,6 +520,7 @@
             "Row": 4,
             "Requires": ["v_defense_all"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "Battle",
             "Effects": [ { "Stat": "Defense", "Target": "infantry", "PerLevel": 0.005 } ]
           },
@@ -511,6 +530,7 @@
             "Row": 4,
             "Requires": ["v_defense_all"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "Battle",
             "Effects": [ { "Stat": "Defense", "Target": "spearman", "PerLevel": 0.005 } ]
           },
@@ -520,6 +540,7 @@
             "Row": 4,
             "Requires": ["v_defense_all"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "Battle",
             "Effects": [ { "Stat": "Defense", "Target": "archer", "PerLevel": 0.005 } ]
           },
@@ -529,6 +550,7 @@
             "Row": 5,
             "Requires": ["v_defense_infantry", "v_defense_spearman", "v_defense_archer"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "None",
             "Effects": [ { "Stat": "MarchSpeed", "Target": null, "PerLevel": 0.01 } ]
           }
@@ -537,9 +559,9 @@
           "MaxAttempts": 25,
           "AttemptRechargeSeconds": 576,
           "PointsPerAttempt": 10,
-          "AttemptCostPerTownHall": { "food": 120, "wood": 120, "iron": 60 },
-          "ResourceRotation": [ "food", "wood", "iron" ],
-          "ResourceRotationEvery": 10000,
+          "AttemptCost": 2000,
+          "ResourceRates": { "food": 1, "wood": 1, "iron": 0.25 },
+          "CostRounding": 50,
           "GemPoints": 50,
           "GemPriceBase": 10,
           "GemPriceBatch": 5,
