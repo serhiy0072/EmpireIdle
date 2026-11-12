@@ -46,7 +46,7 @@ namespace EmpireIdle.Application.Clans.Commands
             var clan = await _offerings.ClanOfAsync(request.PlayerId, cancellationToken);
             var research = await _offerings.ResearchOfAsync(clan, now, cancellationToken);
             var key = new TechnologyKey(request.Tier, request.Node);
-            var node = await _offerings.AvailableNodeAsync(research, key, cancellationToken);
+            var node = _offerings.AvailableNode(research, key);
             var ledger = await _offerings.LedgerOfAsync(request.PlayerId, now, cancellationToken);
 
             var nth = ledger.NextGemOffering(now);

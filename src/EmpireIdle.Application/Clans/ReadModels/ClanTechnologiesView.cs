@@ -18,11 +18,15 @@ namespace EmpireIdle.Application.Clans.ReadModels
         ClanDailyContributionView Daily,
         List<ClanContributorView> Contributors);
 
-    /// <param name="Open">Рівень світу вже дозволяє цей тір (передумови попереднього тіру — окремо на вузлах).</param>
-    public record ClanTechnologyTierView(int Tier, int WorldLevel, bool Open);
+    /// <summary>
+    /// Тір дерева. Тіри не залежать від рівня світу (рішення 12.11): вкладка тіру відкривається, коли кожен вузол
+    /// останнього шару цієї вкладки на попередньому тірі має хоча б рівень.
+    /// </summary>
+    /// <param name="OpenTabs">Вкладки, перший шар яких на цьому тірі вже відкритий.</param>
+    public record ClanTechnologyTierView(int Tier, List<string> OpenTabs);
 
     /// <summary>Вузол на тірі. NextPoints — скільки всього коштує наступний рівень; null, коли вузол уже на найвищому.</summary>
-    /// <param name="Availability">TechnologyAvailability: Available, Maxed, TierGated, PreviousTierIncomplete, PrerequisitesMissing.</param>
+    /// <param name="Availability">TechnologyAvailability: Available, Maxed, PreviousTierIncomplete, PrerequisitesMissing.</param>
     /// <param name="Progress">Уже вкладено в наступний рівень.</param>
     /// <param name="Resource">Ресурс підношення в цей вузол.</param>
     /// <param name="AttemptCost">Ціна однієї спроби ресурсом на цьому тірі.</param>

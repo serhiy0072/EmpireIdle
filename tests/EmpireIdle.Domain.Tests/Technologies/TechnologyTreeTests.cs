@@ -53,6 +53,24 @@ public class TechnologyTreeTests
             Personal.Tree.Availability(finished, 2, "attack_infantry", 10, 2));
     }
 
+    /// <summary>
+    /// Кланове дерево (рішення 12.11): другий тір вкладки відкриває рівень кожного вузла останнього шару першого,
+    /// а не повне вивчення, і рівень світу не потрібен.
+    /// </summary>
+    [Fact]
+    public void ClanAvailability_ShouldOpenTheNextTier_OnceEveryNodeOfTheLastLayerHasALevel()
+    {
+        var firstLayerOnly = Levels((1, "v_attack_all", 3));
+        var lastLayerStarted = Levels((1, "v_attack_all", 1), (1, "c_coins", 1));
+
+        Assert.Equal(TechnologyAvailability.PreviousTierIncomplete,
+            Clan.Tree.Availability(firstLayerOnly, 2, "v_attack_all", int.MaxValue, int.MaxValue));
+        Assert.Equal(TechnologyAvailability.Available,
+            Clan.Tree.Availability(lastLayerStarted, 2, "v_attack_all", int.MaxValue, int.MaxValue));
+        Assert.True(Clan.Tree.TabOpen(lastLayerStarted, 2, "valor"));
+        Assert.False(Personal.Tree.TabOpen(Levels((1, "attack_infantry", 3), (1, "command_infantry", 1)), 2, "battle"));
+    }
+
     [Fact]
     public void Availability_ShouldReportAMaxedNode()
         => Assert.Equal(TechnologyAvailability.Maxed,

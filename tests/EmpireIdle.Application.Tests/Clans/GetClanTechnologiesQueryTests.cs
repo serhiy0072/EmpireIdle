@@ -22,7 +22,6 @@ public class GetClanTechnologiesQueryTests
     private readonly IClanOfferingRepository _offerings = Substitute.For<IClanOfferingRepository>();
     private readonly IPlayerRepository _players = Substitute.For<IPlayerRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
-    private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
     private readonly GameConfig _config = new GameConfigBuilder().WithTechnologies(t =>
     {
@@ -40,7 +39,6 @@ public class GetClanTechnologiesQueryTests
     public GetClanTechnologiesQueryTests()
     {
         _serverContext.ServerId.Returns(1);
-        _servers.GetLevelAsync(1, Arg.Any<CancellationToken>()).Returns(1);
         _clans.GetClanIdByMemberAsync(_village.PlayerId, Arg.Any<CancellationToken>()).Returns(ClanId);
         _villages.GetByPlayerIdReadOnlyAsync(_village.PlayerId, Arg.Any<CancellationToken>()).Returns(_village);
         _offerings.GetMemberContributionsAsync(ClanId, Arg.Any<CancellationToken>()).Returns(new List<ClanContribution>());
@@ -50,7 +48,7 @@ public class GetClanTechnologiesQueryTests
     {
         var catalog = new GameCatalog(_config);
 
-        return new GetClanTechnologiesQueryHandler(_clans, _research, _offerings, _players, _servers, _serverContext,
+        return new GetClanTechnologiesQueryHandler(_clans, _research, _offerings, _players, _serverContext,
                 new ClanTechnologies(_config.Technologies.Clan), catalog, new FakeTimeProvider(at ?? Now))
             .Handle(new GetClanTechnologiesQuery(_village.PlayerId), CancellationToken.None);
     }
@@ -87,7 +85,7 @@ public class GetClanTechnologiesQueryTests
 
         Assert.NotNull(view);
         Assert.Equal(4, view.Nodes.Count);
-        Assert.Equal([true, false], view.Tiers.Select(t => t.Open));
+        Assert.Equal([["valor"], []], view.Tiers.Select(t => t.OpenTabs));
         Assert.Equal(0L, view.Coins);
 
         var offering = view.Offering;

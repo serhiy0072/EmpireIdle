@@ -509,6 +509,16 @@
                 PointsMultiplier = tier, AttemptCostMultiplier = tier, Scales = new() { [TechnologyScaling.Battle] = tier }
             };
 
+            // Кланові тіри без гейтів ратуші й світу: тір відкриває лише попередній шар (рішення 12.11)
+            static TechnologyTierConfig ClanTier(int tier)
+            {
+                var config = Tier(tier);
+                config.MainBuildingLevel = 0;
+                config.WorldLevel = 1;
+
+                return config;
+            }
+
             _config.Technologies = new TechnologiesConfig
             {
                 Personal = new PersonalTechnologiesConfig
@@ -534,7 +544,7 @@
                 Clan = new ClanTechnologiesConfig
                 {
                     Tabs = ["valor"],
-                    Tiers = [Tier(1), Tier(2)],
+                    Tiers = [ClanTier(1), ClanTier(2)],
                     Nodes =
                     [
                         new TechnologyNodeConfig

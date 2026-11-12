@@ -28,21 +28,19 @@ namespace EmpireIdle.Application.Clans.Services
         private readonly IClanResearchRepository _research;
         private readonly IClanOfferingRepository _offerings;
         private readonly IServerContext _serverContext;
-        private readonly IServerRepository _servers;
         private readonly ClanTechnologies _technologies;
         private readonly IRandomSource _random;
         private readonly RewardDispatcher _rewards;
         private readonly ResearchSettlement _settlement;
 
         public ClanOfferings(IClanRepository clans, IClanResearchRepository research, IClanOfferingRepository offerings,
-            IServerContext serverContext, IServerRepository servers, ClanTechnologies technologies, IRandomSource random,
-            RewardDispatcher rewards, ResearchSettlement settlement)
+            IServerContext serverContext, ClanTechnologies technologies, IRandomSource random, RewardDispatcher rewards,
+            ResearchSettlement settlement)
         {
             _clans = clans;
             _research = research;
             _offerings = offerings;
             _serverContext = serverContext;
-            _servers = servers;
             _technologies = technologies;
             _random = random;
             _rewards = rewards;
@@ -82,16 +80,15 @@ namespace EmpireIdle.Application.Clans.Services
 
         /// <summary>
         /// Вузол, у який можна підносити зараз. Перевіряється до платежу: підношення в закритий чи вивчений
-        /// вузол нічого б не дало, а гравець заплатив би. У клану ратуші немає — її гейт дерево пропускає.
+        /// вузол нічого б не дало, а гравець заплатив би. Ратуші й рівня світу клан не має (рішення 12.11): тір
+        /// відкриває лише попередній шар.
         /// </summary>
-        public async Task<TechnologyNodeConfig> AvailableNodeAsync(ClanResearch research, TechnologyKey key, CancellationToken cancellationToken)
+        public TechnologyNodeConfig AvailableNode(ClanResearch research, TechnologyKey key)
         {
             var node = _technologies.Tree.Node(key.Node)
                 ?? throw new EntityNotFoundException("Technology", key.Node);
 
-            var worldLevel = await _servers.GetLevelAsync(_serverContext.ServerId, cancellationToken);
-
-            switch (_technologies.Tree.Availability(research.Levels, key.Tier, node.Key, int.MaxValue, worldLevel))
+            switch (_technologies.Tree.Availability(research.Levels, key.Tier, node.Key, int.MaxValue, int.MaxValue))
             {
                 case TechnologyAvailability.Maxed:
                     throw new RequirementNotMetException(RefusalReasons.ResearchMaxed, $"{node.Key} is maxed on tier {key.Tier}.");
@@ -105,12 +102,8 @@ namespace EmpireIdle.Application.Clans.Services
                     throw new RequirementNotMetException(RefusalReasons.ResearchPrerequisites,
                         $"{node.Key} needs a level of its prerequisites first.", string.Join(",", missing));
 
-                case TechnologyAvailability.TierGated:
-                    var tier = _technologies.Tree.Tier(key.Tier)!;
-                    throw new RequirementNotMetException(RefusalReasons.ClanTechTierLocked,
-                        $"Tier {key.Tier} needs world level {tier.WorldLevel}.", key.Tier, tier.WorldLevel);
-
                 case TechnologyAvailability.UnknownNode:
+                case TechnologyAvailability.TierGated:
                     throw new EntityNotFoundException("Technology", key.ToString());
             }
 

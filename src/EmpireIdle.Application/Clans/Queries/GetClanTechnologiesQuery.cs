@@ -20,21 +20,19 @@ namespace EmpireIdle.Application.Clans.Queries
         private readonly IClanResearchRepository _research;
         private readonly IClanOfferingRepository _offerings;
         private readonly IPlayerRepository _players;
-        private readonly IServerRepository _servers;
         private readonly IServerContext _serverContext;
         private readonly ClanTechnologies _technologies;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
 
         public GetClanTechnologiesQueryHandler(IClanRepository clans, IClanResearchRepository research, IClanOfferingRepository offerings,
-            IPlayerRepository players, IServerRepository servers, IServerContext serverContext,
+            IPlayerRepository players, IServerContext serverContext,
             ClanTechnologies technologies, GameCatalog catalog, TimeProvider timeProvider)
         {
             _clans = clans;
             _research = research;
             _offerings = offerings;
             _players = players;
-            _servers = servers;
             _serverContext = serverContext;
             _technologies = technologies;
             _catalog = catalog;
@@ -49,7 +47,6 @@ namespace EmpireIdle.Application.Clans.Queries
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var serverId = _serverContext.ServerId;
 
-            var worldLevel = await _servers.GetLevelAsync(serverId, cancellationToken);
 
             // Запит нічого не створює: рядків ще немає — показуємо порожній стан із тими самими правилами
             var research = await _research.GetByClanReadOnlyAsync(clanId, cancellationToken)
@@ -62,8 +59,9 @@ namespace EmpireIdle.Application.Clans.Queries
 
             return new ClanTechnologiesView(
                 config.Tabs,
-                tree.Tiers.Select(t => new ClanTechnologyTierView(t.Tier, t.WorldLevel, worldLevel >= t.WorldLevel)).ToList(),
-                tree.Tiers.SelectMany(tier => tree.Nodes.Select(node => NodeView(research, tier.Tier, node, worldLevel))).ToList(),
+                tree.Tiers.Select(t => new ClanTechnologyTierView(t.Tier,
+                    config.Tabs.Where(tab => tree.TabOpen(research.Levels, t.Tier, tab)).ToList())).ToList(),
+                tree.Tiers.SelectMany(tier => tree.Nodes.Select(node => NodeView(research, tier.Tier, node))).ToList(),
                 ledger.Coins,
                 TechnologyBonusTotals.Of(tree.Bonuses(research.Levels), _catalog.Config),
                 OfferingView(research, ledger, now),
@@ -71,7 +69,7 @@ namespace EmpireIdle.Application.Clans.Queries
                 await ContributorsAsync(clanId, now, cancellationToken));
         }
 
-        private ClanTechnologyNodeView NodeView(ClanResearch research, int tier, TechnologyNodeConfig node, int worldLevel)
+        private ClanTechnologyNodeView NodeView(ClanResearch research, int tier, TechnologyNodeConfig node)
         {
             var key = new TechnologyKey(tier, node.Key);
             var level = research.LevelOf(key);
@@ -85,8 +83,8 @@ namespace EmpireIdle.Application.Clans.Queries
                 node.Requires,
                 level,
                 node.Levels,
-                // У клану ратуші немає — її гейт дерево пропускає найбільшим рівнем, як і в підношеннях
-                _technologies.Tree.Availability(research.Levels, tier, node.Key, int.MaxValue, worldLevel).ToString(),
+                // Ратуші й рівня світу клан не має — їхні гейти дерево пропускає, як і в підношеннях
+                _technologies.Tree.Availability(research.Levels, tier, node.Key, int.MaxValue, int.MaxValue).ToString(),
                 node.Effects.Select(e => new TechnologyEffectView(e.Stat, e.Target, e.PerLevel * scale)).ToList(),
                 research.ProgressOf(key),
                 level >= node.Levels ? null : _technologies.Points(tier, node, level + 1),

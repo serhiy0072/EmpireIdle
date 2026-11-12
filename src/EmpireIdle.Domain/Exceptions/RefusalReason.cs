@@ -540,9 +540,6 @@
 
         // ---------- Кланові технології ----------
 
-        /// <summary>Тір закритий рівнем світу.</summary>
-        public static readonly RefusalReason ClanTechTierLocked = new("clantech.tierLocked", "tier", "worldLevel");
-
         /// <summary>Шкала спроб порожня: наступна відновиться з часом.</summary>
         public static readonly RefusalReason ClanTechNoAttempts = new("clantech.noAttempts");
 

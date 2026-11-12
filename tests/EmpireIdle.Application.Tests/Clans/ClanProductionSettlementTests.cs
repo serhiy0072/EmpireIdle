@@ -185,7 +185,7 @@ public class ClanProductionSettlementTests
         var random = Substitute.For<IRandomSource>();
         random.NextDouble().Returns(0.5);
 
-        var clanOfferings = new ClanOfferings(_clans, _clanResearch, offerings, _serverContext, _servers, _technologies, random,
+        var clanOfferings = new ClanOfferings(_clans, _clanResearch, offerings, _serverContext, _technologies, random,
             new RewardDispatcher([]), Settlement());
 
         return new OfferGemsCommandHandler(clanOfferings, wallets, currentPlayer, _unitOfWork, _technologies,

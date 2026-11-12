@@ -54,8 +54,7 @@ public class ClaimFreeWeeklyItemCommandTests
     private Task Claim(string item = Open, int quantity = 1, DateTime? at = null)
     {
         var dispatcher = new RewardDispatcher([_granter]);
-        var offerings = new ClanOfferings(_clans, _research, _offerings, _serverContext, Substitute.For<IServerRepository>(),
-            _technologies, _random, dispatcher,
+        var offerings = new ClanOfferings(_clans, _research, _offerings, _serverContext, _technologies, _random, dispatcher,
             TestTechnologies.Settlement(new GameCatalog(new GameConfigBuilder().WithTechnologies().Build()), Substitute.For<IVillageRepository>()));
 
         return new ClaimFreeWeeklyItemCommandHandler(_clans, offerings, _unitOfWork, _shop, dispatcher,

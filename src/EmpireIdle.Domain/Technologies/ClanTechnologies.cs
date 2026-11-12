@@ -14,7 +14,7 @@ namespace EmpireIdle.Domain.Technologies
         public ClanTechnologies(ClanTechnologiesConfig config)
         {
             _config = config;
-            Tree = new TechnologyTree(config.Tiers, config.Nodes);
+            Tree = new TechnologyTree(config.Tiers, config.Nodes, TierUnlockRule.LastLayerStarted);
         }
 
         public TechnologyTree Tree { get; }

@@ -312,6 +312,34 @@ namespace EmpireIdle.Domain.Services
                 if (nodes.All(n => n.Tab != tab || n.Row != 1))
                     throw new InvalidOperationException($"Technologies.{section} tab '{tab}' has no node in row 1 to start from.");
             }
+
+            if (clan)
+                ValidateClanLayers(section, tiers, nodes);
+        }
+
+        /// <summary>
+        /// Кланове дерево відкривається шарами (рішення 12.11): шар — ряд вкладки, і наступний відкривається, коли
+        /// кожен вузол попереднього має рівень. Тож передумови вузла — рівно весь попередній ряд його вкладки,
+        /// ряди йдуть без пропусків, а гейтів ратуші й світу в кланових тірів немає.
+        /// </summary>
+        private static void ValidateClanLayers(string section, List<TechnologyTierConfig> tiers, List<TechnologyNodeConfig> nodes)
+        {
+            if (tiers.Any(t => t.MainBuildingLevel > 0 || t.WorldLevel > 1))
+                throw new InvalidOperationException(
+                    $"Technologies.{section}.Tiers must not be gated by town hall or world level: the previous layer opens a tier.");
+
+            foreach (var node in nodes)
+            {
+                var previousLayer = nodes.Where(n => n.Tab == node.Tab && n.Row == node.Row - 1).Select(n => n.Key).ToHashSet();
+
+                if (node.Row > 1 && previousLayer.Count == 0)
+                    throw new InvalidOperationException(
+                        $"Technologies.{section} node '{node.Key}' is in row {node.Row}, but its tab has no row {node.Row - 1}.");
+
+                if (!previousLayer.SetEquals(node.Requires))
+                    throw new InvalidOperationException(
+                        $"Technologies.{section} node '{node.Key}' must require exactly the whole previous layer of its tab.");
+            }
         }
 
         private static void ValidateTechnologyEffect(GameConfig config, string section, string node,

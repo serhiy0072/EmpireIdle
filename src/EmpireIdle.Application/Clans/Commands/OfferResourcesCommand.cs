@@ -43,7 +43,7 @@ namespace EmpireIdle.Application.Clans.Commands
             var research = await _offerings.ResearchOfAsync(clan, now, cancellationToken);
 
             var key = new TechnologyKey(request.Tier, request.Node);
-            var node = await _offerings.AvailableNodeAsync(research, key, cancellationToken);
+            var node = _offerings.AvailableNode(research, key);
             var cost = _technologies.AttemptCost(request.Tier, node)
                 ?? throw new InvalidOperationException($"Clan technology {key} has no priced resource.");
 

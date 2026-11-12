@@ -141,10 +141,6 @@
   "clantech.shopPriceChanged": [
     "price"
   ],
-  "clantech.tierLocked": [
-    "tier",
-    "worldLevel"
-  ],
   "common.buildingLevelRequired": [
     "building",
     "level"

@@ -13539,9 +13539,8 @@
       },
       "ClanTechnologyTierView": {
         "required": [
-          "open",
-          "tier",
-          "worldLevel"
+          "openTabs",
+          "tier"
         ],
         "type": "object",
         "properties": {
@@ -13549,12 +13548,11 @@
             "type": "integer",
             "format": "int32"
           },
-          "worldLevel": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "open": {
-            "type": "boolean"
+          "openTabs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false

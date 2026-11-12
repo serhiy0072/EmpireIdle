@@ -33,7 +33,6 @@ public class ClanOfferingCommandTests
     private readonly IClanResearchRepository _research = Substitute.For<IClanResearchRepository>();
     private readonly IClanOfferingRepository _offerings = Substitute.For<IClanOfferingRepository>();
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
-    private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IPlayerWalletRepository _wallets = Substitute.For<IPlayerWalletRepository>();
     private readonly ICurrentPlayer _currentPlayer = Substitute.For<ICurrentPlayer>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
@@ -74,12 +73,11 @@ public class ClanOfferingCommandTests
         _random.NextDouble().Returns(0.5);
         _granter.RewardType.Returns("Gems");
         _serverContext.ServerId.Returns(1);
-        _servers.GetLevelAsync(1, Arg.Any<CancellationToken>()).Returns(1);
         _currentPlayer.UserId.Returns(UserId);
     }
 
     private ClanOfferings Offerings()
-        => new(_clans, _research, _offerings, _serverContext, _servers, _technologies, _random,
+        => new(_clans, _research, _offerings, _serverContext, _technologies, _random,
             new RewardDispatcher([_granter]), TestTechnologies.Settlement(_catalog, _villages));
 
     private OfferResourcesCommandHandler ResourcesHandler()
@@ -184,12 +182,23 @@ public class ClanOfferingCommandTests
         Assert.Equal(RefusalReasons.ResearchMaxed.Key, error.Reason);
     }
 
+    /// <summary>Наступний тір відкриває не рівень світу, а рівень кожного вузла останнього шару попереднього тіру.</summary>
     [Fact]
-    public async Task OfferResources_ShouldRefuseTheTier_WhenTheWorldIsTooYoung()
+    public async Task OfferResources_ShouldOpenTheNextTier_OnceTheLastLayerHasALevel()
     {
-        var error = await Assert.ThrowsAsync<RequirementNotMetException>(() => OfferResources(new TechnologyKey(2, Standard.Node)));
+        var nextTier = new TechnologyKey(2, Standard.Node);
+        GivenStandardLevel();
 
-        Assert.Equal(RefusalReasons.ClanTechTierLocked.Key, error.Reason);
+        var error = await Assert.ThrowsAsync<RequirementNotMetException>(() => OfferResources(nextTier));
+        Assert.Equal(RefusalReasons.ResearchPreviousTier.Key, error.Reason);
+
+        _target.Invest(Mint, _technologies.Points(1, _technologies.Tree.Node(Mint.Node)!, 1), _technologies, Now);
+        var goldBefore = Resource(TestKeys.Gold);
+
+        await OfferResources(nextTier);
+
+        Assert.Equal(goldBefore - 200, Resource(TestKeys.Gold));
+        Assert.Equal(10, _target.ProgressOf(nextTier));
     }
 
     [Fact]
