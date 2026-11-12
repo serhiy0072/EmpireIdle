@@ -21,6 +21,12 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Вкладені очки до наступного рівня: «тір:вузол» → очки.</summary>
         public IReadOnlyDictionary<string, int> Progress { get; private set; } = new Dictionary<string, int>();
 
+        /// <summary>
+        /// Вузол із міткою керівництва, «тір:вузол»; null — мітки немає. Внесок у нього дає більші особисті
+        /// нагороди, а сама технологія росте так само (рішення 12.11).
+        /// </summary>
+        public string? MarkedTechnology { get; private set; }
+
         public DateTime UpdatedAt { get; private set; }
 
         public uint Version { get; private set; }
@@ -37,6 +43,18 @@ namespace EmpireIdle.Domain.Entities
         public int LevelOf(TechnologyKey key) => Levels.GetValueOrDefault(key.ToString());
 
         public int ProgressOf(TechnologyKey key) => Progress.GetValueOrDefault(key.ToString());
+
+        public bool IsMarked(TechnologyKey key) => MarkedTechnology == key.ToString();
+
+        /// <summary>
+        /// Ставить мітку на вузол або знімає її (null); одна на клан, нова замінює стару. Чи доступний вузол
+        /// і чи має гравець право, перевіряє той, хто кличе.
+        /// </summary>
+        public void Mark(TechnologyKey? key, DateTime utcNow)
+        {
+            MarkedTechnology = key?.ToString();
+            UpdatedAt = utcNow;
+        }
 
         /// <summary>
         /// Вкладає очки підношення у вузол і повертає закриті рівні. Чи відкритий вузол, вирішує дерево — це
@@ -81,6 +99,10 @@ namespace EmpireIdle.Domain.Entities
             Levels = levels;
             Progress = progress;
             UpdatedAt = utcNow;
+
+            // Вивчений вузол більше не приймає підношень, тож мітка на ньому нічого б не давала
+            if (level >= node.Levels && MarkedTechnology == name)
+                MarkedTechnology = null;
 
             // Одна подія на підношення, скільки б рівнів воно не закрило: перерахунок сили й так іде на весь клан
             if (completed.Count > 0)

@@ -69,6 +69,48 @@ public class ClanResearchTests
     }
 
     [Fact]
+    public void Mark_ShouldReplaceThePreviousMark_AndClearWithNull()
+    {
+        var research = Research();
+
+        research.Mark(Standard, Now);
+        research.Mark(Mint, Now);
+
+        Assert.True(research.IsMarked(Mint));
+        Assert.False(research.IsMarked(Standard));
+
+        research.Mark(null, Now);
+
+        Assert.Null(research.MarkedTechnology);
+    }
+
+    /// <summary>Вивчений вузол більше не приймає підношень: мітка з нього знімається сама.</summary>
+    [Fact]
+    public void Invest_ShouldClearTheMark_WhenTheMarkedNodeIsFinished()
+    {
+        var research = Research();
+        research.Mark(Standard, Now);
+
+        research.Invest(Standard, PointsFor(1), Technologies, Now);
+        Assert.True(research.IsMarked(Standard));
+
+        research.Invest(Standard, PointsFor(2) + PointsFor(3), Technologies, Now);
+        Assert.Null(research.MarkedTechnology);
+    }
+
+    /// <summary>Вивчення іншого вузла чужої мітки не чіпає.</summary>
+    [Fact]
+    public void Invest_ShouldKeepTheMark_WhenAnotherNodeIsFinished()
+    {
+        var research = Research();
+        research.Mark(Mint, Now);
+
+        research.Invest(Standard, PointsFor(1) + PointsFor(2) + PointsFor(3), Technologies, Now);
+
+        Assert.True(research.IsMarked(Mint));
+    }
+
+    [Fact]
     public void Invest_ShouldRaiseOnce_OnlyWhenALevelCloses()
     {
         var research = Research();

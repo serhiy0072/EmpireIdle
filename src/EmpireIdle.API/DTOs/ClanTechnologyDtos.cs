@@ -8,6 +8,9 @@ public record OfferClanResourcesRequest(int Tier, string Node);
 /// <summary>Підношення за gems у вузол на тірі за ціною, яку клієнт показав гравцеві.</summary>
 public record OfferClanGemsRequest(int Tier, string Node, int ExpectedPrice);
 
+/// <summary>Мітка керівництва на вузол на тірі; обидва поля порожні — зняти мітку.</summary>
+public record MarkClanTechnologyRequest(int? Tier, string? Node);
+
 /// <summary>Купівля за монети: вітрина, предмет, кількість і ціна, яку клієнт показав гравцеві.</summary>
 public record BuyClanShopItemRequest(ClanShopKind Kind, string ItemKey, int Quantity, int ExpectedPrice);
 

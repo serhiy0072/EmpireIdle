@@ -47,6 +47,22 @@ namespace EmpireIdle.API.Controllers
             [FromBody] OfferClanGemsRequest request, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new OfferGemsCommand(playerId, request.Tier, request.Node, request.ExpectedPrice), cancellationToken));
 
+        /// <summary>
+        /// Поставити мітку керівництва на доступний вузол або зняти її; потрібен дозвіл ManageTechnologies.
+        /// Ідемпотентна за заголовком Idempotency-Key.
+        /// </summary>
+        [HttpPost("{playerId:guid}/mark")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Mark(Guid playerId, [FromBody] MarkClanTechnologyRequest request, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new MarkClanTechnologyCommand(playerId, request.Tier, request.Node), cancellationToken);
+
+            return NoContent();
+        }
+
         /// <summary>Вітрини за монети й безкоштовна тижнева з особистими лімітами. Доступно й без клану.</summary>
         [HttpGet("{playerId:guid}/shop")]
         [ProducesResponseType(typeof(ClanShopView), StatusCodes.Status200OK)]

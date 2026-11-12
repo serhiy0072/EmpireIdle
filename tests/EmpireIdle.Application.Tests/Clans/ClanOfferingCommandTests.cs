@@ -158,6 +158,55 @@ public class ClanOfferingCommandTests
         Assert.Equal(0, result.Progress);
     }
 
+    /// <summary>
+    /// Внесок у вузол із міткою керівництва: +50% монет і очок денних порогів, а поступ і рейтинг клану — звичайні.
+    /// </summary>
+    [Fact]
+    public async Task OfferResources_ShouldPayHalfAgain_IntoTheMarkedNode()
+    {
+        ClanContribution? contribution = null;
+        await _offerings.AddContributionAsync(Arg.Do<ClanContribution>(c => contribution = c), Arg.Any<CancellationToken>());
+        _target.Mark(Standard, Now);
+
+        var result = await OfferResources(Standard);
+
+        Assert.True(result.Marked);
+        Assert.Equal(150, result.Coins);
+        Assert.Equal(150, _ledger.Coins);
+        Assert.Equal(15, _ledger.PointsToday);
+        Assert.Equal(10, _target.ProgressOf(Standard));
+        Assert.Equal(10, contribution!.Total);
+    }
+
+    [Fact]
+    public async Task OfferResources_ShouldPayTheUsualReward_IntoAnUnmarkedNode()
+    {
+        _target.Mark(Mint, Now);
+
+        var result = await OfferResources(Standard);
+
+        Assert.False(result.Marked);
+        Assert.Equal(100, result.Coins);
+        Assert.Equal(10, _ledger.PointsToday);
+    }
+
+    /// <summary>Підношення, що добиває позначений вузол, ще отримує надбавку, а мітка після нього знімається.</summary>
+    [Fact]
+    public async Task OfferGems_ShouldStillPayTheBonus_WhenItFinishesTheMarkedNode()
+    {
+        GivenWallet(100);
+        var node = _technologies.Tree.Node(Standard.Node)!;
+        var allButLast = _technologies.Points(1, node, 1) + _technologies.Points(1, node, 2) + _technologies.Points(1, node, 3) - 10;
+        _target.Invest(Standard, allButLast, _technologies, Now);
+        _target.Mark(Standard, Now);
+
+        var result = await OfferGems(Standard, 10);
+
+        Assert.True(result.Marked);
+        Assert.Equal(150, result.Coins);
+        Assert.Null(_target.MarkedTechnology);
+    }
+
     /// <summary>Закритий вузол нічого б не дав: відмова до спроби й списання.</summary>
     [Fact]
     public async Task OfferResources_ShouldRefuseWithoutCharging_ANodeWithMissingPrerequisites()

@@ -8,11 +8,15 @@ namespace EmpireIdle.Application.Clans.ReadModels
     /// й денний рейтинг клану. Дерево приходить із сервера, бо очки й доступність рахує він.
     /// </summary>
     /// <param name="Coins">Особисті кланові монети: лишаються при виході з клану.</param>
+    /// <param name="MarkedTechnology">Вузол із міткою керівництва, «тір:вузол»; null — мітки немає.</param>
+    /// <param name="MarkedBonus">Надбавка до монет і очок денних порогів за внесок у позначений вузол (0,5 = +50%).</param>
     public record ClanTechnologiesView(
         List<string> Tabs,
         List<ClanTechnologyTierView> Tiers,
         List<ClanTechnologyNodeView> Nodes,
         long Coins,
+        string? MarkedTechnology,
+        double MarkedBonus,
         List<TechnologyBonusView> Bonuses,
         ClanOfferingStateView Offering,
         ClanDailyContributionView Daily,

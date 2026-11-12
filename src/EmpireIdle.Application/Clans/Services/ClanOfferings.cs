@@ -14,9 +14,10 @@ namespace EmpireIdle.Application.Clans.Services
     /// <param name="Level">Рівень вузла після підношення.</param>
     /// <param name="Progress">Вкладено в наступний рівень вузла після підношення.</param>
     /// <param name="LevelsCompleted">Рівні, які закрило саме це підношення.</param>
+    /// <param name="Marked">Вузол мав мітку керівництва: монети й очки денних порогів уже з надбавкою.</param>
     /// <param name="DailyRewardsReached">Пороги денного внеску, які перетнуло це підношення; нагороди вже видано.</param>
     public record ClanOfferingResult(int Coins, long TotalCoins, int Level, int Progress, IReadOnlyList<int> LevelsCompleted,
-        IReadOnlyList<int> DailyRewardsReached);
+        bool Marked, IReadOnlyList<int> DailyRewardsReached);
 
     /// <summary>
     /// Спільне для підношень ресурсом і за gems: доступність вузла, особиста книга й те, що дає саме
@@ -111,7 +112,8 @@ namespace EmpireIdle.Application.Clans.Services
         }
 
         /// <summary>
-        /// Зараховує оплачене підношення: очки у вузол, внесок гравця в цей клан, монети. Новий рівень виробітку
+        /// Зараховує оплачене підношення: очки у вузол, внесок гравця в цей клан, монети. Внесок у вузол із міткою
+        /// керівництва дає надбавку до монет і очок денних порогів, але не до поступу й рейтингу. Новий рівень виробітку
         /// діє лише відтепер, тож кожне село клану спершу фіксує вироблене за старою ставкою.
         /// </summary>
         public async Task<ClanOfferingResult> RecordAsync(Clan clan, ClanResearch research, ClanOfferingLedger ledger, Guid playerId,
@@ -119,6 +121,17 @@ namespace EmpireIdle.Application.Clans.Services
         {
             var coinBonus = _technologies.Tree.Bonuses(research.Levels).Of(TechnologyStat.CoinBonus);
             var coins = _technologies.RollCoins(_random, coinBonus);
+
+            // Мітку читаємо до вкладення: підношення, що добиває вузол до кінця, знімає її, але бонус ще отримує
+            var marked = research.IsMarked(key);
+            var dailyPoints = points;
+
+            if (marked)
+            {
+                var multiplier = 1 + Math.Max(_technologies.Offering.MarkedBonus, 0);
+                coins = (int)Math.Round(coins * multiplier, MidpointRounding.AwayFromZero);
+                dailyPoints = (int)Math.Round(points * multiplier, MidpointRounding.AwayFromZero);
+            }
 
             // Сотні сіл в одній транзакції, але рівень виробітку закривається рідко. Ставку ще віддає БД,
             // тому фіксуємо до вкладення
@@ -133,7 +146,7 @@ namespace EmpireIdle.Application.Clans.Services
             ledger.AddCoins(coins);
 
             // Пороги — за денною сумою гравця, а не внеском у клан: інакше перехід у інший клан дав би їх удруге
-            var (before, after) = ledger.AddPoints(points, utcNow);
+            var (before, after) = ledger.AddPoints(dailyPoints, utcNow);
             var reached = _technologies.DailyRewardsCrossed(before, after).ToList();
 
             foreach (var threshold in reached)
@@ -151,7 +164,7 @@ namespace EmpireIdle.Application.Clans.Services
             clan.RecordActivity(playerId, utcNow);
 
             return new ClanOfferingResult(coins, ledger.Coins, research.LevelOf(key), research.ProgressOf(key),
-                completed.Select(c => c.Level).ToList(), reached.Select(r => r.Points).ToList());
+                completed.Select(c => c.Level).ToList(), marked, reached.Select(r => r.Points).ToList());
         }
     }
 }

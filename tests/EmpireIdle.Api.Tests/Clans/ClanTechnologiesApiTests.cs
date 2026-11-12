@@ -181,6 +181,37 @@ public class ClanTechnologiesApiTests : IAsyncLifetime
         Assert.Equal(RefusalReasons.ResearchPrerequisites.Key, await ReasonAsync(response));
     }
 
+    /// <summary>Лідер ставить мітку, екран її показує, а внесок у позначений вузол приходить із надбавкою.</summary>
+    [Fact]
+    public async Task Mark_ShouldShowOnTheScreen_AndBoostTheOffering()
+    {
+        await JoinClanAsync();
+
+        var node = (await GetViewAsync()).Nodes.First(n => n.Tier == 1 && n.Availability == "Available");
+        await GrantResourceAsync(node.Resource!, node.AttemptCost!.Value);
+
+        var marked = await PostAsync("/mark", new MarkClanTechnologyRequest(1, node.Node));
+        Assert.Equal(HttpStatusCode.NoContent, marked.StatusCode);
+        Assert.Equal($"1:{node.Node}", (await GetViewAsync()).MarkedTechnology);
+
+        var offered = await PostAsync("/offer-resources", new OfferClanResourcesRequest(1, node.Node));
+        Assert.True((await offered.Content.ReadFromJsonAsync<ClanOfferingResult>())!.Marked);
+
+        var cleared = await PostAsync("/mark", new MarkClanTechnologyRequest(null, null));
+        Assert.Equal(HttpStatusCode.NoContent, cleared.StatusCode);
+        Assert.Null((await GetViewAsync()).MarkedTechnology);
+    }
+
+    [Fact]
+    public async Task Mark_ShouldRefuse_ATierWithoutANode()
+    {
+        await JoinClanAsync();
+
+        var response = await PostAsync("/mark", new MarkClanTechnologyRequest(1, null));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Fact]
     public async Task OfferResources_ShouldNotFind_AnUnknownTechnology()
     {

@@ -884,6 +884,10 @@ namespace EmpireIdle.Infrastructure.Migrations
                         .HasColumnType("jsonb")
                         .HasDefaultValueSql("'{}'::jsonb");
 
+                    b.Property<string>("MarkedTechnology")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Progress")
                         .IsRequired()
                         .ValueGeneratedOnAdd()

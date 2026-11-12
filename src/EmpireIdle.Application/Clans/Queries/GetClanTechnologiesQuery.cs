@@ -63,6 +63,8 @@ namespace EmpireIdle.Application.Clans.Queries
                     config.Tabs.Where(tab => tree.TabOpen(research.Levels, t.Tier, tab)).ToList())).ToList(),
                 tree.Tiers.SelectMany(tier => tree.Nodes.Select(node => NodeView(research, tier.Tier, node))).ToList(),
                 ledger.Coins,
+                research.MarkedTechnology,
+                _technologies.Offering.MarkedBonus,
                 TechnologyBonusTotals.Of(tree.Bonuses(research.Levels), _catalog.Config),
                 OfferingView(research, ledger, now),
                 DailyView(config, ledger, now),

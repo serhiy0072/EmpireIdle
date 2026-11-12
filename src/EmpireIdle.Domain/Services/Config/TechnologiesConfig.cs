@@ -234,6 +234,12 @@ namespace EmpireIdle.Domain.Services.Config
         public int GemPoints { get; set; } = 50;
 
         /// <summary>
+        /// Надбавка до особистих нагород за внесок у вузол із міткою керівництва: монет і очок денних порогів
+        /// (рішення 12.11, +50%). Поступ технології від мітки не змінюється.
+        /// </summary>
+        public double MarkedBonus { get; set; } = 0.5;
+
+        /// <summary>
         /// Ціна n-го gems-підношення за добу UTC росте партіями: перша партія по GemPriceBase,
         /// кожна наступна в GemPriceGrowth разів дорожча (рішення 03.11: п'ять по 10, п'ять по 20, п'ять по 40…).
         /// </summary>

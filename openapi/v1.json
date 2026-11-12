@@ -2760,6 +2760,118 @@
         }
       }
     },
+    "/api/clan-technologies/{playerId}/mark": {
+      "post": {
+        "tags": [
+          "ClanTechnologies"
+        ],
+        "operationId": "ClanTechnologies_Mark",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkClanTechnologyRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkClanTechnologyRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkClanTechnologyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/clan-technologies/{playerId}/shop": {
       "get": {
         "tags": [
@@ -13028,6 +13140,7 @@
           "dailyRewardsReached",
           "level",
           "levelsCompleted",
+          "marked",
           "progress",
           "totalCoins"
         ],
@@ -13055,6 +13168,9 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          "marked": {
+            "type": "boolean"
           },
           "dailyRewardsReached": {
             "type": "array",
@@ -13414,6 +13530,7 @@
           "coins",
           "contributors",
           "daily",
+          "markedBonus",
           "nodes",
           "offering",
           "tabs",
@@ -13442,6 +13559,14 @@
           "coins": {
             "type": "integer",
             "format": "int64"
+          },
+          "markedTechnology": {
+            "type": "string",
+            "nullable": true
+          },
+          "markedBonus": {
+            "type": "number",
+            "format": "double"
           },
           "bonuses": {
             "type": "array",
@@ -15457,6 +15582,21 @@
           "count": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarkClanTechnologyRequest": {
+        "type": "object",
+        "properties": {
+          "tier": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "node": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
