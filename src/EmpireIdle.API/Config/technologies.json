@@ -560,7 +560,7 @@
           "AttemptRechargeSeconds": 576,
           "PointsPerAttempt": 10,
           "AttemptCost": 2000,
-          "ResourceRates": { "food": 1, "wood": 1, "iron": 0.25 },
+          "ResourceRates": { "food": 1, "wood": 1, "iron": 0.5, "gold": 0.25 },
           "CostRounding": 50,
           "GemPoints": 50,
           "GemPriceBase": 10,
