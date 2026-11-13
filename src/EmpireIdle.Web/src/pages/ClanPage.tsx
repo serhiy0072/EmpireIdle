@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import ClanBrowser from "../components/clan/ClanBrowser";
 import ClanHelpPanel from "../components/clan/ClanHelpPanel";
 import ClanMembers from "../components/clan/ClanMembers";
@@ -40,6 +41,13 @@ import { t } from "i18next";
 
 type Tab = "help" | "members" | "territory" | "technologies" | "shop" | "requests" | "settings";
 
+const TABS: readonly string[] = ["help", "members", "territory", "technologies", "shop", "requests", "settings"];
+
+/** Вкладка — частина адреси (/clan/technologies): на неї веде посилання, а підказки впізнають екран. */
+function tabOf(route: string | undefined): Tab {
+  return route !== undefined && TABS.includes(route) ? (route as Tab) : "help";
+}
+
 export default function ClanPage() {
   const session = useSession();
   const playerId = session?.playerId ?? "";
@@ -72,12 +80,12 @@ export default function ClanPage() {
   const invite = useInvitePlayer(playerId);
   const resolve = useResolveRequest(playerId);
 
-  const [tab, setTab] = useState<Tab>("help");
+  const navigate = useNavigate();
+  const tab = tabOf(useParams().tab);
+  const setTab = (next: Tab) => void navigate(next === "help" ? "/clan" : `/clan/${next}`, { replace: true });
   const [copied, setCopied] = useState(false);
   // Вихід і тим паче розпуск не скасувати — другий клік, як у передачі лідерства
   const [confirmLeave, setConfirmLeave] = useState(false);
-  // Поза кланом магазин відкривається окремим екраном замість каталогу кланів
-  const [shopOutside, setShopOutside] = useState(false);
 
   if (clan.isPending) {
     return <p className="text-slate-500">{t("social:page.loading")}</p>;
@@ -101,12 +109,13 @@ export default function ClanPage() {
     });
   };
 
-  if (clan.data === null && shopOutside) {
+  // Поза кланом магазин відкривається окремим екраном замість каталогу кланів
+  if (clan.data === null && tab === "shop") {
     return (
       <div className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="text-xl font-medium text-slate-800">{t("technologies:shop.title")}</h1>
-          <button type="button" onClick={() => setShopOutside(false)} className="text-sm text-sky-700 hover:underline">
+          <button type="button" onClick={() => setTab("help")} className="text-sm text-sky-700 hover:underline">
             {t("technologies:shop.back")}
           </button>
         </div>
@@ -123,7 +132,7 @@ export default function ClanPage() {
           <div className="flex items-baseline gap-3">
             <button
               type="button"
-              onClick={() => setShopOutside(true)}
+              onClick={() => setTab("shop")}
               className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-800 hover:bg-amber-100"
             >
               🪙 {t("technologies:shop.title")}
