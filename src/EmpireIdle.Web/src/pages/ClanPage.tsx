@@ -4,6 +4,7 @@ import ClanHelpPanel from "../components/clan/ClanHelpPanel";
 import ClanMembers from "../components/clan/ClanMembers";
 import ClanRequestsPanel from "../components/clan/ClanRequestsPanel";
 import ClanSettings from "../components/clan/ClanSettings";
+import ClanTechnologiesPanel from "../components/clan/ClanTechnologiesPanel";
 import ClanTerritoryPanel from "../components/clan/ClanTerritoryPanel";
 import ErrorBanner from "../components/ErrorBanner";
 import { useNow } from "../hooks/useNow";
@@ -28,13 +29,14 @@ import {
   useUpdateClanSettings,
 } from "../lib/queries/clans";
 import { clanRoleName } from "../lib/clanRoles";
+import { useClanTechnologies } from "../lib/queries/clanTechnologies";
 import { useGarrison } from "../lib/queries/garrison";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 import TabHotkeys from "../components/shell/TabHotkeys";
 import { t } from "i18next";
 
-type Tab = "help" | "members" | "territory" | "requests" | "settings";
+type Tab = "help" | "members" | "territory" | "technologies" | "requests" | "settings";
 
 export default function ClanPage() {
   const session = useSession();
@@ -52,6 +54,7 @@ export default function ClanPage() {
   const village = useVillage(playerId);
   const garrison = useGarrison(playerId);
   const territory = useClanTerritory(playerId, inClan);
+  const technologies = useClanTechnologies(playerId, inClan);
 
   const create = useCreateClan(playerId);
   const join = useJoinClan(playerId);
@@ -129,6 +132,7 @@ export default function ClanPage() {
     { key: "help", label: pendingHelp > 0 ? t("social:page.tabHelpCount", { count: pendingHelp }) : t("social:page.tabHelp"), visible: true },
     { key: "members", label: t("social:page.tabMembers", { count: clan.data.memberCount, capacity: clan.data.capacity }), visible: true },
     { key: "territory", label: t("social:page.tabTerritory"), visible: true },
+    { key: "technologies", label: t("social:page.tabTechnologies"), visible: true },
     {
       key: "requests",
       label: (applications.data?.length ?? 0) > 0 ? t("social:page.tabRecruitCount", { count: applications.data?.length }) : t("social:page.tabRecruit"),
@@ -205,6 +209,20 @@ export default function ClanPage() {
           <p className="text-sm text-slate-500">{t("social:page.loadingShort")}</p>
         ) : (
           <ClanTerritoryPanel territory={territory.data} myPlayerId={playerId} />
+        ))}
+
+      {tab === "technologies" &&
+        (technologies.isError ? (
+          <ErrorBanner error={technologies.error} />
+        ) : technologies.data == null ? (
+          <p className="text-sm text-slate-500">{t("social:page.loadingShort")}</p>
+        ) : (
+          <ClanTechnologiesPanel
+            playerId={playerId}
+            view={technologies.data}
+            now={now}
+            canMark={permissions.has("ManageTechnologies")}
+          />
         ))}
 
       {tab === "requests" && canRecruit && (

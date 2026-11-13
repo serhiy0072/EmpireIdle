@@ -209,6 +209,7 @@
     "tabHelp": "Допомога",
     "tabMembers": "Учасники · {{count}}/{{capacity}}",
     "tabTerritory": "Територія",
+    "tabTechnologies": "Технології",
     "tabRecruitCount": "Набір · {{count}}",
     "tabRecruit": "Набір",
     "tabSettings": "Налаштування",

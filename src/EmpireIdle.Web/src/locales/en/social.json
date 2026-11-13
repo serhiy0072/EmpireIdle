@@ -209,6 +209,7 @@
     "tabHelp": "Help",
     "tabMembers": "Members · {{count}}/{{capacity}}",
     "tabTerritory": "Territory",
+    "tabTechnologies": "Technologies",
     "tabRecruitCount": "Recruiting · {{count}}",
     "tabRecruit": "Recruiting",
     "tabSettings": "Settings",

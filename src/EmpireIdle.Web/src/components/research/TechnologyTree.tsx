@@ -26,6 +26,8 @@ interface TierTreeProps<TNode extends TreeNode> {
   lockedHint?: string;
   /** Вузол, що зараз досліджується: плитка пульсує. */
   activeKey?: string | null;
+  /** Вузол із міткою керівництва клану: на плитці зірка. */
+  markedKey?: string | null;
   onPick: (node: TNode) => void;
 }
 
@@ -98,7 +100,7 @@ function useLinks(nodes: TreeNode[]) {
  * Один тір вкладки: ряди вузлів згори вниз, у ряду — поруч, передумови з'єднані лініями.
  * Малюється на темно-синьому тлі дерева, тож текст білий.
  */
-export function TierTree<TNode extends TreeNode>({ nodes: all, tier, tab, open, lockedHint, activeKey, onPick }: TierTreeProps<TNode>) {
+export function TierTree<TNode extends TreeNode>({ nodes: all, tier, tab, open, lockedHint, activeKey, markedKey, onPick }: TierTreeProps<TNode>) {
   const nodes = useMemo(() => all.filter((node) => node.tier === tier && node.tab === tab), [all, tier, tab]);
   const rows = [...new Set(nodes.map((node) => node.row))].sort((a, b) => a - b);
   const { container, links, register } = useLinks(nodes);
@@ -137,6 +139,7 @@ export function TierTree<TNode extends TreeNode>({ nodes: all, tier, tab, open, 
                   key={node.node}
                   node={node}
                   active={activeKey === `${node.tier}:${node.node}`}
+                  marked={markedKey === `${node.tier}:${node.node}`}
                   tileRef={register(node.node)}
                   onClick={() => onPick(node)}
                 />
@@ -151,12 +154,13 @@ export function TierTree<TNode extends TreeNode>({ nodes: all, tier, tab, open, 
 interface NodeTileProps {
   node: TreeNode;
   active: boolean;
+  marked: boolean;
   /** Плитка — точка кріплення ліній передумов. */
   tileRef: (element: HTMLElement | null) => void;
   onClick: () => void;
 }
 
-function NodeTile({ node, active, tileRef, onClick }: NodeTileProps) {
+function NodeTile({ node, active, marked, tileRef, onClick }: NodeTileProps) {
   const maxed = node.level >= node.maxLevel;
   const available = node.availability === "Available";
 
@@ -169,9 +173,14 @@ function NodeTile({ node, active, tileRef, onClick }: NodeTileProps) {
             : available
               ? "bg-gradient-to-b from-sky-300 to-blue-600 ring-sky-200"
               : "bg-gradient-to-b from-slate-400 to-slate-600 ring-slate-300 grayscale"
-        } ${active ? "animate-pulse" : ""}`}
+        } ${active ? "animate-pulse" : ""} ${marked ? "outline-3 outline-offset-2 outline-yellow-300" : ""}`}
       >
         {iconFor(node)}
+        {marked && (
+          <span className="absolute -top-2 -right-2 text-base" title={t("technologies:clan.markedTitle")}>
+            ⭐
+          </span>
+        )}
         <span className="absolute -bottom-2 rounded-full bg-[#16305e] px-1.5 text-[10px] font-bold ring-1 ring-white/40">
           {maxed ? t("technologies:page.max") : `${formatNumber(node.level)}/${formatNumber(node.maxLevel)}`}
         </span>

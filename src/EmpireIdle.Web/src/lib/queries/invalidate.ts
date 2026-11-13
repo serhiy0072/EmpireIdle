@@ -26,7 +26,8 @@ export type PlayerScope =
   | "tower"
   | "towerLeaderboard"
   | "market"
-  | "territory";
+  | "territory"
+  | "clanTechnologies";
 
 /**
  * Інвалідація після мутації. Список — у самій мутації, а не в екрані:
