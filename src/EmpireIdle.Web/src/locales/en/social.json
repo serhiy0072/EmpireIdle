@@ -220,6 +220,7 @@
     "recall": "Recall reinforcements",
     "leaderLeaves": "Leadership passes to the member with the highest role",
     "confirmLeave": "Sure? Press again",
+    "leaveLosesPower": "Leaving takes the clan technology bonuses with it — your power drops by {{power}}.",
     "disband": "Disband the clan",
     "leave": "Leave the clan",
     "recalled": "Marches recalled: {{count}}"

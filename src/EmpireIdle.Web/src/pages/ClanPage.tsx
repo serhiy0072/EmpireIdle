@@ -32,6 +32,7 @@ import {
 import { clanRoleName } from "../lib/clanRoles";
 import { useClanTechnologies } from "../lib/queries/clanTechnologies";
 import { useGarrison } from "../lib/queries/garrison";
+import { compactPower, usePower } from "../lib/queries/rating";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 import TabHotkeys from "../components/shell/TabHotkeys";
@@ -56,6 +57,7 @@ export default function ClanPage() {
   const garrison = useGarrison(playerId);
   const territory = useClanTerritory(playerId, inClan);
   const technologies = useClanTechnologies(playerId, inClan);
+  const power = usePower(playerId);
 
   const create = useCreateClan(playerId);
   const join = useJoinClan(playerId);
@@ -317,6 +319,12 @@ export default function ClanPage() {
                     : t("social:page.leave")}
               </button>
             </div>
+            {/* Бонуси кланових технологій діють лише в клані: вихід забирає і їх, і силу, яку вони дають */}
+            {confirmLeave && (power.data?.clanTechnology ?? 0) > 0 && (
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                {t("social:page.leaveLosesPower", { power: compactPower(power.data?.clanTechnology ?? 0) })}
+              </p>
+            )}
             {typeof recall.data === "number" && (
               <p className="text-xs text-slate-500">{t("social:page.recalled", { count: recall.data })}</p>
             )}
