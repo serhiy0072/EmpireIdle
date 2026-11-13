@@ -4,6 +4,7 @@ import ClanHelpPanel from "../components/clan/ClanHelpPanel";
 import ClanMembers from "../components/clan/ClanMembers";
 import ClanRequestsPanel from "../components/clan/ClanRequestsPanel";
 import ClanSettings from "../components/clan/ClanSettings";
+import ClanShopPanel from "../components/clan/ClanShopPanel";
 import ClanTechnologiesPanel from "../components/clan/ClanTechnologiesPanel";
 import ClanTerritoryPanel from "../components/clan/ClanTerritoryPanel";
 import ErrorBanner from "../components/ErrorBanner";
@@ -36,7 +37,7 @@ import { useVillage } from "../lib/queries/village";
 import TabHotkeys from "../components/shell/TabHotkeys";
 import { t } from "i18next";
 
-type Tab = "help" | "members" | "territory" | "technologies" | "requests" | "settings";
+type Tab = "help" | "members" | "territory" | "technologies" | "shop" | "requests" | "settings";
 
 export default function ClanPage() {
   const session = useSession();
@@ -73,6 +74,8 @@ export default function ClanPage() {
   const [copied, setCopied] = useState(false);
   // Вихід і тим паче розпуск не скасувати — другий клік, як у передачі лідерства
   const [confirmLeave, setConfirmLeave] = useState(false);
+  // Поза кланом магазин відкривається окремим екраном замість каталогу кланів
+  const [shopOutside, setShopOutside] = useState(false);
 
   if (clan.isPending) {
     return <p className="text-slate-500">{t("social:page.loading")}</p>;
@@ -96,14 +99,37 @@ export default function ClanPage() {
     });
   };
 
+  if (clan.data === null && shopOutside) {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="text-xl font-medium text-slate-800">{t("technologies:shop.title")}</h1>
+          <button type="button" onClick={() => setShopOutside(false)} className="text-sm text-sky-700 hover:underline">
+            {t("technologies:shop.back")}
+          </button>
+        </div>
+        <ClanShopPanel playerId={playerId} now={now} />
+      </div>
+    );
+  }
+
   if (clan.data === null) {
     return (
       <div className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="text-xl font-medium text-slate-800">{t("social:page.title")}</h1>
-          <button type="button" onClick={copyId} className="font-mono text-xs text-slate-500 hover:text-slate-800">
-            {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
-          </button>
+          <div className="flex items-baseline gap-3">
+            <button
+              type="button"
+              onClick={() => setShopOutside(true)}
+              className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-800 hover:bg-amber-100"
+            >
+              🪙 {t("technologies:shop.title")}
+            </button>
+            <button type="button" onClick={copyId} className="font-mono text-xs text-slate-500 hover:text-slate-800">
+              {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
+            </button>
+          </div>
         </div>
         <ErrorBanner error={failure} />
         <ClanBrowser
@@ -133,6 +159,7 @@ export default function ClanPage() {
     { key: "members", label: t("social:page.tabMembers", { count: clan.data.memberCount, capacity: clan.data.capacity }), visible: true },
     { key: "territory", label: t("social:page.tabTerritory"), visible: true },
     { key: "technologies", label: t("social:page.tabTechnologies"), visible: true },
+    { key: "shop", label: t("social:page.tabShop"), visible: true },
     {
       key: "requests",
       label: (applications.data?.length ?? 0) > 0 ? t("social:page.tabRecruitCount", { count: applications.data?.length }) : t("social:page.tabRecruit"),
@@ -224,6 +251,8 @@ export default function ClanPage() {
             canMark={permissions.has("ManageTechnologies")}
           />
         ))}
+
+      {tab === "shop" && <ClanShopPanel playerId={playerId} now={now} />}
 
       {tab === "requests" && canRecruit && (
         <ClanRequestsPanel

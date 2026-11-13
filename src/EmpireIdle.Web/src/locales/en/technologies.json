@@ -111,6 +111,21 @@
     "resultMarked": "+{{coins}} coins with the mark bonus",
     "levelUp": "new level {{level}}!"
   },
+  "shop": {
+    "title": "Clan shop",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "free": "Free",
+    "coins": "🪙 {{coins}} coins",
+    "refreshes": "refreshes in {{remaining}}",
+    "outsideClan": "Outside a clan only the free showcase is open. Join a clan to buy with clan coins.",
+    "left": "{{left}} of {{limit}} left",
+    "clanOnly": "clan members only",
+    "claim": "Claim",
+    "claimAll": "All ×{{count}}",
+    "buy": "Buy",
+    "back": "← Back to clans"
+  },
   "tab": {
     "battle": "Battle",
     "economy": "Economy",

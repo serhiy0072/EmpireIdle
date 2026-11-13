@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
-import type { ClanOfferingResult, ClanTechnologiesView } from "../apiTypes";
+import type { ClanOfferingResult, ClanShopKind, ClanShopView, ClanTechnologiesView } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer, type PlayerScope } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -31,7 +31,7 @@ export function useClanTechnologies(playerId: string, enabled: boolean): UseQuer
  * Підношення списує ресурс села чи gems, а денні пороги видають нагороди будь-якого типу.
  * Новий рівень технології клану змінює виробіток і силу всіх учасників.
  */
-const OFFERING_SCOPES: readonly PlayerScope[] = ["clanTechnologies", "village", "wallet", "inventory", "heroes", "power"];
+const OFFERING_SCOPES: readonly PlayerScope[] = ["clanTechnologies", "clanShop", "village", "wallet", "inventory", "heroes", "power"];
 
 export function useOfferClanResources(playerId: string) {
   const queryClient = useQueryClient();
@@ -66,5 +66,35 @@ export function useMarkClanTechnology(playerId: string) {
         idempotent: true,
       }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["clanTechnologies"]),
+  });
+}
+
+/** Вітрини оновлюються за розкладом без події: перепитуємо, щойно настане найближче оновлення. */
+export function useClanShop(playerId: string): UseQueryResult<ClanShopView> {
+  return useQuery({
+    queryKey: queryKeys.clanShop(playerId),
+    queryFn: () => api<ClanShopView>(`/api/clan-technologies/${playerId}/shop`),
+    refetchInterval: refetchAtDue<ClanShopView>((shop) => [shop.daily.refreshesAt, shop.weekly.refreshesAt, shop.free.refreshesAt]),
+  });
+}
+
+/** Покупка за кланові монети: ціну шлемо ту, яку бачив гравець, — знижка могла змінитися з новою вітриною. */
+export function useBuyClanShopItem(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: { kind: ClanShopKind; itemKey: string; quantity: number; expectedPrice: number }) =>
+      api<void>(`/api/clan-technologies/${playerId}/shop/buy`, { method: "POST", body: request, idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["clanShop", "clanTechnologies", "inventory"]),
+  });
+}
+
+export function useClaimClanFreeItem(playerId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: { itemKey: string; quantity: number }) =>
+      api<void>(`/api/clan-technologies/${playerId}/shop/claim-free`, { method: "POST", body: request, idempotent: true }),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["clanShop", "inventory"]),
   });
 }
