@@ -2,6 +2,7 @@ using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Infrastructure.Auth;
 using EmpireIdle.Infrastructure.Persistence.Outbox;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -89,6 +90,12 @@ namespace EmpireIdle.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+            // Identity ставить на NormalizedEmail звичайний індекс, а унікальність перевіряє лише кодом
+            // (RequireUniqueEmail): дві паралельні реєстрації з одним email проходили б обидві.
+            // Гонку за унікальністю розв'язує індекс — як і в UserNameIndex
+            modelBuilder.Entity<IdentityUser>().HasIndex(u => u.NormalizedEmail).HasDatabaseName("EmailIndex").IsUnique();
+
             // Фільтр по світу — на кожен корінь агрегату з ServerId. Діти
             // (ClanMember, ClanRole, ClanHelpContribution) свого не мають:
             // читаються лише через батька, який уже відфільтрований.

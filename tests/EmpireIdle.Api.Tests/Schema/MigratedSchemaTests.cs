@@ -46,4 +46,23 @@ public class MigratedSchemaTests
 
         Assert.Empty(missing);
     }
+
+    /// <summary>
+    /// Унікальність email тримає база, а не лише перевірка Identity в коді: дві паралельні реєстрації
+    /// з одним email перевірку проходять обидві, і зупинити другу може тільки індекс.
+    /// </summary>
+    [Fact]
+    public async Task EmailIndex_ShouldBeUnique()
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var definition = await context.Database
+            .SqlQuery<string>($"""
+                SELECT indexdef AS "Value" FROM pg_indexes WHERE tablename = 'AspNetUsers' AND indexname = 'EmailIndex'
+                """)
+            .SingleAsync();
+
+        Assert.StartsWith("CREATE UNIQUE INDEX", definition);
+    }
 }
