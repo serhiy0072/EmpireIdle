@@ -308,8 +308,8 @@ export default function ClanPage() {
                 clan={clan.data}
                 canManage={permissions.has("ManageRoles")}
                 busy={busy}
-                onCreate={(role) => createRole.mutate(role)}
-                onUpdate={(roleId, role) => updateRole.mutate({ roleId, role })}
+                onCreate={(role, done) => createRole.mutate(role, { onSuccess: done })}
+                onUpdate={(roleId, role, done) => updateRole.mutate({ roleId, role }, { onSuccess: done })}
                 onDelete={(roleId) => deleteRole.mutate(roleId)}
               />
             </section>

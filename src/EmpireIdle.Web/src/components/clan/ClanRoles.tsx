@@ -9,8 +9,9 @@ interface Props {
   /** Є дозвіл ManageRoles; без нього — лише перелік ролей. */
   canManage: boolean;
   busy: boolean;
-  onCreate: (role: ClanRoleRequest) => void;
-  onUpdate: (roleId: string, role: ClanRoleRequest) => void;
+  /** done викликається після успіху: форма закривається лише тоді, а після відмови лишається з уведеним. */
+  onCreate: (role: ClanRoleRequest, done: () => void) => void;
+  onUpdate: (roleId: string, role: ClanRoleRequest, done: () => void) => void;
   onDelete: (roleId: string) => void;
 }
 
@@ -75,15 +76,19 @@ export default function ClanRoles({ clan, canManage, busy, onCreate, onUpdate, o
 
             {editing === role.id && (
               <RoleForm
-                // Вбудована роль показує переклад, але зберігається назва: порожнє поле не дало б її лишити
                 initial={{ name: clanRoleName(role.key, role.name), rank: role.rank, permissions: role.permissions }}
                 myRank={myRank}
                 myPermissions={clan.myPermissions}
                 busy={busy}
-                onSubmit={(next) => {
-                  onUpdate(role.id, next);
-                  setEditing(null);
-                }}
+                onSubmit={(next) =>
+                  // Вбудована роль показує переклад. Якщо назву не чіпали — шлемо збережену: інакше зміна рангу
+                  // мовчки перейменувала б роль перекладом і вона втратила б назву мовою інших гравців
+                  onUpdate(
+                    role.id,
+                    next.name === clanRoleName(role.key, role.name) ? { ...next, name: role.name } : next,
+                    () => setEditing(null),
+                  )
+                }
               />
             )}
           </li>
@@ -96,10 +101,7 @@ export default function ClanRoles({ clan, canManage, busy, onCreate, onUpdate, o
           myRank={myRank}
           myPermissions={clan.myPermissions}
           busy={busy}
-          onSubmit={(next) => {
-            onCreate(next);
-            setEditing(null);
-          }}
+          onSubmit={(next) => onCreate(next, () => setEditing(null))}
         />
       ) : (
         <button type="button" onClick={() => setEditing("new")} disabled={busy || myRank === 0} className={button}>
