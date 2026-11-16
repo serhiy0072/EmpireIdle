@@ -42,6 +42,17 @@ public class VillageCapacitiesTechnologyTests
         Assert.Equal(50, capacities.ProtectedReserveFor(Village(), "food", protectedBonus: 0.25));
     }
 
+    /// <summary>Склад на апгрейді береже запас на поточному рівні (рішення 16.11.2026).</summary>
+    [Fact]
+    public void ProtectedReserveFor_ShouldKeepTheCurrentLevel_WhileTheWarehouseIsUpgrading()
+    {
+        var village = Village();
+        village.Buildings.Single(b => b.Type == "warehouse").BeginUpgrade(Catalog.Buildings["warehouse"],
+            TimeSpan.FromHours(1), Now, Domain.ValueObjects.ProductionBoost.None, locationMultiplier: 1.0);
+
+        Assert.Equal(40, new VillageCapacities(Catalog).ProtectedReserveFor(village, "food"));
+    }
+
     [Fact]
     public void Lootable_ShouldLeaveTheGrownReserve()
     {

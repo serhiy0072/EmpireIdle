@@ -75,8 +75,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             // Будівля під туманом стоїть у селі з першого дня, але ще не відкрита гравцю
             var trainingBuilding = village.Buildings
-                .FirstOrDefault(b => b.Type == config.RequiresBuilding && !b.IsUnderConstruction
-                                     && _status.IsUnlocked(village, b.Type))
+                .FirstOrDefault(b => b.Type == config.RequiresBuilding && _status.IsUnlocked(village, b.Type))
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Levelling up '{request.UnitType}' requires a '{config.RequiresBuilding}'.",
                     config.RequiresBuilding);

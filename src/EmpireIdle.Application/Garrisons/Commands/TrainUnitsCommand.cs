@@ -72,11 +72,11 @@ namespace EmpireIdle.Application.Garrisons.Commands
                 throw new InvalidOperationException($"Unit '{request.UnitType}' has no training building configured.");
 
             // Рівень будівлі визначає ліміт армії, тому потрібна сама будівля, а не факт її наявності.
-            // Та, що в процесі будівництва, не рахується — інакше замовлення можна зробити наперед.
+            // Та, що на апгрейді, працює на поточному рівні (рішення 16.11.2026): рівень піднімається
+            // лише із завершенням, тож замовлення наперед не вийде.
             // Будівля під туманом стоїть у селі з першого дня, але ще не відкрита гравцю
             var trainingBuilding = village.Buildings
-                .FirstOrDefault(b => b.Type == config.RequiresBuilding && !b.IsUnderConstruction
-                                     && _status.IsUnlocked(village, b.Type))
+                .FirstOrDefault(b => b.Type == config.RequiresBuilding && _status.IsUnlocked(village, b.Type))
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Training '{request.UnitType}' requires a '{config.RequiresBuilding}'.",
                     config.RequiresBuilding);

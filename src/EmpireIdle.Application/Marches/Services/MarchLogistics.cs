@@ -157,7 +157,6 @@ namespace EmpireIdle.Application.Marches.Services
             var buildingConfigs = _catalog.Buildings;
 
             var total = village.Buildings
-                .Where(b => !b.IsUnderConstruction)
                 .Sum(b => buildingConfigs.TryGetValue(b.Type, out var cfg)
                     ? cfg.WoundedCapacityPerLevel * b.Level.Value
                     : 0);

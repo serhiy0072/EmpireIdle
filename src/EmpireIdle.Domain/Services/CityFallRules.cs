@@ -39,12 +39,12 @@ namespace EmpireIdle.Domain.Services
         /// <summary>
         /// Будівлі, які пошкоджує поразка. Перша в серії б'є по стінах і кількох
         /// випадкових, наступні — лише по випадкових, і стіни можуть потрапити
-        /// під удар знову. Будівлі на будівництві не пошкоджуються: вони й так
-        /// не працюють.
+        /// під удар знову. Будівля на апгрейді працює на поточному рівні
+        /// (рішення 16.11.2026), тож і пошкоджується нарівні з іншими.
         /// </summary>
         public IReadOnlyList<Guid> PickDamaged(Village village, bool firstInStreak, IRandomSource random)
         {
-            var standing = village.Buildings.Where(b => !b.IsUnderConstruction).ToList();
+            var standing = village.Buildings.ToList();
             var picked = new List<Guid>();
 
             if (firstInStreak)

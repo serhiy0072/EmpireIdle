@@ -38,7 +38,6 @@
     "capacity": "Місткість табору: {{occupied}} / {{capacity}}",
     "trainingTitle": "Тренування",
     "trainingDescription": "Тренування: {{unit}} {{level}} ({{count}})",
-    "underConstruction": "Поки будівля покращується, нові партії не приймаються.",
     "full": "Табір заповнений — покращте будівлю, щоб вмістити більше.",
     "levellingTitle": "Прокачка",
     "levellingDescription": "Прокачка: {{unit}} {{from}} → {{to}} ({{count}})",

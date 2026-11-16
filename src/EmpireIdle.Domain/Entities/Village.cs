@@ -100,9 +100,9 @@ namespace EmpireIdle.Domain.Entities
 
         #region Читання
 
-        /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
+        /// <summary>Чи є в селі будівля вказаного типу. Будівля на апгрейді працює на поточному рівні (рішення 16.11.2026).</summary>
         public bool HasBuilding(string buildingType)
-            => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
+            => _buildings.Any(b => b.Type == buildingType);
 
         /// <summary>
         /// Чи виробляє будівля. Під туманом — ні: інакше гравець відкривав би

@@ -6,6 +6,8 @@ namespace EmpireIdle.Domain.Services
     /// <summary>
     /// Скільки що вміщає. Обчислення від конфіга й рівнів будівель —
     /// стан села не змінюють, тож в агрегаті їм не місце.
+    /// Будівля на апгрейді працює на поточному рівні (рішення 16.11.2026):
+    /// рівень піднімається лише із завершенням, тож рахувати наперед нічого.
     /// </summary>
     public sealed class VillageCapacities
     {
@@ -34,7 +36,7 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         public int BeastSlots(Village village, VillageStatus status)
             => village.Buildings
-                .Where(b => !b.IsUnderConstruction && status.IsUnlocked(village, b.Type))
+                .Where(b => status.IsUnlocked(village, b.Type))
                 .Sum(b => _catalog.Buildings.TryGetValue(b.Type, out var config)
                     ? config.BeastCapacityPerLevel * b.Level.Value
                     : 0);
@@ -55,10 +57,9 @@ namespace EmpireIdle.Domain.Services
 
         private int SumPerLevel(Village village, Func<BuildingConfig, int> perLevel)
             => village.Buildings
-                .Where(b => !b.IsUnderConstruction)
                 .Sum(b => _catalog.Buildings.TryGetValue(b.Type, out var config) ? perLevel(config) * b.Level.Value : 0);
 
-        /// <summary>Готове сховище для ресурсу; config null — ресурс ніде не зберігається.</summary>
+        /// <summary>Сховище для ресурсу; config null — ресурс ніде не зберігається.</summary>
         private Building? StorageFor(Village village, string resourceKey, out BuildingConfig? config)
         {
             config = _catalog.Buildings.Values
@@ -69,7 +70,7 @@ namespace EmpireIdle.Domain.Services
 
             var key = config.Key;
 
-            return village.Buildings.FirstOrDefault(b => b.Type == key && !b.IsUnderConstruction);
+            return village.Buildings.FirstOrDefault(b => b.Type == key);
         }
     }
 }
