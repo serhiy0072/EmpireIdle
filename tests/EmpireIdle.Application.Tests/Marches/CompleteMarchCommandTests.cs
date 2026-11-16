@@ -184,7 +184,8 @@ public class CompleteMarchCommandTests
         // Спорядження в цих сценах немає: бійця дають власні стати героя
         _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
         _inventory.GetEquippedByHeroesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
-        var combatants = new HeroCombatants(_inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
+        var combatants = new HeroCombatants(_inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog,
+            TestTechnologies.For(catalog, _research));
         var armyBuffs = TestCombatants.Buffs(catalog, combatants, _research);
         var defenders = new GarrisonDefenders(_heroes, _inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
 

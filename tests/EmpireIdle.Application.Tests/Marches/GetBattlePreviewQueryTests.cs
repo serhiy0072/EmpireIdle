@@ -80,7 +80,8 @@ public class GetBattlePreviewQueryTests
             new CombatCalculator(config.Combat, catalog), terrain, new MarchCalculator(terrain, catalog),
             TestEffects.Resolver(_effects), new FakeTimeProvider(Now), targets, TestCombatants.Buffs(catalog), catalog,
             new HeroProgression(config.HeroSettings),
-            new HeroCombatants(EmptyInventory(), new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog));
+            new HeroCombatants(EmptyInventory(), new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog,
+                TestTechnologies.For(catalog)));
     }
 
     /// <summary>Село з піхотою, монстр поруч; повертає монстра й героя з заданим власником.</summary>
