@@ -61,18 +61,7 @@ namespace EmpireIdle.Domain.Services
             if (total <= 0)
                 throw new InvalidOperationException($"Lootbox '{box.Key}' has no entry with positive weight to pick from.");
 
-            var roll = random.Next(total);
-            var cumulative = 0;
-
-            foreach (var entry in entries)
-            {
-                cumulative += entry.Weight;
-
-                if (roll < cumulative)
-                    return entry;
-            }
-
-            return entries[^1];
+            return WeightedPick.ByInteger(entries, e => e.Weight, random);
         }
     }
 }

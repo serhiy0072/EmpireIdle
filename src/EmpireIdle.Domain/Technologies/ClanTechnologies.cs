@@ -82,21 +82,8 @@ namespace EmpireIdle.Domain.Technologies
         /// </summary>
         public int RollCoins(IRandomSource random, double coinBonus)
         {
-            var multipliers = _config.Coins.Multipliers;
-            var total = multipliers.Sum(m => m.Weight);
-            var roll = random.NextDouble() * total;
-            var multiplier = multipliers.Count == 0 ? 1 : multipliers[^1].Multiplier;
-
-            foreach (var option in multipliers)
-            {
-                if (roll < option.Weight)
-                {
-                    multiplier = option.Multiplier;
-                    break;
-                }
-
-                roll -= option.Weight;
-            }
+            // Без таблиці множників монети йдуть за базою, але кидок однаково робиться
+            var multiplier = WeightedPick.ByFraction(_config.Coins.Multipliers, m => m.Weight, random, fallback: null)?.Multiplier ?? 1;
 
             return (int)Math.Round(_config.Coins.BaseAmount * multiplier * (1 + Math.Max(coinBonus, 0)));
         }
