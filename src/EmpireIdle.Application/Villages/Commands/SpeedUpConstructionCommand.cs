@@ -65,7 +65,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
             wallet.SpendGems(new GemAmount(cost), $"speedup:construction:{building.Type}", request.PlayerId, now);
 
-            building.ReduceConstructionTime(cut);
+            village.ReduceConstructionTime(building.Id, cut, now);
 
             // Дозріле завершуємо одразу, а не чекаємо сканера: гравець заплатив за «зараз»
             var rates = await _rates.ForAsync(village, now, cancellationToken);

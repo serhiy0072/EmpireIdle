@@ -226,6 +226,23 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
+        /// Скорочує таймер апгрейду будівлі: прискорення за gems чи предмети або допомога клану.
+        /// Іде через село, а не напряму в будівлю, щоб оновився рядок села: інакше допомога союзника, що
+        /// прочитала будівлю ще «на апгрейді», зберегла б свій таймер поверх уже завершеного будівництва —
+        /// і сканер підняв би рівень удруге. Тепер така гонка закінчується конфліктом версій.
+        /// </summary>
+        /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
+        /// <exception cref="InvalidStateException">Будівля не будується.</exception>
+        public void ReduceConstructionTime(Guid buildingId, TimeSpan reduction, DateTime utcNow)
+        {
+            var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
+                ?? throw new EntityNotFoundException("Building", buildingId);
+
+            building.ReduceConstructionTime(reduction);
+            Touch(utcNow);
+        }
+
+        /// <summary>
         /// Завершує всі будівництва, чий час настав. Викликається сканером.
         /// Повертає кількість завершених (для логування).
         /// </summary>

@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+
+  <!-- Тести домену перевіряють і внутрішні методи сутностей, які зовні доступні лише через агрегат -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="EmpireIdle.Domain.Tests" />
+  </ItemGroup>
+
 </Project>

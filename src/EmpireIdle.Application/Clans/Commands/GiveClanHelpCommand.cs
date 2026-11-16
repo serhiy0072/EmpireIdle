@@ -119,7 +119,7 @@ namespace EmpireIdle.Application.Clans.Commands
                     if (!building.IsUnderConstruction)
                         throw new InvalidStateException(RefusalReasons.ClanHelpNotNeeded, "That building is no longer under construction.");
 
-                    building.ReduceConstructionTime(reduction);
+                    village.ReduceConstructionTime(building.Id, reduction, now);
                     break;
 
                 case ClanHelpTarget.Training:

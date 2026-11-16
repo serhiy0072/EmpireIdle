@@ -221,7 +221,7 @@ namespace EmpireIdle.Domain.Entities
         /// і виробіток далі рахується від того самого моменту.
         /// </summary>
         /// <returns>Скільки фактично забрано.</returns>
-        public int Plunder(int amount)
+        internal int Plunder(int amount)
         {
             if (amount <= 0)
                 return 0;
@@ -279,8 +279,11 @@ namespace EmpireIdle.Domain.Entities
             ConstructionCompletesAt = null;
         }
 
-        /// <summary>Прискорити будівництво (speedup за gems або допомога союзника).</summary>
-        public void ReduceConstructionTime(TimeSpan reduction)
+        /// <summary>
+        /// Прискорити будівництво (speedup за gems або допомога союзника). Лише через
+        /// <see cref="Village.ReduceConstructionTime"/>: зміна таймера має зачепити рядок села.
+        /// </summary>
+        internal void ReduceConstructionTime(TimeSpan reduction)
         {
             if (!IsUnderConstruction)
                 throw new InvalidStateException($"Building {Id} is not under construction.");

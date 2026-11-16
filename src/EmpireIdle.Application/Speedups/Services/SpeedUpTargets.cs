@@ -81,7 +81,7 @@ namespace EmpireIdle.Application.Speedups.Services
 
                 return new SpeedUpTarget(building.ConstructionCompletesAt!.Value, (cut, now) =>
                 {
-                    building.ReduceConstructionTime(cut);
+                    village.ReduceConstructionTime(building.Id, cut, now);
                     village.CompleteDueConstructions(now, _catalog.Buildings, rates.Boost, rates.LocationMultiplier);
                 });
             }
