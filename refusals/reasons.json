@@ -197,6 +197,8 @@
     "need",
     "have"
   ],
+  "garrison.nothingToHeal": [],
+  "garrison.nothingToRecover": [],
   "garrison.trainingBusy": [],
   "garrison.unitLevelCeiling": [
     "ceiling"

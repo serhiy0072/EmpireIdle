@@ -45,7 +45,9 @@
       "levelUpBusy": "The barracks is already levelling a batch — wait for it to finish or speed it up",
       "unitLevelCeiling": "Troops can't outrank the Town Hall: the cap is {{ceiling}} for now",
       "armyCapacity": "The army is full: {{occupied}} of {{capacity}}, and you're adding {{requested}}. Upgrade the barracks",
-      "notEnoughUnits": "This squad has fewer troops than needed: {{need}} required, {{have}} available"
+      "notEnoughUnits": "This squad has fewer troops than needed: {{need}} required, {{have}} available",
+      "nothingToRecover": "Nothing left to recover: the time for these troops has run out",
+      "nothingToHeal": "Nobody left to heal: these wounded are gone"
     },
     "village": {
       "alreadyThere": "Your settlement already stands on this cell",

@@ -61,6 +61,12 @@
         /// <summary>У стеку цього рівня менше юнітів, ніж просять прокачати.</summary>
         public static readonly RefusalReason GarrisonNotEnoughUnits = new("garrison.notEnoughUnits", "need", "have");
 
+        /// <summary>Відновлювати нічого: строк відновлення цих юнітів сплив між показом екрана й натисканням.</summary>
+        public static readonly RefusalReason GarrisonNothingToRecover = new("garrison.nothingToRecover");
+
+        /// <summary>Лікувати нічого: цих поранених уже вилікувано або їх не лишилось.</summary>
+        public static readonly RefusalReason GarrisonNothingToHeal = new("garrison.nothingToHeal");
+
         // ---------- Акаунт ----------
 
         /// <summary>Identity відхилив реєстрацію; codes — його коди через кому, текст за кожним дає клієнт.</summary>

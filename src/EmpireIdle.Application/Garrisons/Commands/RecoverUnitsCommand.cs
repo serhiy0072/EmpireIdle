@@ -58,7 +58,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             // бо частина могла згоріти по дедлайну між показом екрана і натисканням кнопки
             var recovered = garrison.RecoverUnits(request.Units, now);
             if (recovered.Count == 0)
-                throw new InvalidStateException("Nothing to recover.");
+                throw new InvalidStateException(RefusalReasons.GarrisonNothingToRecover, "Nothing to recover.");
 
             var cost = CalculateCost(recovered);
 

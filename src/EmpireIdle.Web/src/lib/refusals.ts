@@ -104,6 +104,8 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "garrison.armyCapacity": ({ occupied, capacity, requested }) =>
     t("errors:refusal.garrison.armyCapacity", { occupied, capacity, requested }),
   "garrison.notEnoughUnits": ({ need, have }) => t("errors:refusal.garrison.notEnoughUnits", { need, have }),
+  "garrison.nothingToRecover": () => t("errors:refusal.garrison.nothingToRecover"),
+  "garrison.nothingToHeal": () => t("errors:refusal.garrison.nothingToHeal"),
 
   // ---------- Село й будівлі ----------
   "village.alreadyThere": () => t("errors:refusal.village.alreadyThere"),

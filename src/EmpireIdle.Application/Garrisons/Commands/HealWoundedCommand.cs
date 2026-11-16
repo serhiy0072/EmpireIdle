@@ -67,7 +67,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             var healed = garrison.HealWounded(request.Units, now);
             if (healed.Count == 0)
-                throw new InvalidStateException("Nothing to heal.");
+                throw new InvalidStateException(RefusalReasons.GarrisonNothingToHeal, "Nothing to heal.");
 
             if (request.Payment == HealPaymentMethod.Gems)
                 await ChargeGemsAsync(healed, request.PlayerId, now, cancellationToken);
