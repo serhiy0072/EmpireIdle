@@ -199,7 +199,9 @@ namespace EmpireIdle.Domain.Entities
 
             while (eaten < offered && Level < maxLevel)
             {
-                var need = experienceToNext(Level) - Experience;
+                // Після ребалансу поріг міг опинитись нижче вже набраного досвіду: звір просто переходить
+                // на рівень, а від'ємна потреба не має ні зменшувати з'їдене, ні повертати корм
+                var need = Math.Max(0, experienceToNext(Level) - Experience);
                 var take = Math.Min(need, offered - eaten);
 
                 Experience += take;
