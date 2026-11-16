@@ -260,6 +260,7 @@
   "alreadyExists": "This already exists",
   "notFound": "Not found",
   "badCredentials": "Wrong email or password",
+  "tooManyRequests": "Too many requests. Wait a minute and try again",
   "unknown": "Something went wrong. Try again",
   "boundary": {
     "title": "This screen couldn't be shown.",
