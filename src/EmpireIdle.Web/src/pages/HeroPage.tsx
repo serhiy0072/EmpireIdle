@@ -201,6 +201,7 @@ export default function HeroPage() {
             <p className="text-sm text-sky-100/80">{t("heroes:hero.maxLevel")}</p>
           ) : (
             <HeroLevelUp
+              key={hero.id}
               playerId={playerId}
               hero={hero}
               pool={heroes.data.experience}

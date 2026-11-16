@@ -249,6 +249,7 @@ export default function InventoryPage() {
 
       {pickedItem !== null && pickedItem.type === "lootbox" && (
         <LootboxCard
+          key={pickedItem.itemKey}
           playerId={playerId}
           item={pickedItem}
           onOpened={(drops, count) => setOpened({ itemKey: pickedItem.itemKey, count, drops })}
@@ -258,7 +259,9 @@ export default function InventoryPage() {
       {/* Дії — у світлій картці під сіткою: ті самі, що були, без дублювання логіки */}
       {pickedItem !== null && pickedItem.type !== "lootbox" && (
         <div className="space-y-1">
+          {/* key — кількість і підтвердження належать предмету й не переходять на інший */}
           <ItemCard
+            key={pickedItem.itemKey}
             playerId={playerId}
             item={pickedItem}
             busy={busy}
