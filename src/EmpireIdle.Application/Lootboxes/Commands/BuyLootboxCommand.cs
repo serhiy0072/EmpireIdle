@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
     public record BuyLootboxCommand(Guid PlayerId, string ItemKey, int Count = 1)
         : IRequest<LootboxPurchase>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class BuyLootboxCommandHandler : IRequestHandler<BuyLootboxCommand, LootboxPurchase>
+    public sealed class BuyLootboxCommandHandler : IRequestHandler<BuyLootboxCommand, LootboxPurchase>
     {
         private readonly ShopCheckout _checkout;
         private readonly LootboxOpener _opener;

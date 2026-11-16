@@ -26,7 +26,7 @@ namespace EmpireIdle.Application.Shop.Queries
         int MaxPerPurchase,
         DateTime? OnSaleUntil);
 
-    internal sealed class GetShopQueryHandler : IRequestHandler<GetShopQuery, ShopView>
+    public sealed class GetShopQueryHandler : IRequestHandler<GetShopQuery, ShopView>
     {
         private readonly GameCatalog _catalog;
         private readonly IServerRepository _serverRepository;

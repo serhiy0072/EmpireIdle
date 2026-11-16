@@ -26,7 +26,7 @@ namespace EmpireIdle.Application.Tower.Commands
     /// <param name="Battle">Лог бою для відтворення.</param>
     public record TowerStormResult(bool Victory, int Floor, IReadOnlyList<RewardConfig> Rewards, BattleReplay Battle);
 
-    internal sealed class StormTowerFloorCommandHandler : IRequestHandler<StormTowerFloorCommand, TowerStormResult>
+    public sealed class StormTowerFloorCommandHandler : IRequestHandler<StormTowerFloorCommand, TowerStormResult>
     {
         private readonly ITowerRepository _tower;
         private readonly TowerBattle _battles;

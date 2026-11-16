@@ -20,7 +20,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
     public record StartDungeonRunCommand(Guid PlayerId, string DungeonKey, int Level, IReadOnlyList<Guid> HeroIds)
         : IRequest<Guid>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class StartDungeonRunCommandHandler : IRequestHandler<StartDungeonRunCommand, Guid>
+    public sealed class StartDungeonRunCommandHandler : IRequestHandler<StartDungeonRunCommand, Guid>
     {
         private readonly IDungeonRepository _dungeons;
         private readonly IVillageRepository _villages;

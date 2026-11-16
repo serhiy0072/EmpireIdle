@@ -22,7 +22,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
         public const int MaxCount = 100;
     }
 
-    internal sealed class OpenKeyChestCommandHandler : IRequestHandler<OpenKeyChestCommand, LootboxOpening>
+    public sealed class OpenKeyChestCommandHandler : IRequestHandler<OpenKeyChestCommand, LootboxOpening>
     {
         private readonly IInventoryRepository _inventory;
         private readonly ILootboxRepository _lootboxes;

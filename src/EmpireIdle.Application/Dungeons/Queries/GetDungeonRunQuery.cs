@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
     /// </summary>
     public record GetDungeonRunQuery(Guid PlayerId) : IRequest<DungeonRunView?>, IPlayerScopedRequest;
 
-    internal sealed class GetDungeonRunQueryHandler : IRequestHandler<GetDungeonRunQuery, DungeonRunView?>
+    public sealed class GetDungeonRunQueryHandler : IRequestHandler<GetDungeonRunQuery, DungeonRunView?>
     {
         private readonly IDungeonRepository _dungeons;
         private readonly BattleBuilder _builder;

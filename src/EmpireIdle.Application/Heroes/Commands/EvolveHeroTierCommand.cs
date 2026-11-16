@@ -16,7 +16,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record EvolveHeroTierCommand(Guid PlayerId, Guid HeroId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class EvolveHeroTierCommandHandler : IRequestHandler<EvolveHeroTierCommand>
+    public sealed class EvolveHeroTierCommandHandler : IRequestHandler<EvolveHeroTierCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IInventoryRepository _inventoryRepository;

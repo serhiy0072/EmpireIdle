@@ -18,7 +18,7 @@ namespace EmpireIdle.Application.Dev.Commands
 
     public record ResetMapResult(int MonstersRemoved, int VillagesRelocated, int MonstersSpawned);
 
-    internal sealed class ResetMapCommandHandler : IRequestHandler<ResetMapCommand, ResetMapResult>
+    public sealed class ResetMapCommandHandler : IRequestHandler<ResetMapCommand, ResetMapResult>
     {
         /// <summary>Скільки прогонів спавнера робимо: кожен обмежений своїм MaxSpawnsPerRun.</summary>
         private const int MaxSpawnRuns = 100;

@@ -13,7 +13,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
     /// <summary>Вітрина данжів із енергією, гейтами й прогресом гравця.</summary>
     public record GetDungeonsQuery(Guid PlayerId) : IRequest<DungeonsOverview>, IPlayerScopedRequest;
 
-    internal sealed class GetDungeonsQueryHandler : IRequestHandler<GetDungeonsQuery, DungeonsOverview>
+    public sealed class GetDungeonsQueryHandler : IRequestHandler<GetDungeonsQuery, DungeonsOverview>
     {
         private readonly IDungeonRepository _dungeons;
         private readonly IVillageRepository _villages;

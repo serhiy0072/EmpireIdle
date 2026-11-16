@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record AdvanceHeroStarCommand(Guid PlayerId, Guid HeroId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class AdvanceHeroStarCommandHandler : IRequestHandler<AdvanceHeroStarCommand>
+    public sealed class AdvanceHeroStarCommandHandler : IRequestHandler<AdvanceHeroStarCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;

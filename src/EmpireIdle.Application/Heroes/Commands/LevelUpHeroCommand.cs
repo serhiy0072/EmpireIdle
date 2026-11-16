@@ -16,7 +16,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record LevelUpHeroCommand(Guid PlayerId, Guid HeroId, int Levels = 1)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class LevelUpHeroCommandHandler : IRequestHandler<LevelUpHeroCommand>
+    public sealed class LevelUpHeroCommandHandler : IRequestHandler<LevelUpHeroCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;

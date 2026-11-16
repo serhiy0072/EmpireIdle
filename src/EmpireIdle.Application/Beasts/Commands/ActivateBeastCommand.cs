@@ -19,7 +19,7 @@ namespace EmpireIdle.Application.Beasts.Commands
     public record ActivateBeastCommand(Guid PlayerId, string BeastKey)
         : IRequest<BeastActivatedView>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class ActivateBeastCommandHandler : IRequestHandler<ActivateBeastCommand, BeastActivatedView>
+    public sealed class ActivateBeastCommandHandler : IRequestHandler<ActivateBeastCommand, BeastActivatedView>
     {
         private readonly IBeastPenRepository _pens;
         private readonly IVillageRepository _villages;

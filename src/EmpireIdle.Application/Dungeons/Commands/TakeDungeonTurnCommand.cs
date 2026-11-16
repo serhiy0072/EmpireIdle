@@ -38,7 +38,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
     /// <param name="Artifacts">Ключі виданих артефактів — назви додає проєкція з каталогу.</param>
     public record DungeonReward(IReadOnlyList<ResourceCost> Resources, IReadOnlyList<string> Artifacts, long HeroExperience);
 
-    internal sealed class TakeDungeonTurnCommandHandler : IRequestHandler<TakeDungeonTurnCommand, DungeonRunView>
+    public sealed class TakeDungeonTurnCommandHandler : IRequestHandler<TakeDungeonTurnCommand, DungeonRunView>
     {
         private readonly IDungeonRepository _dungeons;
         private readonly BattleEngine _engine;

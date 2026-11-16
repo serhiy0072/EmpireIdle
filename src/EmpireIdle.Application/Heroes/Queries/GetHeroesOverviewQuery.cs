@@ -14,7 +14,7 @@ namespace EmpireIdle.Application.Heroes.Queries
     /// </summary>
     public record GetHeroesOverviewQuery(Guid PlayerId) : IRequest<HeroesOverview>, IPlayerScopedRequest;
 
-    internal sealed class GetHeroesOverviewQueryHandler : IRequestHandler<GetHeroesOverviewQuery, HeroesOverview>
+    public sealed class GetHeroesOverviewQueryHandler : IRequestHandler<GetHeroesOverviewQuery, HeroesOverview>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IInventoryRepository _inventory;

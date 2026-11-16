@@ -39,7 +39,7 @@ namespace EmpireIdle.Application.Banners.Commands
         bool WasPity,
         bool LostFiftyFifty);
 
-    internal sealed class RollBannerCommandHandler : IRequestHandler<RollBannerCommand, BannerRollResponse>
+    public sealed class RollBannerCommandHandler : IRequestHandler<RollBannerCommand, BannerRollResponse>
     {
         private readonly IPlayerRepository _playerRepository;
         private readonly IPlayerWalletRepository _walletRepository;

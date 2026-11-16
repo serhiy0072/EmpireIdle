@@ -8,7 +8,7 @@ namespace EmpireIdle.Application.Catalog.Queries
     /// </summary>
     public record GetCatalogQuery(string? Language = null) : IRequest<CatalogResponse>;
 
-    internal sealed class GetCatalogQueryHandler : IRequestHandler<GetCatalogQuery, CatalogResponse>
+    public sealed class GetCatalogQueryHandler : IRequestHandler<GetCatalogQuery, CatalogResponse>
     {
         private readonly GameCatalogProjection _projection;
 

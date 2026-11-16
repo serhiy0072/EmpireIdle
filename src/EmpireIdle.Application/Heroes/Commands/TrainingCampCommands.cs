@@ -26,7 +26,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     /// <summary>Докуповує слот табору понад безкоштовні.</summary>
     public record BuyCampSlotCommand(Guid PlayerId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class PlaceHeroInCampCommandHandler : IRequestHandler<PlaceHeroInCampCommand>
+    public sealed class PlaceHeroInCampCommandHandler : IRequestHandler<PlaceHeroInCampCommand>
     {
         private readonly IHeroRepository _heroes;
         private readonly IVillageRepository _villages;
@@ -101,7 +101,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         }
     }
 
-    internal sealed class RemoveHeroFromCampCommandHandler : IRequestHandler<RemoveHeroFromCampCommand>
+    public sealed class RemoveHeroFromCampCommandHandler : IRequestHandler<RemoveHeroFromCampCommand>
     {
         private readonly IHeroRepository _heroes;
         private readonly TrainingCampRules _rules;
@@ -148,7 +148,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         }
     }
 
-    internal sealed class SkipCampCooldownCommandHandler : IRequestHandler<SkipCampCooldownCommand>
+    public sealed class SkipCampCooldownCommandHandler : IRequestHandler<SkipCampCooldownCommand>
     {
         private readonly TrainingCampRules _rules;
         private readonly TrainingCampService _camps;
@@ -182,7 +182,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         }
     }
 
-    internal sealed class BuyCampSlotCommandHandler : IRequestHandler<BuyCampSlotCommand>
+    public sealed class BuyCampSlotCommandHandler : IRequestHandler<BuyCampSlotCommand>
     {
         private readonly TrainingCampRules _rules;
         private readonly TrainingCampService _camps;

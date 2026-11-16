@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Beasts.Commands
     public record FeedBeastCommand(Guid PlayerId, string BeastKey, int Count)
         : IRequest<BeastFedView>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class FeedBeastCommandHandler : IRequestHandler<FeedBeastCommand, BeastFedView>
+    public sealed class FeedBeastCommandHandler : IRequestHandler<FeedBeastCommand, BeastFedView>
     {
         private readonly IBeastPenRepository _pens;
         private readonly IInventoryRepository _inventory;

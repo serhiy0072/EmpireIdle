@@ -12,7 +12,7 @@ namespace EmpireIdle.Application.Lootboxes.Queries
     /// </summary>
     public record GetKeyChestsQuery(Guid PlayerId) : IRequest<IReadOnlyList<KeyChestView>>, IPlayerScopedRequest;
 
-    internal sealed class GetKeyChestsQueryHandler : IRequestHandler<GetKeyChestsQuery, IReadOnlyList<KeyChestView>>
+    public sealed class GetKeyChestsQueryHandler : IRequestHandler<GetKeyChestsQuery, IReadOnlyList<KeyChestView>>
     {
         private readonly ILootboxRepository _lootboxes;
         private readonly IInventoryRepository _inventory;

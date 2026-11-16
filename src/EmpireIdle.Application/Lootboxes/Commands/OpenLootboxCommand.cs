@@ -19,7 +19,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
         public const int MaxCount = 100;
     }
 
-    internal sealed class OpenLootboxCommandHandler : IRequestHandler<OpenLootboxCommand, LootboxOpening>
+    public sealed class OpenLootboxCommandHandler : IRequestHandler<OpenLootboxCommand, LootboxOpening>
     {
         private readonly IInventoryRepository _inventory;
         private readonly LootboxOpener _opener;

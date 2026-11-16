@@ -29,7 +29,7 @@ namespace EmpireIdle.Application.Banners.Queries
     /// <param name="Chance">Базовий шанс у відсотках, без урахування гарантій.</param>
     public record BannerDropView(string Key, string DisplayName, Rarity Rarity, BannerKind? Kind, double Chance);
 
-    internal sealed class GetBannersQueryHandler : IRequestHandler<GetBannersQuery, IReadOnlyList<BannerView>>
+    public sealed class GetBannersQueryHandler : IRequestHandler<GetBannersQuery, IReadOnlyList<BannerView>>
     {
         private readonly GameCatalog _catalog;
         private readonly BannerRoller _roller;

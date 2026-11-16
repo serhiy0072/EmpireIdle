@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Shop.Commands
     public record BuyHeroWeaponShardsCommand(Guid PlayerId, Guid HeroId, int Count)
         : IRequest<int>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class BuyHeroWeaponShardsCommandHandler : IRequestHandler<BuyHeroWeaponShardsCommand, int>
+    public sealed class BuyHeroWeaponShardsCommandHandler : IRequestHandler<BuyHeroWeaponShardsCommand, int>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IPlayerRepository _playerRepository;

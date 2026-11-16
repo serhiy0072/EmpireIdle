@@ -18,7 +18,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     public record LevelUpUnitsCommand(Guid PlayerId, string UnitType, int FromLevel, int ToLevel, int Count)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class LevelUpUnitsCommandHandler : IRequestHandler<LevelUpUnitsCommand>
+    public sealed class LevelUpUnitsCommandHandler : IRequestHandler<LevelUpUnitsCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
