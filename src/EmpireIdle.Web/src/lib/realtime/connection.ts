@@ -115,6 +115,17 @@ export function startRealtime(queryClient: QueryClient, playerId: string): () =>
 
   const starting = start(0);
 
+  // withAutomaticReconnect здається після кількох спроб (сон ноутбука, довгий обрив) і закриває
+  // з'єднання назавжди. Піднімаємо його самі тим самим циклом; події за цей час загубились —
+  // після старту перечитуємо все, як і після звичайного перепідключення
+  connection.onclose(() => {
+    if (stopped) return;
+
+    void start(0).then(() => {
+      if (!stopped) void queryClient.invalidateQueries();
+    });
+  });
+
   // StrictMode монтує ефект двічі: зупиняємо лише після того, як спроба завершилась
   return () => {
     stopped = true;
