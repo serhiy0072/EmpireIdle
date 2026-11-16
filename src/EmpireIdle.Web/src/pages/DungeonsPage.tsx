@@ -42,7 +42,7 @@ export default function DungeonsPage() {
   const [params] = useSearchParams();
   const [selectedKey, setSelectedKey] = useState<string | null>(() => params.get("dungeon"));
   const [level, setLevel] = useState(1);
-  const [team, setTeam] = useState<string[]>([]);
+  const [pickedTeam, setTeam] = useState<string[]>([]);
 
   // Бій тримає сторінка, а не запит: після перемоги вітрина інвалідується,
   // і забіг зник би з-під гравця раніше, ніж той побачив результат
@@ -64,6 +64,8 @@ export default function DungeonsPage() {
     () => (heroes.data?.heroes ?? []).filter((hero) => hero.state !== "Wounded"),
     [heroes.data?.heroes],
   );
+  // Обраний герой міг бути поранений в іншому бою, поки гравець був на цій сторінці: у команду йдуть лише ті, хто ще може битись
+  const team = pickedTeam.filter((heroId) => idle.some((hero) => hero.id === heroId));
 
   if (dungeons.isPending) {
     return <p className="text-slate-500">{t("battle:dungeons.loading")}</p>;
