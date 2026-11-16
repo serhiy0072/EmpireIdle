@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import { api } from "../api";
 import type { components } from "../schema";
 import { queryKeys } from "../queryKeys";
-import { invalidatePlayer } from "./invalidate";
+import { invalidatePlayer, REWARD_SCOPES } from "./invalidate";
 
 export type MailboxView = components["schemas"]["MailboxView"];
 export type MailLetterView = components["schemas"]["MailLetterView"];
@@ -44,7 +44,7 @@ function useClaim<TInput>(playerId: string, path: (input: TInput) => string) {
     mutationFn: (input: TInput) => api<ClaimView>(path(input), { method: "POST", idempotent: true }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["mail", playerId] });
-      invalidatePlayer(queryClient, playerId, ["wallet", "village", "inventory", "heroes"]);
+      invalidatePlayer(queryClient, playerId, REWARD_SCOPES);
     },
   });
 }

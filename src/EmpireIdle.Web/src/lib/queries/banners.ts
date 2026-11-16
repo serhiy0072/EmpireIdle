@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import { api } from "../api";
 import type { BannerRollResponse, BannerView } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
-import { invalidatePlayer } from "./invalidate";
+import { invalidatePlayer, REWARD_SCOPES } from "./invalidate";
 import { refetchAtDue } from "./polling";
 
 export function useBanners(playerId: string): UseQueryResult<BannerView[]> {
@@ -31,6 +31,6 @@ export function useRollBanner(playerId: string) {
         `/api/banners/${playerId}/${input.bannerKey}/roll?count=${input.count}`,
         { method: "POST", idempotent: true },
       ),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["banners", "wallet", "heroes", "inventory"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["banners", ...REWARD_SCOPES]),
   });
 }

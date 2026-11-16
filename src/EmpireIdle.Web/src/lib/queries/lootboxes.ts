@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import { api } from "../api";
 import type { KeyChestView, LootboxOpening, LootboxPityView, LootboxPurchase } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
-import { invalidatePlayer, type PlayerScope } from "./invalidate";
+import { invalidatePlayer, REWARD_SCOPES, type PlayerScope } from "./invalidate";
+import { refetchAtDue } from "./polling";
 
 /** Зі скрині випадає будь-що: gems, предмети, ресурси села, досвід і осколки героїв. */
-const OPENED: readonly PlayerScope[] = ["wallet", "inventory", "village", "heroes", "lootboxPity"];
+const OPENED: readonly PlayerScope[] = [...REWARD_SCOPES, "lootboxPity"];
 
 /** Скільки до гарантії в кожній скрині з гарантією. */
 export function useLootboxPity(playerId: string): UseQueryResult<LootboxPityView[]> {
@@ -58,6 +59,8 @@ export function useKeyChests(playerId: string): UseQueryResult<KeyChestView[]> {
     queryKey: queryKeys.keyChests(playerId),
     queryFn: () => api<KeyChestView[]>(`/api/inventory/${playerId}/key-chests`),
     enabled: playerId !== "",
+    // Безкоштовне відкриття повертається за часом без події: без цього крапка на крамниці не з'являлась до перезавантаження
+    refetchInterval: refetchAtDue<KeyChestView[]>((chests) => chests.map((chest) => chest.nextFreeAt)),
   });
 }
 

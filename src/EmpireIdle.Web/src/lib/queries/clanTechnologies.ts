@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import { api } from "../api";
 import type { ClanOfferingResult, ClanShopKind, ClanShopView, ClanTechnologiesView } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
-import { invalidatePlayer, type PlayerScope } from "./invalidate";
+import { invalidatePlayer, REWARD_SCOPES, type PlayerScope } from "./invalidate";
 import { refetchAtDue } from "./polling";
 
 /** Технологія клану так, як її приймає сервер: тір і ключ вузла. */
@@ -31,7 +31,7 @@ export function useClanTechnologies(playerId: string, enabled: boolean): UseQuer
  * Підношення списує ресурс села чи gems, а денні пороги видають нагороди будь-якого типу.
  * Новий рівень технології клану змінює виробіток і силу всіх учасників.
  */
-const OFFERING_SCOPES: readonly PlayerScope[] = ["clanTechnologies", "clanShop", "village", "wallet", "inventory", "heroes", "power"];
+const OFFERING_SCOPES: readonly PlayerScope[] = ["clanTechnologies", "clanShop", ...REWARD_SCOPES];
 
 export function useOfferClanResources(playerId: string) {
   const queryClient = useQueryClient();
@@ -85,7 +85,8 @@ export function useBuyClanShopItem(playerId: string) {
   return useMutation({
     mutationFn: (request: { kind: ClanShopKind; itemKey: string; quantity: number; expectedPrice: number }) =>
       api<void>(`/api/clan-technologies/${playerId}/shop/buy`, { method: "POST", body: request, idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["clanShop", "clanTechnologies", "inventory"]),
+    // Серед товарів є ключі скринь
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["clanShop", "clanTechnologies", "inventory", "keyChests"]),
   });
 }
 

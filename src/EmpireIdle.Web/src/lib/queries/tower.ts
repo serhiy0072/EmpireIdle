@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import { api } from "../api";
 import type { BattleReplay, ManualCast, TowerLeaderboard, TowerStormResult, TowerView } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
-import { invalidatePlayer } from "./invalidate";
+import { invalidatePlayer, REWARD_SCOPES } from "./invalidate";
 
 /** Екран вежі: прогрес, ворог наступного поверху, нагороди й бафи — бафи спливають, тож дані швидко старіють. */
 export function useTower(playerId: string): UseQueryResult<TowerView> {
@@ -36,7 +36,7 @@ export function useStormTowerFloor(playerId: string) {
     onSuccess: (result) => {
       if (result.victory)
         // Досвід героям лягає в запас на екрані героїв
-        invalidatePlayer(queryClient, playerId, ["tower", "towerLeaderboard", "village", "wallet", "inventory", "heroes"]);
+        invalidatePlayer(queryClient, playerId, ["tower", "towerLeaderboard", ...REWARD_SCOPES]);
     },
   });
 }

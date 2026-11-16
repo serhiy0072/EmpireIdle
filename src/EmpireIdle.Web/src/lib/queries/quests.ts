@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import { api } from "../api";
 import type { ClaimAllQuestsResponse, QuestState, QuestView, QuestWindow, ServerQuestResponse } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
-import { invalidatePlayer } from "./invalidate";
+import { invalidatePlayer, REWARD_SCOPES } from "./invalidate";
 
 /** Значення enum-ів з контракту: на дроті — імена. */
 export const QUEST_STATE = {
@@ -50,7 +50,7 @@ export function useClaimQuest(playerId: string) {
     mutationFn: (questKey: string) =>
       api<void>(`/api/quests/${playerId}/${questKey}/claim`, { method: "POST", idempotent: true }),
     // Предмети й спорядження з нагород лягають в інвентар
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes", "inventory"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", ...REWARD_SCOPES]),
   });
 }
 
@@ -61,6 +61,6 @@ export function useClaimAllQuests(playerId: string) {
   return useMutation({
     mutationFn: () =>
       api<ClaimAllQuestsResponse>(`/api/quests/${playerId}/claim-all`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes", "inventory"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", ...REWARD_SCOPES]),
   });
 }
