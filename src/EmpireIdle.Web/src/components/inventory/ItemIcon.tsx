@@ -10,7 +10,7 @@ import { artifactArtFor, drawArtifact } from "./artifactArt";
 interface Props {
   itemKey: string;
   type: string;
-  rarity: string | number | undefined;
+  rarity: string | undefined;
   size?: number;
   className?: string;
   /** Без власного тла й рамки — коли рамку рідкості малює плитка навколо. */

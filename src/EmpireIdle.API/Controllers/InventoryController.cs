@@ -3,6 +3,7 @@ using EmpireIdle.Application.Heroes.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
+using EmpireIdle.Application.Inventory.ReadModels;
 using EmpireIdle.Application.Lootboxes.Commands;
 using EmpireIdle.Application.Lootboxes.Contracts;
 using EmpireIdle.Application.Lootboxes.Queries;
@@ -31,29 +32,11 @@ namespace EmpireIdle.API.Controllers
 
         /// <summary>Вміст інвентаря з описами предметів із конфіга.</summary>
         [HttpGet("{playerId:guid}")]
-        [ProducesResponseType(typeof(InventoryResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(InventoryView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<InventoryResponse>> GetInventory(Guid playerId, CancellationToken cancellationToken)
+        public async Task<ActionResult<InventoryView>> GetInventory(Guid playerId, CancellationToken cancellationToken)
         {
-            var inventory = await _mediator.Send(new GetInventoryQuery(playerId), cancellationToken);
-
-            var items = inventory.Items
-                .Select(i => new InventoryItemResponse(i.ItemKey, i.DisplayName, i.Description,
-                    i.Rarity.ToString().ToLowerInvariant(), i.Type, i.Count))
-                .ToList();
-
-            var equipment = inventory.Equipment
-                .Select(e => new EquipmentResponse(
-                    e.Id, e.ItemKey, e.Slot.ToString(), e.Rarity.ToString().ToLowerInvariant(),
-                    e.Level, e.Experience, e.ExperienceToNext, e.FeedValue, e.Mastery, e.EquippedByHeroId, e.SlotIndex, e.Stats,
-                    e.IsBroken, e.IsOnMarket, e.ResaleLockedUntil, e.Power))
-                .ToList();
-
-            var activeEffects = inventory.ActiveEffects
-                .Select(e => new ActiveEffectResponse(e.Target.ToString(), e.Multiplier, e.ExpiresAt, e.SourceItemKey))
-                .ToList();
-
-            return Ok(new InventoryResponse(items, equipment, activeEffects));
+            return Ok(await _mediator.Send(new GetInventoryQuery(playerId), cancellationToken));
         }
 
         /// <summary>

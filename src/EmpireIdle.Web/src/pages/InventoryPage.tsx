@@ -37,7 +37,7 @@ const TAB_OF_TYPE: Record<string, Tab> = {
 
 const RARITY_ORDER: Record<string, number> = { Unique: 0, Rare: 1, Common: 2 };
 
-const byRarity = (a: { rarity: string | number }, b: { rarity: string | number }) =>
+const byRarity = (a: { rarity: string }, b: { rarity: string }) =>
   (RARITY_ORDER[rarityKey(a.rarity)] ?? 9) - (RARITY_ORDER[rarityKey(b.rarity)] ?? 9);
 
 /** Одягнуте — вгорі, далі рідкість і заточка: те, що гравець шукає найчастіше. */

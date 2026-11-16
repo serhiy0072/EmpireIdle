@@ -5608,17 +5608,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/InventoryResponse"
+                  "$ref": "#/components/schemas/InventoryView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InventoryResponse"
+                  "$ref": "#/components/schemas/InventoryView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InventoryResponse"
+                  "$ref": "#/components/schemas/InventoryView"
                 }
               }
             }
@@ -10688,7 +10688,7 @@
   },
   "components": {
     "schemas": {
-      "ActiveEffectResponse": {
+      "ActiveEffectView": {
         "required": [
           "expiresAt",
           "multiplier",
@@ -10698,7 +10698,7 @@
         "type": "object",
         "properties": {
           "target": {
-            "type": "string"
+            "$ref": "#/components/schemas/EffectTarget"
           },
           "multiplier": {
             "type": "number",
@@ -14531,6 +14531,17 @@
         },
         "additionalProperties": false
       },
+      "EffectTarget": {
+        "enum": [
+          "Production",
+          "Attack",
+          "Defense",
+          "ScoutBlock",
+          "MarchSpeed",
+          "Carry"
+        ],
+        "type": "string"
+      },
       "EquipBestResponse": {
         "required": [
           "equipped"
@@ -14544,7 +14555,13 @@
         },
         "additionalProperties": false
       },
-      "EquipmentResponse": {
+      "EquipmentSlot": {
+        "enum": [
+          "Artifact"
+        ],
+        "type": "string"
+      },
+      "EquipmentView": {
         "required": [
           "experience",
           "id",
@@ -14569,10 +14586,10 @@
             "type": "string"
           },
           "slot": {
-            "type": "string"
+            "$ref": "#/components/schemas/EquipmentSlot"
           },
           "rarity": {
-            "type": "string"
+            "$ref": "#/components/schemas/Rarity"
           },
           "level": {
             "type": "integer",
@@ -15060,7 +15077,7 @@
         },
         "additionalProperties": false
       },
-      "InventoryItemResponse": {
+      "InventoryItemView": {
         "required": [
           "count",
           "description",
@@ -15081,7 +15098,7 @@
             "type": "string"
           },
           "rarity": {
-            "type": "string"
+            "$ref": "#/components/schemas/Rarity"
           },
           "type": {
             "type": "string"
@@ -15093,7 +15110,7 @@
         },
         "additionalProperties": false
       },
-      "InventoryResponse": {
+      "InventoryView": {
         "required": [
           "activeEffects",
           "equipment",
@@ -15104,19 +15121,19 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/InventoryItemResponse"
+              "$ref": "#/components/schemas/InventoryItemView"
             }
           },
           "equipment": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EquipmentResponse"
+              "$ref": "#/components/schemas/EquipmentView"
             }
           },
           "activeEffects": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ActiveEffectResponse"
+              "$ref": "#/components/schemas/ActiveEffectView"
             }
           }
         },

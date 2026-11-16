@@ -78,7 +78,7 @@ const TILE_FRAMES: Record<string, string> = {
 };
 
 interface TileProps {
-  rarity: string | number | undefined;
+  rarity: string | undefined;
   children: ReactNode;
   /** Число в правому нижньому куті — кількість у стеку. */
   count?: number;
