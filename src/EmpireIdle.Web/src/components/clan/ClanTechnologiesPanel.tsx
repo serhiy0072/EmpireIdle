@@ -5,6 +5,7 @@ import { useCatalog } from "../../lib/queries/catalog";
 import { useMarkClanTechnology, useOfferClanGems, useOfferClanResources } from "../../lib/queries/clanTechnologies";
 import { effectLabel, effectValue, technologyKeyLabel, technologyTabName } from "../../lib/technologies";
 import { formatRemaining } from "../../lib/time";
+import { GameTabs } from "../game/GameUi";
 import { TierTree } from "../research/TechnologyTree";
 import { RewardLine } from "../tower/TowerPanels";
 import ClanTechnologyDialog from "./ClanTechnologyDialog";
@@ -78,20 +79,12 @@ export default function ClanTechnologiesPanel({ playerId, view, now, canMark }: 
         </ul>
       </section>
 
-      <nav className="flex gap-1">
-        {view.tabs.map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTab(key)}
-            className={`rounded-lg px-3 py-1 text-sm ${activeTab === key ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"}`}
-          >
-            {technologyTabName(key)}
-          </button>
-        ))}
-      </nav>
+      {/* Вкладки дерева — ті самі «картки», що й у Лабораторії: дерево одне на вигляд в обох місцях */}
+      <div className="rounded-t-xl bg-[#16305e] px-2 pt-2">
+        <GameTabs tabs={view.tabs.map((key) => ({ key, label: technologyTabName(key) }))} value={activeTab} onChange={setTab} />
+      </div>
 
-      <div className="space-y-6 rounded-xl bg-[#1d3b6f] px-2 py-4 text-white">
+      <div className="!mt-0 space-y-6 rounded-b-xl bg-[#1d3b6f] px-2 py-4 text-white">
         {finished && <p className="rounded-lg bg-amber-200 px-3 py-2 text-sm text-amber-950">{t("technologies:clan.finished")}</p>}
         {view.tiers.map((tier) => (
           <TierTree
