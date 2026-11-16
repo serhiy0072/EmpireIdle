@@ -1,7 +1,7 @@
 # Рев'ю 4: що лишилось і як це робити
 
-Стан на 16.11.2026, гілка `phase/36-technologies`, HEAD `09c95bc2`. Усе локально, нічого не запушено.
-Тести зелені: Domain 1472, Application 1075, Architecture 37, Api 169. Клієнт: `typecheck`, `lint`, `build` чисті.
+Стан на 16.11.2026, гілка `phase/36-technologies`. Усе локально, нічого не запушено.
+Тести зелені: Domain 1488, Application 1075, Architecture 37, Api 170. Клієнт: `typecheck`, `lint`, `build` чисті.
 
 Документ для виконавця, який продовжує серію. Спершу — правила роботи, далі — задачі за пріоритетом.
 Повний список знахідок рев'ю з позначками зробленого лежить у пам'яті проєкту (`review4-full-2026-11-15`).
@@ -58,6 +58,12 @@ Dev-база — зона Сергія: дозвіл на роботу з нею
 - Запис списання gems у журналі — `вид:ключ` (`speedup:training:infantry`, `shop:<item>`, `camp:slot:3`).
 - Після мутації з нагородою клієнт інвалідує `REWARD_SCOPES` (`lib/queries/invalidate.ts`).
 - Помилка на екрані — `latestError([...мутації])` (`lib/latestError.ts`), не ланцюжок `a.error ?? b.error`.
+- Зважений вибір — `WeightedPick.ByInteger` (цілі ваги) або `ByFraction` (дробові) з `Domain/Services`; свого циклу по вагах не писати.
+- Захисна перевірка аргументу в домені (від'ємна кількість, нульовий рівень) — `ArgumentOutOfRangeException.ThrowIf…`,
+  це 500 і помилка викликача. Текст винятку — англійською.
+- Таймер будівництва скорочує лише `Village.ReduceConstructionTime`; методи `Building.ReduceConstructionTime` і
+  `Building.Plunder` — `internal`. Будь-яка зміна будівлі з Application іде через метод села, який робить `Touch`:
+  без цього паралельний запис не дає конфлікту версій.
 - Будівля на апгрейді працює й виробляє на поточному рівні; множники виробітку для будь-якої зміни ставки
   брати з `VillageProductionRates`.
 
@@ -102,24 +108,20 @@ Dev-база — зона Сергія: дозвіл на роботу з нею
 якщо тест перевіряє саме буст чи кільце, зібрати `VillageProductionRates` з тих самих підставних репозиторіїв.
 По одному модулю на коміт, після кожного — повний прогін.
 
-### 2.3. Будівля змінюється повз агрегат
-`GiveClanHelpCommand.cs:122`, `SpeedUpTargets.cs:78`, `SpeedUpConstructionCommand` викликають
-`building.ReduceConstructionTime(...)` напряму, `PlunderCalculator.cs:52` — `building.Plunder(...)`.
-**Як:** додати в `Village` методи `ReduceConstructionTime(buildingId, cut, utcNow)` і, якщо потрібно, `PlunderBuffer(...)`,
-які знаходять будівлю, викликають її метод і роблять `Touch`. Методи `Building` зробити `internal`.
-Тести домену на нові методи писати одразу.
+### 2.3. Будівля змінюється повз агрегат — ЗРОБЛЕНО
+Скорочення таймера йде через `Village.ReduceConstructionTime`, методи будівлі стали `internal`
+(домену додано `InternalsVisibleTo` для `EmpireIdle.Domain.Tests`). Заодно закрито реальну гонку: допомога союзника,
+що прочитала будівлю до завершення апгрейду, могла записати таймер поверх і дати подвійний рівень —
+тест `Village_ShouldRejectAStaleConstructionCut_AfterTheUpgradeCompleted`.
 
-### 2.4. Guard-винятки й тексти
-- Українські тексти у винятках: `Domain/ValueObjects/BuildingLevel.cs:17`, `GemAmount.cs:19` → англійською
-  (текст винятку — для логів).
-- Guard-и різних типів дають різні HTTP-коди. Список із рев'ю: `InvalidOperationException` у `VillageResource:30,40`,
-  `VillageUnit:30`, `PlayerItem:22,35,44`, `ReinforcementUnit:51`, `ActiveEffect:35,57`; `ArgumentOutOfRange` у `Hero:111,265`,
-  `HeroShardProgress:32`, `HeroExperiencePool:34,43`, `EquipmentItem:147-172`, `MarketListing:70-77`;
-  `ArgumentException` у `ChatMessage:38-46`, `Announcement:28`, `MailLetter:66`, `UnitStackKey:25`.
-  **Як:** спершу прочитати `GlobalExceptionHandler` і з'ясувати, який тип у що перетворюється. Правило:
-  порушення, до якого гравець доходить чесно, — доменний виняток із `RefusalReason`; помилка програміста
-  (від'ємна кількість, якої не пропустив би валідатор) — `ArgumentOutOfRangeException`/`InvalidOperationException`, 500.
-  Міняти лише там, де тип суперечить цьому правилу; кожну зміну перевіряти тестом.
+### 2.4. Guard-винятки й тексти — ЗРОБЛЕНО частково
+Захисні перевірки у `VillageResource`, `VillageUnit`, `ReinforcementUnit`, `PlayerItem`, `ActiveEffect`, `BuildingLevel`, `GemAmount`
+зведено до `ArgumentOutOfRangeException.ThrowIf…`; українські тексти винятків прибрано.
+Лишилось:
+- `ChatMessage:38-46`, `Announcement:28`, `MailLetter:66` кидають звичайний `ArgumentException`, який обробник помилок
+  перетворює на 400 `InvalidArgument`. За коментарями в коді це помилки викликача, тобто мали б бути 500.
+  **Не чіпати навмання:** те саме відображення потрібне для `UnitStackKey.Parse`, що розбирає ключ із запиту клієнта.
+  Правильний хід — дати `UnitStackKey.Parse` власний доменний виняток і лише тоді перевести решту на 500.
 - `serverId = 1` як значення за замовчуванням у конструкторах `Village.cs:85`, `Player.cs:47`: зробити параметр
   обов'язковим. Зачепить багато тестів — робити скриптом, що дописує `serverId: 1` у виклики.
 
@@ -139,6 +141,8 @@ Dev-база — зона Сергія: дозвіл на роботу з нею
   `Monster.MinLevel/MaxLevel/UnitGrowth/RewardGrowth`, `DungeonEnemyConfig.Wave`, `HeroConfig.StatGrowth`,
   унікальність `Shop.GemPacks[].Key`, `Growth = 0` (дає безкоштовні апгрейди).
 - Валідація кланового магазину пропускається при порожніх `Nodes` (`GameConfigValidator.cs:108`) — прибрати пропуск.
+- Після перенесення правил у `Program.cs` число в `ArgumentOutOfRangeException` з домену більше не страхує конфіг:
+  перевірити, що кожне поле, яке потрапляє в `BuildingLevel`, `GemAmount` чи `PlayerItem`, має правило на старті.
 - **Як перевіряти:** `GameConfigFieldValidationTests` має таблицю негативних кейсів — на кожне нове правило додати рядок.
   `ShippedConfigTests` гарантує, що справжні файли проходять. Нові числа — питання Режисера, не виконавця.
 
@@ -164,11 +168,10 @@ Dev-база — зона Сергія: дозвіл на роботу з нею
 на вже завантаженому гаманці — його лишити. Ціна задачі — каскад по конструкторах і тестах 13 обробників,
 тому робити по одному модулю на коміт. Якщо часу мало — це найперший кандидат на «не робити».
 
-### 2.9. Зважений вибір скопійовано шість разів
-`ArtifactRoller:70`, `BannerRoller:117,136`, `LootboxRoller:44,59`, `ClanTechnologies:86`.
-**Обережно:** у тестах є детерміновані очікування за зерном. Спільний помічник має давати **ті самі** результати
-для тих самих кидків — тобто повторити точний алгоритм кожного місця (тип кидка, порядок перебору, межі).
-Якщо алгоритми різняться по суті — лишити як є й записати чому. Без повного зеленого прогону не комітити.
+### 2.9. Зважений вибір — ЗРОБЛЕНО
+`ArtifactRoller`, `BannerRoller`, `LootboxRoller` і `ClanTechnologies.RollCoins` ідуть через `WeightedPick`.
+Тести з фіксованими сідами пройшли без змін очікувань. Розподіл втрат у `CombatCalculator` і `DefenceLossAllocator`
+сюди не належить: там не вибір одного лота, а поділ числа пропорційно вагам.
 
 ### 2.10. Клієнт: типи й enum
 - Типи API поза `lib/apiTypes.ts` у 8 файлах (локальні `components["schemas"][...]`) — звести в `apiTypes.ts`.
