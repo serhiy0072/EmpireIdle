@@ -68,6 +68,13 @@ namespace EmpireIdle.Application.Shop.Commands
                 throw new RequirementNotMetException(RefusalReasons.HeroWeaponMaxed,
                     $"Hero {hero.Id} weapon is already +{hero.WeaponLevel}.", maxWeapon);
 
+            // Понад решту до стелі шматки нікуди вкласти. Без причини для клієнта: він пропонує купити
+            // рівно стільки, скільки бракує на наступний рівень, тож більше можна лише підробленим запитом
+            var toMax = _catalog.Config.HeroSettings.WeaponShardCosts.Skip(hero.WeaponLevel).Sum() - hero.WeaponShards;
+            if (request.Count > toMax)
+                throw new RequirementNotMetException(
+                    $"Hero {hero.Id} needs only {Math.Max(0, toMax)} more weapon shards to reach the top level, {request.Count} requested.");
+
             var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Player", request.PlayerId);
 

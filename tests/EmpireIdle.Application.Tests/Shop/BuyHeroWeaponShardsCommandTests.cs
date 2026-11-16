@@ -68,6 +68,25 @@ public class BuyHeroWeaponShardsCommandTests
         Assert.Equal(10_000, _wallet.GemBalance.Value);
     }
 
+    /// <summary>
+    /// До стелі зброї треба 10 шматків, 7 уже є: купити можна ще 3, а четвертий нікуди вкласти —
+    /// відмова, gems на місці.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldRefuse_MoreShardsThanTheWeaponStillNeeds()
+    {
+        _wallet.AddGems(new GemAmount(10_000), "test", Now);
+        var hero = GivenHero(HeroTestConfig.CommonHero);
+        hero.AddWeaponShards(7, Now);
+
+        await Assert.ThrowsAsync<RequirementNotMetException>(() => Buy(hero, 4));
+        Assert.Equal(10_000, _wallet.GemBalance.Value);
+        Assert.Equal(7, hero.WeaponShards);
+
+        await Buy(hero, 3);
+        Assert.Equal(10, hero.WeaponShards);
+    }
+
     [Fact]
     public async Task Handle_ShouldChargeByHeroRarity_AndAddTheShards()
     {
