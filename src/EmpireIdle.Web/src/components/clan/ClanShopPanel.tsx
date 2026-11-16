@@ -69,7 +69,8 @@ export default function ClanShopPanel({ playerId, now }: Props) {
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {showcase === "free"
           ? view.free.items.map((item) => {
-              const left = item.limit - item.claimed;
+              // Ліміт могли зменшити після того, як гравець уже забрав більше: від'ємного «лишилось» не показуємо
+              const left = Math.max(0, item.limit - item.claimed);
               const locked = item.requiresClan && !view.inClan;
 
               return (
