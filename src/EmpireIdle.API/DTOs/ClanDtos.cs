@@ -7,7 +7,6 @@ namespace EmpireIdle.API.DTOs;
 /// <summary>Створення клану. Тег зберігається у верхньому регістрі.</summary>
 public record CreateClanRequest(string Name, string Tag);
 
-
 /// <summary>Опис і політика вступу. Потрібен дозвіл EditProfile.</summary>
 public record UpdateClanSettingsRequest(string Description, ClanJoinPolicy JoinPolicy);
 
@@ -108,24 +107,3 @@ public record ClanHelpItemResponse(
     DateTime CreatedAt,
     DateTime ExpiresAt,
     string? Subject);
-
-/// <summary>Заявка в черзі офіцера.</summary>
-public record ClanApplicationResponse(
-    Guid RequestId,
-    Guid PlayerId,
-    string PlayerName,
-    double Power,
-    DateTime CreatedAt,
-    DateTime ExpiresAt);
-
-/// <summary>Запрошення, адресоване гравцеві.</summary>
-public record ClanInviteResponse(
-    Guid RequestId,
-    Guid ClanId,
-    string ClanName,
-    string ClanTag,
-    string Description,
-    int MemberCount,
-    int Capacity,
-    DateTime InvitedAt,
-    DateTime ExpiresAt);

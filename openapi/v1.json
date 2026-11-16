@@ -2454,7 +2454,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanApplicationResponse"
+                    "$ref": "#/components/schemas/ClanApplicationItem"
                   }
                 }
               },
@@ -2462,7 +2462,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanApplicationResponse"
+                    "$ref": "#/components/schemas/ClanApplicationItem"
                   }
                 }
               },
@@ -2470,7 +2470,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanApplicationResponse"
+                    "$ref": "#/components/schemas/ClanApplicationItem"
                   }
                 }
               }
@@ -2524,7 +2524,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanInviteResponse"
+                    "$ref": "#/components/schemas/ClanInviteItem"
                   }
                 }
               },
@@ -2532,7 +2532,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanInviteResponse"
+                    "$ref": "#/components/schemas/ClanInviteItem"
                   }
                 }
               },
@@ -2540,7 +2540,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanInviteResponse"
+                    "$ref": "#/components/schemas/ClanInviteItem"
                   }
                 }
               }
@@ -9447,17 +9447,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                  "$ref": "#/components/schemas/ClanTerritoryView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                  "$ref": "#/components/schemas/ClanTerritoryView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                  "$ref": "#/components/schemas/ClanTerritoryView"
                 }
               }
             }
@@ -12973,7 +12973,7 @@
         },
         "additionalProperties": false
       },
-      "ClanApplicationResponse": {
+      "ClanApplicationItem": {
         "required": [
           "createdAt",
           "expiresAt",
@@ -13006,28 +13006,6 @@
           "expiresAt": {
             "type": "string",
             "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ClanContributorResponse": {
-        "required": [
-          "contribution",
-          "name",
-          "playerId"
-        ],
-        "type": "object",
-        "properties": {
-          "playerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "contribution": {
-            "type": "integer",
-            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -13220,46 +13198,7 @@
         ],
         "type": "string"
       },
-      "ClanInviteLetterView": {
-        "required": [
-          "canRespond",
-          "clanId",
-          "clanName",
-          "clanTag",
-          "expiresAt",
-          "requestId",
-          "state"
-        ],
-        "type": "object",
-        "properties": {
-          "requestId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "clanId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "clanName": {
-            "type": "string"
-          },
-          "clanTag": {
-            "type": "string"
-          },
-          "state": {
-            "type": "string"
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "canRespond": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ClanInviteResponse": {
+      "ClanInviteItem": {
         "required": [
           "capacity",
           "clanId",
@@ -13305,6 +13244,45 @@
           "expiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanInviteLetterView": {
+        "required": [
+          "canRespond",
+          "clanId",
+          "clanName",
+          "clanTag",
+          "expiresAt",
+          "requestId",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clanId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clanName": {
+            "type": "string"
+          },
+          "clanTag": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "canRespond": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -13598,7 +13576,7 @@
         },
         "additionalProperties": false
       },
-      "ClanQuestResponse": {
+      "ClanQuestView": {
         "required": [
           "amount",
           "clanPoints",
@@ -13803,7 +13781,7 @@
         },
         "additionalProperties": false
       },
-      "ClanSlotUnlockResponse": {
+      "ClanSlotUnlockView": {
         "required": [
           "unlocked"
         ],
@@ -13824,7 +13802,7 @@
         },
         "additionalProperties": false
       },
-      "ClanStructureResponse": {
+      "ClanStructureView": {
         "required": [
           "acceleratedShare",
           "garrisonUnits",
@@ -14025,7 +14003,7 @@
         },
         "additionalProperties": false
       },
-      "ClanTerritoryResponse": {
+      "ClanTerritoryView": {
         "required": [
           "buildMinutes",
           "canBuild",
@@ -14080,25 +14058,25 @@
           "slotUnlocks": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanSlotUnlockResponse"
+              "$ref": "#/components/schemas/ClanSlotUnlockView"
             }
           },
           "structures": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanStructureResponse"
+              "$ref": "#/components/schemas/ClanStructureView"
             }
           },
           "quests": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanQuestResponse"
+              "$ref": "#/components/schemas/ClanQuestView"
             }
           },
           "contributors": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanContributorResponse"
+              "$ref": "#/components/schemas/TerritoryContributorView"
             }
           }
         },
@@ -17587,6 +17565,28 @@
           "LootCashback"
         ],
         "type": "string"
+      },
+      "TerritoryContributorView": {
+        "required": [
+          "contribution",
+          "name",
+          "playerId"
+        ],
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "contribution": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
       },
       "TowerEnemyView": {
         "required": [

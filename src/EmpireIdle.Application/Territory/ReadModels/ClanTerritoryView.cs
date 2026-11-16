@@ -19,7 +19,7 @@ namespace EmpireIdle.Application.Territory.ReadModels
         List<ClanSlotUnlockView> SlotUnlocks,
         List<ClanStructureView> Structures,
         List<ClanQuestView> Quests,
-        List<ClanContributorView> Contributors);
+        List<TerritoryContributorView> Contributors);
 
     /// <summary>Умова одного слота: поріг учасників або квест клану.</summary>
     public record ClanSlotUnlockView(int? MinMembers, string? QuestKey, bool Unlocked);
@@ -32,5 +32,5 @@ namespace EmpireIdle.Application.Territory.ReadModels
     public record ClanQuestView(string Key, string DisplayName, string ObjectiveType, string? ObjectiveTarget,
         long Amount, long Target, bool Completed, long ClanPoints, bool OpensSlot);
 
-    public record ClanContributorView(Guid PlayerId, string Name, long Contribution);
+    public record TerritoryContributorView(Guid PlayerId, string Name, long Contribution);
 }

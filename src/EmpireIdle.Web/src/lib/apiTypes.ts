@@ -2,11 +2,11 @@ import type { components } from "./schema";
 
 /** Псевдоніми згенерованих типів: екрани не лізуть у components руками. */
 export type VillageResponse = components["schemas"]["VillageView"];
-export type ClanTerritoryResponse = components["schemas"]["ClanTerritoryResponse"];
-export type ClanStructureResponse = components["schemas"]["ClanStructureResponse"];
-export type ClanQuestResponse = components["schemas"]["ClanQuestResponse"];
-export type ClanSlotUnlockResponse = components["schemas"]["ClanSlotUnlockResponse"];
-export type ClanContributorResponse = components["schemas"]["ClanContributorResponse"];
+export type ClanTerritoryResponse = components["schemas"]["ClanTerritoryView"];
+export type ClanStructureResponse = components["schemas"]["ClanStructureView"];
+export type ClanQuestResponse = components["schemas"]["ClanQuestView"];
+export type ClanSlotUnlockResponse = components["schemas"]["ClanSlotUnlockView"];
+export type ClanContributorResponse = components["schemas"]["TerritoryContributorView"];
 export type VillageDamageResponse = components["schemas"]["VillageDamageView"];
 export type BuildingResponse = components["schemas"]["BuildingView"];
 export type ResearchView = components["schemas"]["ResearchView"];
@@ -71,8 +71,8 @@ export type ClanListResponse = components["schemas"]["ClanListResponse"];
 export type ClanListItemResponse = components["schemas"]["ClanListItemResponse"];
 export type ClanProfileResponse = components["schemas"]["ClanProfileResponse"];
 export type ClanHelpItemResponse = components["schemas"]["ClanHelpItemResponse"];
-export type ClanApplicationResponse = components["schemas"]["ClanApplicationResponse"];
-export type ClanInviteResponse = components["schemas"]["ClanInviteResponse"];
+export type ClanApplicationResponse = components["schemas"]["ClanApplicationItem"];
+export type ClanInviteResponse = components["schemas"]["ClanInviteItem"];
 export type ClanJoinPolicy = components["schemas"]["ClanJoinPolicy"];
 export type ClanHelpTarget = components["schemas"]["ClanHelpTarget"];
 export type DungeonsOverview = components["schemas"]["DungeonsOverview"];
