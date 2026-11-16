@@ -10604,11 +10604,10 @@
       },
       "BannerKind": {
         "enum": [
-          1,
-          3
+          "Hero",
+          "Standard"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "BannerRollResponse": {
         "required": [
@@ -10715,14 +10714,13 @@
       },
       "BattleOdds": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
+          "Overwhelming",
+          "Favoured",
+          "Even",
+          "Risky",
+          "Hopeless"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "BattlePreviewResult": {
         "required": [
@@ -11075,25 +11073,23 @@
       },
       "BattleStatusKind": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6
+          "Poison",
+          "Stun",
+          "AttackUp",
+          "DefenseUp",
+          "DefenseDown",
+          "Shield",
+          "Taunt"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "BattleVerdict": {
         "enum": [
-          0,
-          1,
-          2
+          "Win",
+          "Possible",
+          "Loss"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "BeastActivatedResponse": {
         "required": [
@@ -12445,12 +12441,11 @@
       },
       "ChatChannel": {
         "enum": [
-          1,
-          2,
-          3
+          "Server",
+          "Clan",
+          "Private"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "ChatConversationView": {
         "required": [
@@ -12906,12 +12901,11 @@
       },
       "ClanHelpTarget": {
         "enum": [
-          0,
-          1,
-          2
+          "Construction",
+          "Training",
+          "Research"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "ClanInviteLetterView": {
         "required": [
@@ -13004,12 +12998,11 @@
       },
       "ClanJoinPolicy": {
         "enum": [
-          0,
-          1,
-          2
+          "Open",
+          "ByApproval",
+          "InviteOnly"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "ClanListItemResponse": {
         "required": [
@@ -13368,11 +13361,10 @@
       },
       "ClanShopKind": {
         "enum": [
-          0,
-          1
+          "Daily",
+          "Weekly"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "ClanShopOfferView": {
         "required": [
@@ -14441,11 +14433,10 @@
       },
       "HealPaymentMethod": {
         "enum": [
-          1,
-          2
+          "Resources",
+          "Gems"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "HealWoundedRequest": {
         "required": [
@@ -15457,13 +15448,12 @@
       },
       "MarchIntent": {
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Attack",
+          "Reinforce",
+          "Scout",
+          "Tame"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "MarchResponse": {
         "required": [
@@ -15546,23 +15536,21 @@
       },
       "MarchState": {
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Outbound",
+          "Returning",
+          "Completed",
+          "Camping"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "MarchTargetType": {
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Monster",
+          "Village",
+          "ClanStructure",
+          "Camp"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "MarchUnitResponse": {
         "required": [
@@ -15680,11 +15668,10 @@
       },
       "MarketListingKind": {
         "enum": [
-          1,
-          3
+          "Equipment",
+          "Item"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "MarketListingView": {
         "required": [
@@ -16225,21 +16212,19 @@
       },
       "QuestScope": {
         "enum": [
-          1,
-          2,
-          3
+          "Personal",
+          "Server",
+          "Clan"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "QuestState": {
         "enum": [
-          1,
-          2,
-          3
+          "InProgress",
+          "Completed",
+          "Claimed"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "QuestView": {
         "required": [
@@ -16285,21 +16270,19 @@
       },
       "QuestWindow": {
         "enum": [
-          1,
-          2,
-          3
+          "Chain",
+          "Daily",
+          "Event"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "Rarity": {
         "enum": [
-          1,
-          2,
-          3
+          "Common",
+          "Rare",
+          "Unique"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "RecoverUnitsRequest": {
         "required": [
@@ -16985,14 +16968,13 @@
       },
       "SpeedUpTimer": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
+          "Construction",
+          "Training",
+          "UnitLevelUp",
+          "March",
+          "Research"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "SpeedUpWithItemsRequest": {
         "required": [
@@ -17227,34 +17209,33 @@
       },
       "TechnologyStat": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15,
-          16,
-          17,
-          18,
-          19,
-          20,
-          21,
-          22,
-          23,
-          24
+          "Attack",
+          "Defense",
+          "ConvoySize",
+          "MarchSpeed",
+          "Carry",
+          "Production",
+          "MealUpkeep",
+          "ConstructionSpeed",
+          "TrainingSpeed",
+          "UnitLevelUpSpeed",
+          "ResearchSpeed",
+          "WoundedCapacity",
+          "UnitCapacity",
+          "HeroExperience",
+          "TameChance",
+          "ProtectedStorage",
+          "HelpShareCap",
+          "OfferingAttempts",
+          "CoinBonus",
+          "TerritoryAttack",
+          "TerritoryDefense",
+          "StructureBuildSpeed",
+          "StructureGarrison",
+          "StructureCost",
+          "LootCashback"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "TowerEnemyView": {
         "required": [

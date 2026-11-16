@@ -8,12 +8,17 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace EmpireIdle.Api.Tests.Infrastructure;
 
 /// <summary>Піднімає застосунок на тестовій базі, без фонових джобів.</summary>
 public class TestApiFactory : WebApplicationFactory<global::Program>
 {
+    /// <summary>Читає відповіді API так, як їх пише сервер: веб-іменування й enum іменем.</summary>
+    public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+
     private readonly string _connectionString;
 
     public TestApiFactory(string connectionString) => _connectionString = connectionString;

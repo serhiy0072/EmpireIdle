@@ -163,10 +163,8 @@
   },
   "banner": {
     "kind": {
-      "1": "Heroes · event",
-      "2": "Weapons · event",
-      "3": "Standard · permanent",
-      "other": "Banner"
+      "Hero": "Heroes · event",
+      "Standard": "Standard · permanent"
     },
     "endsIn": "ends in {{remaining}}",
     "featured": "Featured: <b>{{name}}</b>",

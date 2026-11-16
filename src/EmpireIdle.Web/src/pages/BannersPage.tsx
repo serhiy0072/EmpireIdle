@@ -5,7 +5,7 @@ import BannerDrops from "../components/banners/BannerDrops";
 import ErrorBanner from "../components/ErrorBanner";
 import { useNow } from "../hooks/useNow";
 import { useSession } from "../hooks/useSession";
-import type { BannerDropResult } from "../lib/apiTypes";
+import type { BannerDropResult, Rarity } from "../lib/apiTypes";
 import { MAX_ROLLS_PER_REQUEST, useBanners, useRollBanner } from "../lib/queries/banners";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
@@ -15,8 +15,11 @@ import { t } from "i18next";
 /** Скільки випадів тримаємо в історії сесії. */
 const HISTORY_LIMIT = 50;
 
-function tone(rarity: number): string {
-  return rarity === 3 ? "border-amber-300 bg-amber-50" : rarity === 2 ? "border-sky-300 bg-sky-50" : "border-slate-200 bg-white";
+/** Рідкість за зростанням: на дроті — ім'я, а «найкращий випад» потребує порядку. */
+const RARITY_ORDER: readonly Rarity[] = ["Common", "Rare", "Unique"];
+
+function tone(rarity: Rarity | null): string {
+  return rarity === "Unique" ? "border-amber-300 bg-amber-50" : rarity === "Rare" ? "border-sky-300 bg-sky-50" : "border-slate-200 bg-white";
 }
 
 export default function BannersPage() {
@@ -43,7 +46,10 @@ export default function BannersPage() {
   }
 
   const gems = wallet.data?.gemBalance ?? 0;
-  const best = latest.reduce((max, drop) => Math.max(max, drop.rarity), 0);
+  const best = latest.reduce<Rarity | null>(
+    (max, drop) => (max === null || RARITY_ORDER.indexOf(drop.rarity) > RARITY_ORDER.indexOf(max) ? drop.rarity : max),
+    null,
+  );
 
   const rollBanner = (bannerKey: string, count: number) =>
     roll.mutate(
@@ -77,7 +83,7 @@ export default function BannersPage() {
             {latest.map((drop, index) => (
               <li key={index} className="flex flex-wrap items-center gap-2 text-sm">
                 <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(drop.rarity)}`}>{rarityLabel(drop.rarity)}</span>
-                <span className={drop.rarity >= 2 ? "font-medium text-slate-800" : "text-slate-700"}>{drop.displayName}</span>
+                <span className={drop.rarity !== "Common" ? "font-medium text-slate-800" : "text-slate-700"}>{drop.displayName}</span>
                 {drop.wasPity && <span className="text-xs text-slate-500">{t("items:banners.pity")}</span>}
                 {drop.lostFiftyFifty && <span className="text-xs text-slate-500">{t("items:banners.lostFiftyFifty")}</span>}
               </li>
@@ -97,7 +103,7 @@ export default function BannersPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {/* Постійний банер — першим: він завжди є, події приходять і йдуть */}
-          {[...banners.data].sort((a, b) => Number(b.kind === 3) - Number(a.kind === 3)).map((banner) => (
+          {[...banners.data].sort((a, b) => Number(b.kind === "Standard") - Number(a.kind === "Standard")).map((banner) => (
             <BannerCard
               key={banner.key}
               banner={banner}

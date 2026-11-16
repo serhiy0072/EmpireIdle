@@ -95,7 +95,7 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
               <span className="flex-1 text-slate-700">
                 {catalog.buildingName(building.type)} → {building.level + 1}
               </span>
-              <button type="button" onClick={() => onRequest(0, building.id)} disabled={busy} className={button}>
+              <button type="button" onClick={() => onRequest("Construction", building.id)} disabled={busy} className={button}>
                 {t("social:help.ask")}
               </button>
             </div>
@@ -108,7 +108,7 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
               <span className="flex-1 text-slate-700">
                 {catalog.unitName(order.unitType)} ×{order.count}
               </span>
-              <button type="button" onClick={() => onRequest(1, order.id)} disabled={busy} className={button}>
+              <button type="button" onClick={() => onRequest("Training", order.id)} disabled={busy} className={button}>
                 {t("social:help.ask")}
               </button>
             </div>

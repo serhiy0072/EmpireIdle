@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { MarchIntent, MarchTargetType, SendMarchRequest } from "../../lib/apiTypes";
+import type { BattleVerdict, MarchIntent, MarchTargetType, SendMarchRequest } from "../../lib/apiTypes";
 import { useCatalog } from "../../lib/queries/catalog";
 import { useGarrison } from "../../lib/queries/garrison";
 import { useHeroes, type HeroSummary } from "../../lib/queries/heroes";
@@ -24,10 +24,10 @@ interface Props {
 }
 
 /** Прогноз бою одним рядком під героями, як на референсі. */
-const VERDICT_LINES: Record<number, { text: "likely" | "possible" | "hopeless"; className: string }> = {
-  0: { text: "likely", className: "text-emerald-300" },
-  1: { text: "possible", className: "text-amber-300" },
-  2: { text: "hopeless", className: "text-rose-300" },
+const VERDICT_LINES: Record<BattleVerdict, { text: "likely" | "possible" | "hopeless"; className: string }> = {
+  Win: { text: "likely", className: "text-emerald-300" },
+  Possible: { text: "possible", className: "text-amber-300" },
+  Loss: { text: "hopeless", className: "text-rose-300" },
 };
 
 /**
@@ -153,7 +153,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
   );
 
   const forecast = previewKey !== null && preview.data !== undefined ? preview.data : null;
-  const verdict = forecast === null ? null : (VERDICT_LINES[forecast.verdict] ?? null);
+  const verdict = forecast === null ? null : VERDICT_LINES[forecast.verdict];
   const title = reinforce ? t("map:march.reinforce") : tame ? t("map:march.tame") : t("map:march.target");
 
   // Співвідношення ролей у загоні — як унизу референса
@@ -253,7 +253,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
           {verdict !== null && (
             <p className={`text-center text-base font-semibold ${verdict.className} ${preview.isPending ? "opacity-60" : ""}`}>
               {t(`map:march.verdict.${verdict.text}`)}
-              {forecast?.verdict === 1 && ` · ${t("map:march.chance", { chance: Math.round(forecast.winChance * 100) })}`}
+              {forecast?.verdict === "Possible" && ` · ${t("map:march.chance", { chance: Math.round(forecast.winChance * 100) })}`}
             </p>
           )}
 

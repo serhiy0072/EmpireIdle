@@ -16,7 +16,7 @@ interface Props {
 type Showcase = "daily" | "weekly" | "free";
 
 /** ClanShopKind на дроті. */
-const KIND: Record<Exclude<Showcase, "free">, ClanShopKind> = { daily: 0, weekly: 1 };
+const KIND: Record<Exclude<Showcase, "free">, ClanShopKind> = { daily: "Daily", weekly: "Weekly" };
 
 const button = "rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50";
 

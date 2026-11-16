@@ -221,12 +221,8 @@ export function joinPolicyLabel(policy: string): string {
   return (POLICIES as readonly string[]).includes(policy) ? t(`social:clan.policy.${policy as (typeof POLICIES)[number]}`) : policy;
 }
 
-/** Числові значення ClanJoinPolicy з контракту — сервер приймає enum числом. */
-export const JOIN_POLICIES: { value: ClanJoinPolicy; name: string }[] = [
-  { value: 0, name: "Open" },
-  { value: 1, name: "ByApproval" },
-  { value: 2, name: "InviteOnly" },
-];
+/** Значення ClanJoinPolicy з контракту — у порядку, в якому їх показує вибір. */
+export const JOIN_POLICIES: readonly ClanJoinPolicy[] = ["Open", "ByApproval", "InviteOnly"];
 
 const PERMISSIONS = ["Recruit", "Kick", "AssignRoles", "ManageRoles", "EditProfile", "BuildStructures", "Disband", "ManageTechnologies"] as const;
 

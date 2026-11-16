@@ -13,9 +13,7 @@ interface Props {
 /** Опис і політика вступу. Без права EditProfile — лише перегляд. */
 export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
   const [description, setDescription] = useState(clan.description);
-  const [policy, setPolicy] = useState<ClanJoinPolicy>(
-    JOIN_POLICIES.find((item) => item.name === clan.joinPolicy)?.value ?? 0,
-  );
+  const [policy, setPolicy] = useState<ClanJoinPolicy>(JOIN_POLICIES.find((item) => item === clan.joinPolicy) ?? "Open");
 
   if (!canEdit) {
     return (
@@ -26,7 +24,7 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
     );
   }
 
-  const dirty = description !== clan.description || JOIN_POLICIES[policy]?.name !== clan.joinPolicy;
+  const dirty = description !== clan.description || policy !== clan.joinPolicy;
 
   return (
     <div className="space-y-3">
@@ -45,12 +43,12 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
         {t("social:settings.join")}
         <select
           value={policy}
-          onChange={(event) => setPolicy(Number(event.target.value) as ClanJoinPolicy)}
+          onChange={(event) => setPolicy(event.target.value as ClanJoinPolicy)}
           className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800"
         >
           {JOIN_POLICIES.map((item) => (
-            <option key={item.value} value={item.value}>
-              {joinPolicyLabel(item.name)}
+            <option key={item} value={item}>
+              {joinPolicyLabel(item)}
             </option>
           ))}
         </select>

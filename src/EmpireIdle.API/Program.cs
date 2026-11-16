@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -527,8 +528,14 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 
         return result;
     };
-});
-builder.Services.AddSignalR();
+})
+// Enum на дроті — іменем, а не числом (рішення 16.11.2026): клієнт отримує з OpenAPI перелік назв,
+// і значення, вставлене посеред enum, не зсуває чужі таблиці «число → назва»
+.AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+// Події хаба — тим самим форматом, що й відповіді API
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options => options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

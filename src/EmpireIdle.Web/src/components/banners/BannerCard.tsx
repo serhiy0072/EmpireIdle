@@ -15,9 +15,9 @@ interface Props {
   onRoll: (count: number) => void;
 }
 
-/** Kind з контракту: 1 — герої, 2 — зброя, 3 — стандартний (постійний, без промо). */
-function kindLabel(kind: number): string {
-  return kind === 1 || kind === 2 || kind === 3 ? t(`items:banner.kind.${kind}`) : t("items:banner.kind.other");
+/** Kind з контракту: герої (подія) або стандартний (постійний, без промо). */
+function kindLabel(kind: BannerView["kind"]): string {
+  return t(`items:banner.kind.${kind}`);
 }
 
 /**
@@ -25,8 +25,8 @@ function kindLabel(kind: number): string {
  * "з останнього рідкісного" однаковий у банерів однієї групи.
  */
 export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }: Props) {
-  const isHero = banner.kind === 1;
-  const isStandard = banner.kind === 3;
+  const isHero = banner.kind === "Hero";
+  const isStandard = banner.kind === "Standard";
   const unit = banner.priceGems;
   const balance = gems;
   const icon = "💎";

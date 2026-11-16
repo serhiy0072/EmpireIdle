@@ -4,17 +4,17 @@ import type { ClaimAllQuestsResponse, QuestState, QuestView, QuestWindow, Server
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 
-/** Значення enum-ів з контракту: числа на дроті, імена — тут. */
+/** Значення enum-ів з контракту: на дроті — імена. */
 export const QUEST_STATE = {
-  inProgress: 1,
-  completed: 2,
-  claimed: 3,
+  inProgress: "InProgress",
+  completed: "Completed",
+  claimed: "Claimed",
 } as const satisfies Record<string, QuestState>;
 
 export const QUEST_WINDOW = {
-  chain: 1,
-  daily: 2,
-  event: 3,
+  chain: "Chain",
+  daily: "Daily",
+  event: "Event",
 } as const satisfies Record<string, QuestWindow>;
 
 /** Щоденні квести обнуляються о 00:00 UTC — так само їх скидає джоб на сервері. */

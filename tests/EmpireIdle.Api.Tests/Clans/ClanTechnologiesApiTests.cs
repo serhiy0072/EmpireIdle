@@ -83,7 +83,7 @@ public class ClanTechnologiesApiTests : IClassFixture<ClanTechnologiesApiTests.H
     }
 
     private async Task<ClanTechnologiesView> GetViewAsync()
-        => (await _client.GetFromJsonAsync<ClanTechnologiesView>(Url()))!;
+        => (await _client.GetFromJsonAsync<ClanTechnologiesView>(Url(), TestApiFactory.Json))!;
 
     /// <summary>Робить гравця лідером нового клану: шлях створення через будівлю тут не перевіряється.</summary>
     private async Task JoinClanAsync()
@@ -119,14 +119,14 @@ public class ClanTechnologiesApiTests : IClassFixture<ClanTechnologiesApiTests.H
     [Fact]
     public async Task ClaimFree_ShouldCountAgainstTheWeeklyLimit_WithoutAClan()
     {
-        var before = (await _client.GetFromJsonAsync<ClanShopView>(Url("/shop")))!;
+        var before = (await _client.GetFromJsonAsync<ClanShopView>(Url("/shop"), TestApiFactory.Json))!;
         Assert.False(before.InClan);
         var limit = before.Free.Items.Single(i => i.ItemKey == FreeTeleport).Limit;
 
         var claimed = await PostAsync("/shop/claim-free", new ClaimClanFreeItemRequest(FreeTeleport, 1));
         Assert.Equal(HttpStatusCode.NoContent, claimed.StatusCode);
 
-        var after = (await _client.GetFromJsonAsync<ClanShopView>(Url("/shop")))!;
+        var after = (await _client.GetFromJsonAsync<ClanShopView>(Url("/shop"), TestApiFactory.Json))!;
         Assert.Equal(1, after.Free.Items.Single(i => i.ItemKey == FreeTeleport).Claimed);
 
         var overLimit = await PostAsync("/shop/claim-free", new ClaimClanFreeItemRequest(FreeTeleport, limit));
@@ -161,7 +161,7 @@ public class ClanTechnologiesApiTests : IClassFixture<ClanTechnologiesApiTests.H
         var offered = await PostAsync("/offer-resources", new OfferClanResourcesRequest(1, node.Node));
         Assert.Equal(HttpStatusCode.OK, offered.StatusCode);
 
-        var result = (await offered.Content.ReadFromJsonAsync<ClanOfferingResult>())!;
+        var result = (await offered.Content.ReadFromJsonAsync<ClanOfferingResult>(TestApiFactory.Json))!;
         Assert.True(result.Coins > 0);
         Assert.Equal(fresh.Offering.PointsPerAttempt, result.Progress);
 
@@ -205,7 +205,7 @@ public class ClanTechnologiesApiTests : IClassFixture<ClanTechnologiesApiTests.H
         Assert.Equal($"1:{node.Node}", (await GetViewAsync()).MarkedTechnology);
 
         var offered = await PostAsync("/offer-resources", new OfferClanResourcesRequest(1, node.Node));
-        Assert.True((await offered.Content.ReadFromJsonAsync<ClanOfferingResult>())!.Marked);
+        Assert.True((await offered.Content.ReadFromJsonAsync<ClanOfferingResult>(TestApiFactory.Json))!.Marked);
 
         var cleared = await PostAsync("/mark", new MarkClanTechnologyRequest(null, null));
         Assert.Equal(HttpStatusCode.NoContent, cleared.StatusCode);

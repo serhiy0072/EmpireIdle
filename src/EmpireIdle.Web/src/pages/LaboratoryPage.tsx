@@ -14,9 +14,6 @@ import { effectLabel, effectValue, technologyName, tierNumeral } from "../lib/te
 import { formatRemaining } from "../lib/time";
 import { t } from "i18next";
 
-/** ClanHelpTarget.Research на дроті. */
-const HELP_TARGET_RESEARCH = 2;
-
 /**
  * Лабораторія (рішення 28.10.2026): особисті технології вкладками Битва / Економіка / Розвиток.
  * Тіри йдуть згори вниз, як на референсі; одне дослідження за раз, прискорення gems і предметами,
@@ -86,7 +83,7 @@ export default function LaboratoryPage() {
                   <GameButton
                     variant="secondary"
                     disabled={helpAsked || requestHelp.isPending}
-                    onClick={() => requestHelp.mutate({ targetType: HELP_TARGET_RESEARCH, targetId: view.researchId! })}
+                    onClick={() => requestHelp.mutate({ targetType: "Research", targetId: view.researchId! })}
                   >
                     {helpAsked ? t("technologies:page.helpAsked") : t("technologies:page.askHelp")}
                   </GameButton>
