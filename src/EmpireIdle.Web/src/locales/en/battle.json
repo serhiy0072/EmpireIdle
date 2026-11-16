@@ -35,7 +35,8 @@
     "stunned": "stunned",
     "hit": "attack",
     "shield": "{{name}} shield {{value}}",
-    "blocked": "(blocked)"
+    "blocked": "(blocked)",
+    "extraStrike": "second strike"
   },
   "run": {
     "backToList": "Back to dungeons",

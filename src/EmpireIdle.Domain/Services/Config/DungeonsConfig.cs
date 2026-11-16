@@ -87,6 +87,17 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Стеля оберегу: щит на старті забігу часткою максимального здоров'я.</summary>
         public double MaxWard { get; set; } = 0.5;
 
+        /// <summary>
+        /// Стеля швидкості атаки: шанс другого звичайного удару за хід (Режисер 16.11.2026 — те саме число, що у вежі).
+        /// </summary>
+        public double MaxAttackSpeed { get; set; } = 0.5;
+
+        /// <summary>
+        /// Стеля відсоткового скорочення перезарядки (Режисер 16.11.2026 — те саме число, що у вежі).
+        /// Цілих ходів із наборів (CooldownTurns) не стосується.
+        /// </summary>
+        public double MaxCooldownReduction { get; set; } = 0.35;
+
         /// <summary>Скільки власних ходів героя живе щит оберегу.</summary>
         public int WardTurns { get; set; } = 2;
 

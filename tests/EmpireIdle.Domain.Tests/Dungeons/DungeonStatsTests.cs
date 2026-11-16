@@ -13,6 +13,7 @@ public class DungeonStatsTests
         {
             ["CritChance"] = 4, ["CritPower"] = 19, ["SkillDamage"] = 23, ["Lifesteal"] = 6, ["DamageReduction"] = 3,
             ["BlockChance"] = 4, ["BlockPower"] = 16, ["Ward"] = 16, ["CooldownTurns"] = 1,
+            ["AttackSpeed"] = 20, ["CooldownReduction"] = 8,
         });
 
         Assert.Equal(0.04, stats[DungeonStat.CritChance], 6);
@@ -24,6 +25,8 @@ public class DungeonStatsTests
         Assert.Equal(0.16, stats[DungeonStat.BlockPower], 6);
         Assert.Equal(0.16, stats[DungeonStat.Ward], 6);
         Assert.Equal(1, stats[DungeonStat.CooldownReduction], 6);
+        Assert.Equal(0.2, stats[DungeonStat.AttackSpeed], 6);
+        Assert.Equal(0.08, stats[DungeonStat.CooldownReductionShare], 6);
     }
 
     /// <summary>Армійські й базові стати в данж не потрапляють.</summary>

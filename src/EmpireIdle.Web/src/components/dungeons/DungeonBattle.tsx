@@ -80,10 +80,13 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         const effects = entry.effects
           .map((effect) => {
             // Періодичне вміння спрацьовує саме — підписуємо, звідки взялась шкода
+            // Другий удар від швидкості атаки підписуємо так само: інакше гравець не побачить, що стат спрацював
             const source =
-              effect.skillKey === null || effect.skillKey === undefined
-                ? ""
-                : `${abilityNames.get(effect.skillKey) ?? effect.skillKey}: `;
+              effect.extraStrike === true
+                ? `${t("battle:log.extraStrike")}: `
+                : effect.skillKey === null || effect.skillKey === undefined
+                  ? ""
+                  : `${abilityNames.get(effect.skillKey) ?? effect.skillKey}: `;
             const name = `${source}${people[effect.targetIndex]?.displayName ?? "?"}`;
             if ((effect.healed ?? 0) > 0) return `${name} +${Math.round(effect.healed ?? 0)}`;
             if ((effect.shieldGained ?? 0) > 0) return t("battle:log.shield", { name, value: Math.round(effect.shieldGained ?? 0) });

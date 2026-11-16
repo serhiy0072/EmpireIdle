@@ -200,7 +200,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Dungeons.RefillPricesGems.All(p => p > 0) && c.Dungeons.RefillPricesGems.Zip(c.Dungeons.RefillPricesGems.Skip(1)).All(p => p.First <= p.Second),
         "GameConfig.Dungeons.RefillPricesGems must be positive and must not fall from one refill to the next.")
     .Validate(c => new[] { c.Dungeons.MaxCritChance, c.Dungeons.MaxLifesteal, c.Dungeons.MaxDamageReduction, c.Dungeons.MaxBlockChance,
-            c.Dungeons.BaseBlockPower, c.Dungeons.MaxBlockPower, c.Dungeons.MaxWard }.All(v => v is >= 0 and < 1),
+            c.Dungeons.BaseBlockPower, c.Dungeons.MaxBlockPower, c.Dungeons.MaxWard, c.Dungeons.MaxAttackSpeed,
+            c.Dungeons.MaxCooldownReduction }.All(v => v is >= 0 and < 1),
         "GameConfig.Dungeons stat caps and BaseBlockPower must be shares in [0, 1) — a cap of 1 would make a hero immortal or always critical.")
     .Validate(c => c.HeroSettings.GarrisonDefenders > 0, "GameConfig.HeroSettings.GarrisonDefenders must be positive — a village always has heroes to defend it.")
     .Validate(c => c.HeroSettings.MaxHeroesPerMarch is >= 1 and <= EmpireIdle.Application.Marches.Validators.SendMarchCommandValidator.MaxHeroIds,

@@ -53,5 +53,8 @@ namespace EmpireIdle.Domain.Dungeons
 
         /// <summary>Періодичне вміння, що спрацювало саме; null — наслідок основної дії ходу.</summary>
         public string? SkillKey { get; init; }
+
+        /// <summary>Наслідок другого звичайного удару від швидкості атаки — клієнт показує, що стат спрацював.</summary>
+        public bool ExtraStrike { get; init; }
     }
 }

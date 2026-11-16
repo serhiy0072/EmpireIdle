@@ -17601,6 +17601,7 @@
           "critical",
           "damage",
           "died",
+          "extraStrike",
           "healed",
           "shieldAbsorbed",
           "shieldGained",
@@ -17643,6 +17644,9 @@
           "skillKey": {
             "type": "string",
             "nullable": true
+          },
+          "extraStrike": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
