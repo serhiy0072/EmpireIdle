@@ -12216,6 +12216,7 @@
           "unitCapacities",
           "unitLevelStatBonus",
           "units",
+          "universalShardUpgrade",
           "version",
           "weaponShardCosts"
         ],
@@ -12398,6 +12399,13 @@
           },
           "language": {
             "type": "string"
+          },
+          "universalShardUpgrade": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            }
           },
           "version": {
             "type": "string"

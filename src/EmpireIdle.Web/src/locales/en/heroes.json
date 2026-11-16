@@ -18,8 +18,8 @@
     "shards": "Hero shards",
     "universal": "Universal shards",
     "universalText": "Common {{common}} · Rare {{rare}} · Unique {{unique}}. They go 1:1 to an unlocked hero of the same rarity.",
-    "upgradeCommon": "100 Common → 1 Rare",
-    "upgradeRare": "300 Rare → 1 Unique"
+    "upgradeCommon": "{{count}} Common → 1 Rare",
+    "upgradeRare": "{{count}} Rare → 1 Unique"
   },
   "codex": {
     "source": "shards · {{count}} to summon",

@@ -76,6 +76,9 @@ export default function HeroesPage() {
       (item) => catalog.item(item.itemKey)?.type === "universalshard" && item.rarity.toLowerCase() === rarity.toLowerCase(),
     )?.count ?? 0;
 
+  // Курс обміну — з каталогу; поки його немає, обмін недоступний
+  const shardUpgrade = (rarity: string) => catalog.universalShardUpgrade[rarity] ?? Number.POSITIVE_INFINITY;
+
   const tabs: GameTab<Tab>[] = [
     { key: "heroes", label: t("heroes:list.tabHeroes", { count: roster.length }) },
     { key: "camp", label: t("heroes:list.tabCamp") },
@@ -189,18 +192,18 @@ export default function HeroesPage() {
               <button
                 type="button"
                 onClick={() => upgradeShards.mutate({ from: "Common", count: 1 })}
-                disabled={busy || universal("Common") < 100}
+                disabled={busy || universal("Common") < shardUpgrade("Common")}
                 className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                {t("heroes:list.upgradeCommon")}
+                {t("heroes:list.upgradeCommon", { count: shardUpgrade("Common") })}
               </button>
               <button
                 type="button"
                 onClick={() => upgradeShards.mutate({ from: "Rare", count: 1 })}
-                disabled={busy || universal("Rare") < 300}
+                disabled={busy || universal("Rare") < shardUpgrade("Rare")}
                 className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                {t("heroes:list.upgradeRare")}
+                {t("heroes:list.upgradeRare", { count: shardUpgrade("Rare") })}
               </button>
             </div>
           </section>

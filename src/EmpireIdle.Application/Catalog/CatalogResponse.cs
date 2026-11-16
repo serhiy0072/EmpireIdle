@@ -69,6 +69,8 @@
         int MapSize,
         string MainBuildingKey,
         string Language,
+        // Рідкість → скільки універсальних осколків іде за один осколок наступної рідкості
+        IReadOnlyDictionary<string, int> UniversalShardUpgrade,
         string Version);
 
     /// <summary>

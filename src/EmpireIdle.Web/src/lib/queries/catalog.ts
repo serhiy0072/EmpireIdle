@@ -55,6 +55,8 @@ export interface Catalog {
   trainingBuildingKeys: string[];
   /** Зірки героя (GDD §6.1): скільки їх і скільки частинок у кожній. */
   maxStars: number;
+  /** Рідкість → скільки універсальних осколків іде за один осколок наступної; число з конфігу сервера. */
+  universalShardUpgrade: Record<string, number>;
   partsPerStar: number;
   /** Стеля рівня вміння; доступний рівень — зірки + 1, не вище за неї (GDD §6.1). */
   maxSkillLevel: number;
@@ -177,6 +179,7 @@ export function useCatalog(): Catalog {
         ...new Set((data?.units ?? []).flatMap((unit) => (unit.requiresBuilding == null ? [] : [unit.requiresBuilding]))),
       ],
       maxStars: data?.maxStars ?? 5,
+      universalShardUpgrade: data?.universalShardUpgrade ?? {},
       partsPerStar: data?.partsPerStar ?? 6,
       maxSkillLevel: data?.maxSkillLevel ?? 6,
       skillBookCosts: data?.skillBookCosts ?? [],

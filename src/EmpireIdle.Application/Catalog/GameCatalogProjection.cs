@@ -199,6 +199,7 @@ namespace EmpireIdle.Application.Catalog
                 config.Map.Width,
                 catalog.MainBuildingKey,
                 language,
+                config.HeroSettings.UniversalShardUpgrade,
                 Version: string.Empty);
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag
