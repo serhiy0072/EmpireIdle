@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Wallets.ReadModels;
 using EmpireIdle.Application.Wallets.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

@@ -1,4 +1,5 @@
 ﻿using EmpireIdle.Application.Common.Services;
+using EmpireIdle.Application.Dungeons.ReadModels;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;
@@ -49,7 +50,7 @@ public class DungeonRewarderTests
             TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.HeroExperience, 0.5), _research));
     }
 
-    private Task<Application.Dungeons.Commands.DungeonReward> Grant(int level)
+    private Task<Application.Dungeons.ReadModels.DungeonReward> Grant(int level)
         => _rewarder.GrantAsync(new DungeonRun(Guid.NewGuid(), _village.PlayerId, 1, TestKeys.Dungeon, level, "{}", Entities.Now),
             Entities.Now, CancellationToken.None);
 

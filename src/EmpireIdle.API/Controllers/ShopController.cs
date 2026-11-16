@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Shop.ReadModels;
 using EmpireIdle.Application.Lootboxes.Commands;
 using EmpireIdle.Application.Lootboxes.Contracts;
 using EmpireIdle.Application.Shop.Commands;

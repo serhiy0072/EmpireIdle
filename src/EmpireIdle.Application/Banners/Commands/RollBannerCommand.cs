@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Banners.ReadModels;
 using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
@@ -22,22 +23,6 @@ namespace EmpireIdle.Application.Banners.Commands
     {
         public const int MaxCount = 10;
     }
-
-    /// <param name="Drops">Випади в порядку роллів.</param>
-    /// <param name="GemBalance">Залишок після списання: клієнту не треба окремо перепитувати гаманець.</param>
-    public record BannerRollResponse(
-        string BannerKey,
-        IReadOnlyList<BannerDropResult> Drops,
-        int RareSince,
-        int UniqueSince,
-        int GemBalance);
-
-    public record BannerDropResult(
-        string DropKey,
-        string DisplayName,
-        Rarity Rarity,
-        bool WasPity,
-        bool LostFiftyFifty);
 
     public sealed class RollBannerCommandHandler : IRequestHandler<RollBannerCommand, BannerRollResponse>
     {
