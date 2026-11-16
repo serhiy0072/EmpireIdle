@@ -15,22 +15,13 @@ namespace EmpireIdle.Api.Tests.Payments;
 /// інакше нарахування падає, гравець платить і не отримує gems.
 /// </summary>
 [Collection("postgres")]
-public class PaymentWebhookTests : IAsyncLifetime
+public class PaymentWebhookTests
 {
     private const int ServerId = 1;
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public PaymentWebhookTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public PaymentWebhookTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     /// <summary>Нарахування працює у scope без HTTP-контексту.</summary>
     [Fact]

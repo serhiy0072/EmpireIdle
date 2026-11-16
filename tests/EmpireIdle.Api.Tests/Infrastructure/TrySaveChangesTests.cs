@@ -11,22 +11,13 @@ namespace EmpireIdle.Api.Tests.Infrastructure;
 /// TrySaveChangesAsync повертає false і скидає відстежене, а не кидає виняток на весь прогін.
 /// </summary>
 [Collection("postgres")]
-public class TrySaveChangesTests : IAsyncLifetime
+public class TrySaveChangesTests
 {
     private const int ServerId = 1;
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public TrySaveChangesTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public TrySaveChangesTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AsyncServiceScope CreateScope(out AppDbContext context, out IUnitOfWork unitOfWork)
     {

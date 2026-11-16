@@ -13,23 +13,14 @@ namespace EmpireIdle.Api.Tests.Schema;
 /// розбіжності не бачить — так EquipmentRolls існувала лише в моделі.
 /// </summary>
 [Collection("postgres")]
-public class MigratedSchemaTests : IAsyncLifetime
+public class MigratedSchemaTests
 {
     /// <summary>Системна колонка: є в кожній таблиці, але information_schema її не показує.</summary>
     private const string RowVersionColumn = "xmin";
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public MigratedSchemaTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public MigratedSchemaTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task Migrations_ShouldCreateEveryMappedColumn()

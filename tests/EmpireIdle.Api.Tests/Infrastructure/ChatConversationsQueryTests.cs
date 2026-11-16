@@ -10,23 +10,14 @@ namespace EmpireIdle.Api.Tests.Infrastructure;
 /// не витісняє давню з іншим, скільки б повідомлень у ній не було.
 /// </summary>
 [Collection("postgres")]
-public class ChatConversationsQueryTests : IAsyncLifetime
+public class ChatConversationsQueryTests
 {
     private const int ServerId = 1;
     private static readonly DateTime Now = new(2026, 10, 1, 12, 0, 0, DateTimeKind.Utc);
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public ChatConversationsQueryTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public ChatConversationsQueryTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AsyncServiceScope CreateScope(out IChatRepository chat, out IUnitOfWork unitOfWork)
     {

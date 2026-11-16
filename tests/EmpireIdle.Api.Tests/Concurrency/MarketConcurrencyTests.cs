@@ -14,20 +14,11 @@ namespace EmpireIdle.Api.Tests.Concurrency;
 /// в юніт-тестах їх не бачать.
 /// </summary>
 [Collection("postgres")]
-public class MarketConcurrencyTests : IAsyncLifetime
+public class MarketConcurrencyTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public MarketConcurrencyTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public MarketConcurrencyTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     /// <summary>Два покупці прочитали той самий активний лот — другий впирається в xmin.</summary>
     [Fact]

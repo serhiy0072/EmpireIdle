@@ -14,20 +14,11 @@ namespace EmpireIdle.Api.Tests.Retention;
 /// свіжі й ще відкриті лишаються — і так у всіх світах одразу.
 /// </summary>
 [Collection("postgres")]
-public class HistoryRetentionTests : IAsyncLifetime
+public class HistoryRetentionTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public HistoryRetentionTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public HistoryRetentionTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task Purge_ShouldDeleteOnlyHistoryOlderThanItsRetention()

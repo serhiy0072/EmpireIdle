@@ -14,22 +14,13 @@ namespace EmpireIdle.Api.Tests.Contract;
 /// Перегенерувати: UPDATE_OPENAPI=1 dotnet test --filter OpenApiContractTests
 /// </summary>
 [Collection("postgres")]
-public class OpenApiContractTests : IAsyncLifetime
+public class OpenApiContractTests
 {
     private const string SpecPath = "openapi/v1.json";
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public OpenApiContractTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        return Task.CompletedTask;
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public OpenApiContractTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task Spec_ShouldMatchTheCommittedFile()

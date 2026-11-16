@@ -8,20 +8,11 @@ namespace EmpireIdle.Api.Tests.Contract;
 /// кожне поле необов'язковим, і фронт обробляє undefined там, де його не буває.
 /// </summary>
 [Collection("postgres")]
-public class SchemaNullabilityTests : IAsyncLifetime
+public class SchemaNullabilityTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public SchemaNullabilityTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        return Task.CompletedTask;
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public SchemaNullabilityTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private async Task<JsonElement> SchemasAsync()
     {

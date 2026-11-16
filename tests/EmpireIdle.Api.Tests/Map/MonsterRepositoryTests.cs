@@ -12,23 +12,14 @@ namespace EmpireIdle.Api.Tests.Map;
 /// фільтруються. Власний сервер тесту — щоб монстри інших тестів колекції не заважали.
 /// </summary>
 [Collection("postgres")]
-public class MonsterRepositoryTests : IAsyncLifetime
+public class MonsterRepositoryTests
 {
     private const int ServerId = 32;
     private static readonly DateTime Now = new(2026, 10, 21, 12, 0, 0, DateTimeKind.Utc);
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public MonsterRepositoryTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public MonsterRepositoryTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AppDbContext CreateContext()
     {

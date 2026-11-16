@@ -14,20 +14,11 @@ namespace EmpireIdle.Api.Tests.Garrisons;
 /// не показувалась і сканер не бачив, що вона дозріла.
 /// </summary>
 [Collection("postgres")]
-public class GarrisonRepositoryTests : IAsyncLifetime
+public class GarrisonRepositoryTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public GarrisonRepositoryTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public GarrisonRepositoryTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AppDbContext CreateContext()
     {

@@ -15,20 +15,11 @@ namespace EmpireIdle.Api.Tests.Concurrency;
 /// Кожен тест відтворює конкретний дюп із аудиту.
 /// </summary>
 [Collection("postgres")]
-public class OptimisticLockingTests : IAsyncLifetime
+public class OptimisticLockingTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public OptimisticLockingTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public OptimisticLockingTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     /// <summary>
     /// Дюп армії: два паралельні марші з того самого гарнізону.

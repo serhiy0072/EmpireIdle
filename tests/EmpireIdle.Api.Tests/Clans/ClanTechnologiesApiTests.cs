@@ -17,24 +17,33 @@ namespace EmpireIdle.Api.Tests.Clans;
 
 /// <summary>Кланові технології наскрізь: HTTP, відмови за контрактом, справжня база й завантажений конфіг гри.</summary>
 [Collection("postgres")]
-public class ClanTechnologiesApiTests : IAsyncLifetime
+public class ClanTechnologiesApiTests : IClassFixture<ClanTechnologiesApiTests.Host>, IAsyncLifetime
 {
+    /// <summary>
+    /// Власний хост класу на базі колекції: кожен тест реєструє свого гравця, а ліміт реєстрацій
+    /// рахується на хост — на спільному він зачепив би інші класи колекції.
+    /// </summary>
+    public sealed class Host : IAsyncDisposable
+    {
+        public Host(PostgresFixture postgres) => Factory = new TestApiFactory(postgres.ConnectionString);
+
+        public TestApiFactory Factory { get; }
+
+        public ValueTask DisposeAsync() => Factory.DisposeAsync();
+    }
+
     private const int ServerId = 1;
     private const string FreeTeleport = "teleport_random";
     private const string ClanTeleport = "teleport_clan";
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
     private HttpClient _client = null!;
     private Guid _playerId;
 
-    public ClanTechnologiesApiTests(PostgresFixture postgres) => _postgres = postgres;
+    public ClanTechnologiesApiTests(Host host) => _factory = host.Factory;
 
     public async Task InitializeAsync()
     {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-
         _client = _factory.CreateClient();
 
         var response = await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest(
@@ -49,10 +58,11 @@ public class ClanTechnologiesApiTests : IAsyncLifetime
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.AccessToken);
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         _client.Dispose();
-        await _factory.DisposeAsync();
+
+        return Task.CompletedTask;
     }
 
     private string Url(string path = "") => $"/api/clan-technologies/{_playerId}{path}";

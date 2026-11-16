@@ -13,23 +13,14 @@ namespace EmpireIdle.Api.Tests.Clans;
 /// потрапляти в базу. Кожен тест — окремий шлях, що падав із 409.
 /// </summary>
 [Collection("postgres")]
-public class ClanChildPersistenceTests : IAsyncLifetime
+public class ClanChildPersistenceTests
 {
     private const int ServerId = 1;
     private const int Capacity = 200;
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public ClanChildPersistenceTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public ClanChildPersistenceTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task Join_ShouldInsertMember_WhenClanAlreadySaved()
