@@ -7040,7 +7040,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MarchResponse"
+                    "$ref": "#/components/schemas/MarchView"
                   }
                 }
               },
@@ -7048,7 +7048,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MarchResponse"
+                    "$ref": "#/components/schemas/MarchView"
                   }
                 }
               },
@@ -7056,7 +7056,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MarchResponse"
+                    "$ref": "#/components/schemas/MarchView"
                   }
                 }
               }
@@ -7312,7 +7312,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ScoutReportResponse"
+                    "$ref": "#/components/schemas/ScoutReportView"
                   }
                 }
               },
@@ -7320,7 +7320,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ScoutReportResponse"
+                    "$ref": "#/components/schemas/ScoutReportView"
                   }
                 }
               },
@@ -7328,7 +7328,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ScoutReportResponse"
+                    "$ref": "#/components/schemas/ScoutReportView"
                   }
                 }
               }
@@ -15784,7 +15784,47 @@
         ],
         "type": "string"
       },
-      "MarchResponse": {
+      "MarchState": {
+        "enum": [
+          "Outbound",
+          "Returning",
+          "Completed",
+          "Camping"
+        ],
+        "type": "string"
+      },
+      "MarchTargetType": {
+        "enum": [
+          "Monster",
+          "Village",
+          "ClanStructure",
+          "Camp"
+        ],
+        "type": "string"
+      },
+      "MarchUnitView": {
+        "required": [
+          "count",
+          "level",
+          "unitType"
+        ],
+        "type": "object",
+        "properties": {
+          "unitType": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarchView": {
         "required": [
           "arrivesAt",
           "departedAt",
@@ -15857,48 +15897,8 @@
           "units": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MarchUnitResponse"
+              "$ref": "#/components/schemas/MarchUnitView"
             }
-          }
-        },
-        "additionalProperties": false
-      },
-      "MarchState": {
-        "enum": [
-          "Outbound",
-          "Returning",
-          "Completed",
-          "Camping"
-        ],
-        "type": "string"
-      },
-      "MarchTargetType": {
-        "enum": [
-          "Monster",
-          "Village",
-          "ClanStructure",
-          "Camp"
-        ],
-        "type": "string"
-      },
-      "MarchUnitResponse": {
-        "required": [
-          "count",
-          "level",
-          "unitType"
-        ],
-        "type": "object",
-        "properties": {
-          "unitType": {
-            "type": "string"
-          },
-          "level": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "count": {
-            "type": "integer",
-            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -16973,64 +16973,6 @@
           "amount": {
             "type": "integer",
             "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ScoutReportResponse": {
-        "required": [
-          "createdAt",
-          "id",
-          "lootable",
-          "outcome",
-          "targetId",
-          "targetName",
-          "targetType",
-          "x",
-          "y"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "targetType": {
-            "$ref": "#/components/schemas/MarchTargetType"
-          },
-          "targetId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "targetName": {
-            "type": "string"
-          },
-          "x": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "y": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "outcome": {
-            "type": "string"
-          },
-          "defencePower": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "lootable": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
