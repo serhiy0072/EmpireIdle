@@ -438,7 +438,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BattleReportResponse"
+                    "$ref": "#/components/schemas/BattleReportView"
                   }
                 }
               },
@@ -446,7 +446,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BattleReportResponse"
+                    "$ref": "#/components/schemas/BattleReportView"
                   }
                 }
               },
@@ -454,7 +454,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BattleReportResponse"
+                    "$ref": "#/components/schemas/BattleReportView"
                   }
                 }
               }
@@ -8474,17 +8474,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PowerResponse"
+                  "$ref": "#/components/schemas/PlayerPowerView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PowerResponse"
+                  "$ref": "#/components/schemas/PlayerPowerView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PowerResponse"
+                  "$ref": "#/components/schemas/PlayerPowerView"
                 }
               }
             }
@@ -8718,7 +8718,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LeaderboardEntryResponse"
+                    "$ref": "#/components/schemas/LeaderboardEntry"
                   }
                 }
               },
@@ -8726,7 +8726,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LeaderboardEntryResponse"
+                    "$ref": "#/components/schemas/LeaderboardEntry"
                   }
                 }
               },
@@ -8734,7 +8734,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LeaderboardEntryResponse"
+                    "$ref": "#/components/schemas/LeaderboardEntry"
                   }
                 }
               }
@@ -8766,17 +8766,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlayerRankResponse"
+                  "$ref": "#/components/schemas/PlayerRankView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlayerRankResponse"
+                  "$ref": "#/components/schemas/PlayerRankView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlayerRankResponse"
+                  "$ref": "#/components/schemas/PlayerRankView"
                 }
               }
             }
@@ -9015,7 +9015,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServerQuestResponse"
+                    "$ref": "#/components/schemas/ServerQuestView"
                   }
                 }
               },
@@ -9023,7 +9023,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServerQuestResponse"
+                    "$ref": "#/components/schemas/ServerQuestView"
                   }
                 }
               },
@@ -9031,7 +9031,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServerQuestResponse"
+                    "$ref": "#/components/schemas/ServerQuestView"
                   }
                 }
               }
@@ -10081,17 +10081,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/TutorialProgressResponse"
+                  "$ref": "#/components/schemas/TutorialProgressView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TutorialProgressResponse"
+                  "$ref": "#/components/schemas/TutorialProgressView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TutorialProgressResponse"
+                  "$ref": "#/components/schemas/TutorialProgressView"
                 }
               }
             }
@@ -10667,17 +10667,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/WalletResponse"
+                  "$ref": "#/components/schemas/WalletView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WalletResponse"
+                  "$ref": "#/components/schemas/WalletView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WalletResponse"
+                  "$ref": "#/components/schemas/WalletView"
                 }
               }
             }
@@ -11267,7 +11267,7 @@
         },
         "additionalProperties": false
       },
-      "BattleReportLineResponse": {
+      "BattleReportLineView": {
         "required": [
           "dead",
           "recoverable",
@@ -11304,7 +11304,7 @@
         },
         "additionalProperties": false
       },
-      "BattleReportResponse": {
+      "BattleReportView": {
         "required": [
           "attackerPower",
           "defenderPower",
@@ -11370,7 +11370,7 @@
           "lines": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BattleReportLineResponse"
+              "$ref": "#/components/schemas/BattleReportLineView"
             }
           },
           "tamedBeastKey": {
@@ -15180,7 +15180,7 @@
         },
         "additionalProperties": false
       },
-      "LeaderboardEntryResponse": {
+      "LeaderboardEntry": {
         "required": [
           "playerId",
           "playerName",
@@ -16364,7 +16364,50 @@
         },
         "additionalProperties": false
       },
-      "PlayerRankResponse": {
+      "PlayerPowerView": {
+        "required": [
+          "army",
+          "clanTechnology",
+          "equipment",
+          "hero",
+          "technology",
+          "total",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "army": {
+            "type": "number",
+            "format": "double"
+          },
+          "hero": {
+            "type": "number",
+            "format": "double"
+          },
+          "equipment": {
+            "type": "number",
+            "format": "double"
+          },
+          "technology": {
+            "type": "number",
+            "format": "double"
+          },
+          "clanTechnology": {
+            "type": "number",
+            "format": "double"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlayerRankView": {
         "required": [
           "activityScore",
           "battlesWon",
@@ -16432,49 +16475,6 @@
             "items": {
               "type": "string"
             }
-          }
-        },
-        "additionalProperties": false
-      },
-      "PowerResponse": {
-        "required": [
-          "army",
-          "clanTechnology",
-          "equipment",
-          "hero",
-          "technology",
-          "total",
-          "updatedAt"
-        ],
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number",
-            "format": "double"
-          },
-          "army": {
-            "type": "number",
-            "format": "double"
-          },
-          "hero": {
-            "type": "number",
-            "format": "double"
-          },
-          "equipment": {
-            "type": "number",
-            "format": "double"
-          },
-          "technology": {
-            "type": "number",
-            "format": "double"
-          },
-          "clanTechnology": {
-            "type": "number",
-            "format": "double"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -17190,7 +17190,7 @@
         },
         "additionalProperties": false
       },
-      "ServerQuestResponse": {
+      "ServerQuestView": {
         "required": [
           "displayName",
           "key",
@@ -17217,7 +17217,7 @@
             "format": "int64"
           },
           "state": {
-            "type": "string"
+            "$ref": "#/components/schemas/QuestState"
           },
           "completedAt": {
             "type": "string",
@@ -18045,7 +18045,7 @@
         },
         "additionalProperties": false
       },
-      "TutorialProgressResponse": {
+      "TutorialProgressView": {
         "required": [
           "seenSteps"
         ],
@@ -18230,7 +18230,7 @@
         },
         "additionalProperties": false
       },
-      "WalletResponse": {
+      "WalletView": {
         "required": [
           "gemBalance",
           "purchasedGems",

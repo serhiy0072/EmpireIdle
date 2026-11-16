@@ -1,5 +1,5 @@
-using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Power.Queries;
+using EmpireIdle.Application.Power.ReadModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,16 +21,11 @@ namespace EmpireIdle.API.Controllers
         /// що змінюють армію — тренуванням, боєм, поверненням походу.
         /// </summary>
         [HttpGet("{playerId:guid}")]
-        [ProducesResponseType(typeof(PowerResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PlayerPowerView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetPower(Guid playerId, CancellationToken cancellationToken)
         {
-            var power = await _mediator.Send(new GetPlayerPowerQuery(playerId), cancellationToken);
-
-            var response = new PowerResponse(
-                power.Total, power.Army, power.Hero, power.Equipment, power.Technology, power.ClanTechnology, power.UpdatedAt);
-
-            return Ok(response);
+            return Ok(await _mediator.Send(new GetPlayerPowerQuery(playerId), cancellationToken));
         }
     }
 }
