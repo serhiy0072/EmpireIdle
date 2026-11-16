@@ -1,5 +1,6 @@
 using EmpireIdle.Api.Tests.Infrastructure;
 using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Villages.ReadModels;
 using EmpireIdle.Infrastructure.Persistence;
 using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -93,7 +94,7 @@ public class IdempotencyEndToEndTests : IClassFixture<IdempotencyFixture>
     /// </summary>
     private async Task<Guid> TownhallIdAsync()
     {
-        var village = await _client.GetFromJsonAsync<VillageResponse>($"/api/village/{_playerId}");
+        var village = await _client.GetFromJsonAsync<VillageView>($"/api/village/{_playerId}", TestApiFactory.Json);
 
         village.Should().NotBeNull();
         village!.Buildings.Should().Contain(b => b.Type == "townhall", "нове село отримує ратушу серед StartingBuildings");

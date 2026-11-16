@@ -568,17 +568,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastPenResponse"
+                  "$ref": "#/components/schemas/BeastPenView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastPenResponse"
+                  "$ref": "#/components/schemas/BeastPenView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastPenResponse"
+                  "$ref": "#/components/schemas/BeastPenView"
                 }
               }
             }
@@ -723,17 +723,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastFedResponse"
+                  "$ref": "#/components/schemas/BeastFedView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastFedResponse"
+                  "$ref": "#/components/schemas/BeastFedView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastFedResponse"
+                  "$ref": "#/components/schemas/BeastFedView"
                 }
               }
             }
@@ -801,17 +801,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastActivatedResponse"
+                  "$ref": "#/components/schemas/BeastActivatedView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastActivatedResponse"
+                  "$ref": "#/components/schemas/BeastActivatedView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastActivatedResponse"
+                  "$ref": "#/components/schemas/BeastActivatedView"
                 }
               }
             }
@@ -3866,17 +3866,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/GarrisonResponse"
+                  "$ref": "#/components/schemas/GarrisonView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GarrisonResponse"
+                  "$ref": "#/components/schemas/GarrisonView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GarrisonResponse"
+                  "$ref": "#/components/schemas/GarrisonView"
                 }
               }
             }
@@ -10236,17 +10236,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/VillageResponse"
+                  "$ref": "#/components/schemas/VillageView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VillageResponse"
+                  "$ref": "#/components/schemas/VillageView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VillageResponse"
+                  "$ref": "#/components/schemas/VillageView"
                 }
               }
             }
@@ -10511,17 +10511,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CollectAllResponse"
+                  "$ref": "#/components/schemas/CollectAllView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CollectAllResponse"
+                  "$ref": "#/components/schemas/CollectAllView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CollectAllResponse"
+                  "$ref": "#/components/schemas/CollectAllView"
                 }
               }
             }
@@ -11404,7 +11404,7 @@
         ],
         "type": "string"
       },
-      "BeastActivatedResponse": {
+      "BeastActivatedView": {
         "required": [
           "activeUntil",
           "beastKey",
@@ -11426,7 +11426,7 @@
         },
         "additionalProperties": false
       },
-      "BeastFedResponse": {
+      "BeastFedView": {
         "required": [
           "beastKey",
           "eaten",
@@ -11453,7 +11453,7 @@
         },
         "additionalProperties": false
       },
-      "BeastPassiveResponse": {
+      "BeastPassiveView": {
         "required": [
           "activationFodder",
           "bonus",
@@ -11495,7 +11495,7 @@
         },
         "additionalProperties": false
       },
-      "BeastPenResponse": {
+      "BeastPenView": {
         "required": [
           "beasts",
           "capacity",
@@ -11512,13 +11512,13 @@
           "beasts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BeastResponse"
+              "$ref": "#/components/schemas/BeastView"
             }
           },
           "taming": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BeastTamingResponse"
+              "$ref": "#/components/schemas/BeastTamingView"
             }
           },
           "fodderUpkeepPerHour": {
@@ -11531,7 +11531,38 @@
         },
         "additionalProperties": false
       },
-      "BeastResponse": {
+      "BeastTamingView": {
+        "required": [
+          "beastKey",
+          "chance",
+          "misses",
+          "monsterKey",
+          "pityWins"
+        ],
+        "type": "object",
+        "properties": {
+          "beastKey": {
+            "type": "string"
+          },
+          "monsterKey": {
+            "type": "string"
+          },
+          "chance": {
+            "type": "number",
+            "format": "double"
+          },
+          "misses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pityWins": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeastView": {
         "required": [
           "beastKey",
           "experience",
@@ -11572,43 +11603,12 @@
             "format": "date-time"
           },
           "passive": {
-            "$ref": "#/components/schemas/BeastPassiveResponse"
+            "$ref": "#/components/schemas/BeastPassiveView"
           }
         },
         "additionalProperties": false
       },
-      "BeastTamingResponse": {
-        "required": [
-          "beastKey",
-          "chance",
-          "misses",
-          "monsterKey",
-          "pityWins"
-        ],
-        "type": "object",
-        "properties": {
-          "beastKey": {
-            "type": "string"
-          },
-          "monsterKey": {
-            "type": "string"
-          },
-          "chance": {
-            "type": "number",
-            "format": "double"
-          },
-          "misses": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pityWins": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "BuildingResponse": {
+      "BuildingView": {
         "required": [
           "damageLevel",
           "id",
@@ -11653,13 +11653,13 @@
           "isUnderConstruction": {
             "type": "boolean"
           },
+          "isUnlocked": {
+            "type": "boolean"
+          },
           "speedUpCostGems": {
             "type": "integer",
             "format": "int32",
             "nullable": true
-          },
-          "isUnlocked": {
-            "type": "boolean"
           },
           "damageLevel": {
             "type": "integer",
@@ -14104,7 +14104,7 @@
         },
         "additionalProperties": false
       },
-      "CollectAllResponse": {
+      "CollectAllView": {
         "required": [
           "collected"
         ],
@@ -14113,13 +14113,13 @@
           "collected": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CollectedResourceResponse"
+              "$ref": "#/components/schemas/CollectedResourceView"
             }
           }
         },
         "additionalProperties": false
       },
-      "CollectedResourceResponse": {
+      "CollectedResourceView": {
         "required": [
           "amount",
           "resourceType"
@@ -14676,7 +14676,7 @@
         },
         "additionalProperties": false
       },
-      "GarrisonResponse": {
+      "GarrisonView": {
         "required": [
           "id",
           "levelUpOrders",
@@ -14699,31 +14699,31 @@
           "units": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UnitResponse"
+              "$ref": "#/components/schemas/UnitView"
             }
           },
           "wounded": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UnitResponse"
+              "$ref": "#/components/schemas/UnitView"
             }
           },
           "recoverable": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/RecoverableUnitResponse"
+              "$ref": "#/components/schemas/RecoverableUnitView"
             }
           },
           "trainingOrders": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TrainingOrderResponse"
+              "$ref": "#/components/schemas/TrainingOrderView"
             }
           },
           "levelUpOrders": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/LevelUpOrderResponse"
+              "$ref": "#/components/schemas/LevelUpOrderView"
             }
           }
         },
@@ -15212,7 +15212,7 @@
         },
         "additionalProperties": false
       },
-      "LevelUpOrderResponse": {
+      "LevelUpOrderView": {
         "required": [
           "completesAt",
           "count",
@@ -16651,7 +16651,7 @@
         },
         "additionalProperties": false
       },
-      "RecoverableUnitResponse": {
+      "RecoverableUnitView": {
         "required": [
           "costGems",
           "count",
@@ -16731,7 +16731,7 @@
         },
         "additionalProperties": false
       },
-      "RepairCostResponse": {
+      "RepairCostView": {
         "required": [
           "amount",
           "resource"
@@ -16940,7 +16940,7 @@
         },
         "additionalProperties": false
       },
-      "ResourceResponse": {
+      "ResourceView": {
         "required": [
           "amount",
           "isUnlocked",
@@ -17909,7 +17909,7 @@
         },
         "additionalProperties": false
       },
-      "TrainingOrderResponse": {
+      "TrainingOrderView": {
         "required": [
           "completesAt",
           "count",
@@ -18065,7 +18065,7 @@
         },
         "additionalProperties": false
       },
-      "UnitResponse": {
+      "UnitView": {
         "required": [
           "count",
           "level",
@@ -18147,7 +18147,7 @@
         },
         "additionalProperties": false
       },
-      "VillageDamageResponse": {
+      "VillageDamageView": {
         "required": [
           "defeatsToEvict",
           "defeatStreak",
@@ -18166,13 +18166,13 @@
           "repairCost": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/RepairCostResponse"
+              "$ref": "#/components/schemas/RepairCostView"
             }
           }
         },
         "additionalProperties": false
       },
-      "VillageResponse": {
+      "VillageView": {
         "required": [
           "buildings",
           "id",
@@ -18203,13 +18203,13 @@
           "buildings": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BuildingResponse"
+              "$ref": "#/components/schemas/BuildingView"
             }
           },
           "resources": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ResourceResponse"
+              "$ref": "#/components/schemas/ResourceView"
             }
           },
           "shieldUntil": {
@@ -18218,7 +18218,7 @@
             "nullable": true
           },
           "damage": {
-            "$ref": "#/components/schemas/VillageDamageResponse"
+            "$ref": "#/components/schemas/VillageDamageView"
           },
           "isHungry": {
             "type": "boolean"

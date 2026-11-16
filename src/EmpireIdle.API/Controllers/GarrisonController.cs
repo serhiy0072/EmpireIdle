@@ -1,6 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Garrisons.Commands;
 using EmpireIdle.Application.Garrisons.Queries;
+using EmpireIdle.Application.Garrisons.ReadModels;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -24,25 +25,11 @@ namespace EmpireIdle.API.Controllers
         /// Отримати гарнізон: юніти та активні замовлення тренування й прокачки.
         /// </summary>
         [HttpGet("{playerId:guid}")]
-        [ProducesResponseType(typeof(GarrisonResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GarrisonView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<GarrisonResponse>> GetGarrison(Guid playerId, CancellationToken cancellationToken)
+        public async Task<ActionResult<GarrisonView>> GetGarrison(Guid playerId, CancellationToken cancellationToken)
         {
-            var garrison = await _mediator.Send(new GetGarrisonQuery(playerId), cancellationToken);
-
-            var response = new GarrisonResponse(
-                garrison.Id,
-                garrison.VillageId,
-                garrison.Units.Select(u => new UnitResponse(u.UnitType, u.Level, u.Count)).ToList(),
-                garrison.Wounded.Select(w => new UnitResponse(w.UnitType, w.Level, w.Count)).ToList(),
-                garrison.Recoverable.Select(r => new RecoverableUnitResponse(
-                    r.UnitType, r.Level, r.Count, r.ExpiresAt, r.CostGems)).ToList(),
-                garrison.TrainingOrders.Select(o => new TrainingOrderResponse(
-                    o.Id, o.UnitType, o.Level, o.Count, o.CompletesAt, o.SpeedUpCostGems)).ToList(),
-                garrison.LevelUpOrders.Select(o => new LevelUpOrderResponse(
-                    o.Id, o.UnitType, o.FromLevel, o.ToLevel, o.Count, o.CompletesAt, o.SpeedUpCostGems)).ToList());
-
-            return Ok(response);
+            return Ok(await _mediator.Send(new GetGarrisonQuery(playerId), cancellationToken));
         }
 
         /// <summary>

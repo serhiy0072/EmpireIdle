@@ -1,14 +1,14 @@
 import type { components } from "./schema";
 
 /** Псевдоніми згенерованих типів: екрани не лізуть у components руками. */
-export type VillageResponse = components["schemas"]["VillageResponse"];
+export type VillageResponse = components["schemas"]["VillageView"];
 export type ClanTerritoryResponse = components["schemas"]["ClanTerritoryResponse"];
 export type ClanStructureResponse = components["schemas"]["ClanStructureResponse"];
 export type ClanQuestResponse = components["schemas"]["ClanQuestResponse"];
 export type ClanSlotUnlockResponse = components["schemas"]["ClanSlotUnlockResponse"];
 export type ClanContributorResponse = components["schemas"]["ClanContributorResponse"];
-export type VillageDamageResponse = components["schemas"]["VillageDamageResponse"];
-export type BuildingResponse = components["schemas"]["BuildingResponse"];
+export type VillageDamageResponse = components["schemas"]["VillageDamageView"];
+export type BuildingResponse = components["schemas"]["BuildingView"];
 export type ResearchView = components["schemas"]["ResearchView"];
 export type ResearchNodeView = components["schemas"]["ResearchNodeView"];
 export type TechnologyStat = components["schemas"]["TechnologyStat"];
@@ -18,12 +18,12 @@ export type ClanOfferingResult = components["schemas"]["ClanOfferingResult"];
 export type ClanShopView = components["schemas"]["ClanShopView"];
 export type ClanShopOfferView = components["schemas"]["ClanShopOfferView"];
 export type ClanShopKind = components["schemas"]["ClanShopKind"];
-export type CollectAllResponse = components["schemas"]["CollectAllResponse"];
+export type CollectAllResponse = components["schemas"]["CollectAllView"];
 export type WalletResponse = components["schemas"]["WalletView"];
-export type GarrisonResponse = components["schemas"]["GarrisonResponse"];
-export type UnitResponse = components["schemas"]["UnitResponse"];
-export type TrainingOrderResponse = components["schemas"]["TrainingOrderResponse"];
-export type RecoverableUnitResponse = components["schemas"]["RecoverableUnitResponse"];
+export type GarrisonResponse = components["schemas"]["GarrisonView"];
+export type UnitResponse = components["schemas"]["UnitView"];
+export type TrainingOrderResponse = components["schemas"]["TrainingOrderView"];
+export type RecoverableUnitResponse = components["schemas"]["RecoverableUnitView"];
 export type HealPaymentMethod = components["schemas"]["HealPaymentMethod"];
 export type QuestView = components["schemas"]["QuestView"];
 export type ClaimAllQuestsResponse = components["schemas"]["ClaimAllQuestsResponse"];
