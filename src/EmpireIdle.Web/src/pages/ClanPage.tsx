@@ -41,6 +41,7 @@ import { compactPower, usePower } from "../lib/queries/rating";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 import TabHotkeys from "../components/shell/TabHotkeys";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 type Tab = "help" | "members" | "territory" | "technologies" | "shop" | "requests" | "settings";
@@ -120,10 +121,7 @@ export default function ClanPage() {
     resolve,
   ];
   const busy = mutations.some((mutation) => mutation.isPending);
-  // Помилка лише останньої дії: інакше стара відмова однієї кнопки
-  // (скажімо, створення клану) перекривала б свіжу відмову іншої
-  const latest = mutations.reduce((last, mutation) => (mutation.submittedAt > last.submittedAt ? mutation : last));
-  const failure = latest.error;
+  const failure = latestError(mutations);
 
   const copyId = () => {
     void navigator.clipboard.writeText(playerId).then(() => {

@@ -22,6 +22,7 @@ import {
 } from "../lib/queries/heroes";
 import { useEquip, useEquipBest, useInventory, useUnequip, useUnequipAll } from "../lib/queries/inventory";
 import { formatNumber } from "../lib/format";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 type Tab = "stats" | "skills" | "gear";
@@ -92,7 +93,7 @@ export default function HeroPage() {
 
   const mutations = [levelUp, advanceStar, convertShards, evolve, heal, resetLevel, upgradeSkill, equip, unequip, unequipAll, equipBest];
   const busy = mutations.some((mutation) => mutation.isPending);
-  const failure = mutations.map((mutation) => mutation.error).find((error) => error !== null) ?? null;
+  const failure = latestError(mutations);
 
   const items = inventory.data?.items ?? [];
   const rank = config?.rank ?? "Common";
