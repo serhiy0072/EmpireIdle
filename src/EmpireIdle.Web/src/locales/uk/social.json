@@ -156,7 +156,8 @@
     "message": "написати",
     "confirmLeader": "Точно передати?",
     "makeLeader": "Зробити лідером",
-    "kick": "Виключити"
+    "kick": "Виключити",
+    "confirmKick": "Точно виключити?"
   },
   "requests": {
     "title": "Заявки · {{count}}",

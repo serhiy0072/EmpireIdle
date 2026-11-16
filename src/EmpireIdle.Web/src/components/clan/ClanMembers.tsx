@@ -51,6 +51,7 @@ export default function ClanMembers({
 }: Props) {
   // Передача лідерства незворотна для того, хто натиснув, — тож у два кліки
   const [confirmLeader, setConfirmLeader] = useState<string | null>(null);
+  const [confirmKick, setConfirmKick] = useState<string | null>(null);
 
   // Більший ранг — старший: лідер угорі
   const sorted = [...members].sort((a, b) => b.rank - a.rank || b.power - a.power);
@@ -135,11 +136,20 @@ export default function ClanMembers({
                   {canKick && below && (
                     <button
                       type="button"
-                      onClick={() => onKick(member.playerId)}
+                      onClick={() => {
+                        // Виключення не скасувати — два кліки, як і передача лідерства
+                        if (confirmKick === member.playerId) {
+                          setConfirmKick(null);
+                          onKick(member.playerId);
+                        } else {
+                          setConfirmKick(member.playerId);
+                        }
+                      }}
+                      onBlur={() => setConfirmKick(null)}
                       disabled={busy}
                       className="rounded-lg border border-red-200 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
                     >
-                      {t("social:members.kick")}
+                      {confirmKick === member.playerId ? t("social:members.confirmKick") : t("social:members.kick")}
                     </button>
                   )}
                 </td>
