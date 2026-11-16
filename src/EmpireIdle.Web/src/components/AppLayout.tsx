@@ -194,8 +194,9 @@ export default function AppLayout() {
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <main className={fullBleed ? "h-full" : "mx-auto h-full max-w-5xl px-4 py-4"}>
-          {/* key скидає впалий екран при переході: навігація лишається живою */}
-          <ErrorBoundary key={location.pathname}>
+          {/* key скидає впалий екран при переході: навігація лишається живою. Ключ — розділ, а не повний шлях:
+              вкладки всередині розділу (/clan/shop, /army/barracks) не перемонтовують сторінку й не стирають її стан */}
+          <ErrorBoundary key={location.pathname.split("/")[1] ?? ""}>
             <Outlet />
           </ErrorBoundary>
         </main>
