@@ -172,6 +172,47 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Створити власну роль клану. Потрібен дозвіл ManageRoles.</summary>
+        [HttpPost("{playerId:guid}/roles")]
+        [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> CreateRole(Guid playerId, [FromBody] ClanRoleRequest request,
+            CancellationToken cancellationToken)
+        {
+            var roleId = await _mediator.Send(
+                new CreateClanRoleCommand(playerId, request.Name, request.Rank, Combine(request.Permissions)), cancellationToken);
+
+            return Created((string?)null, roleId);
+        }
+
+        /// <summary>Змінити назву, ранг і дозволи ролі. Роль лідера незмінна.</summary>
+        [HttpPut("{playerId:guid}/roles/{roleId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> UpdateRole(Guid playerId, Guid roleId, [FromBody] ClanRoleRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(
+                new UpdateClanRoleCommand(playerId, roleId, request.Name, request.Rank, Combine(request.Permissions)), cancellationToken);
+
+            return NoContent();
+        }
+
+        /// <summary>Видалити роль: її носії переходять на роль за замовчуванням.</summary>
+        [HttpDelete("{playerId:guid}/roles/{roleId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteRole(Guid playerId, Guid roleId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new DeleteClanRoleCommand(playerId, roleId), cancellationToken);
+
+            return NoContent();
+        }
+
         /// <summary>Змінити опис і політику вступу. Потрібен дозвіл EditProfile.</summary>
         [HttpPut("{playerId:guid}/settings")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -230,10 +271,13 @@ namespace EmpireIdle.API.Controllers
         /// Прапорці дозволів — списком назв: фронту простіше перевірити
         /// наявність у масиві, ніж робити бітову арифметику.
         /// </summary>
-        private static List<string> PermissionNames(ClanPermission permissions)
+        private static List<ClanPermission> PermissionNames(ClanPermission permissions)
             => Enum.GetValues<ClanPermission>()
                 .Where(p => p != ClanPermission.None && permissions.HasFlag(p))
-                .Select(p => p.ToString())
                 .ToList();
+
+        /// <summary>Назад із списку назв у прапорці — для запитів, що задають дозволи ролі.</summary>
+        private static ClanPermission Combine(IEnumerable<ClanPermission>? permissions)
+            => (permissions ?? []).Aggregate(ClanPermission.None, (all, permission) => all | permission);
     }
 }

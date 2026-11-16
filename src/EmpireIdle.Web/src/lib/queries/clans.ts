@@ -7,7 +7,9 @@ import type {
   ClanInviteResponse,
   ClanJoinPolicy,
   ClanListResponse,
+  ClanPermission,
   ClanProfileResponse,
+  ClanRoleRequest,
   MyClanResponse,
 } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
@@ -76,7 +78,7 @@ export function useClanProfile(clanId: string | null): UseQueryResult<ClanProfil
 /** Усі кланові команди без тіла: усе потрібне серверу — в маршруті. */
 function useClanCommand<TInput>(
   playerId: string,
-  request: (input: TInput) => { path: string; method?: "POST" | "PUT"; body?: unknown },
+  request: (input: TInput) => { path: string; method?: "POST" | "PUT" | "DELETE"; body?: unknown },
   scopes: readonly PlayerScope[],
 ) {
   const queryClient = useQueryClient();
@@ -157,6 +159,23 @@ export function useAssignRole(playerId: string) {
   );
 }
 
+/** Власні ролі клану: створення, зміна й видалення. Видалена роль переводить своїх носіїв у звичайні учасники. */
+export function useCreateClanRole(playerId: string) {
+  return useClanCommand<ClanRoleRequest>(playerId, (role) => ({ path: `/api/clans/${playerId}/roles`, body: role }), ["clan"]);
+}
+
+export function useUpdateClanRole(playerId: string) {
+  return useClanCommand<{ roleId: string; role: ClanRoleRequest }>(
+    playerId,
+    (input) => ({ path: `/api/clans/${playerId}/roles/${input.roleId}`, method: "PUT", body: input.role }),
+    ["clan"],
+  );
+}
+
+export function useDeleteClanRole(playerId: string) {
+  return useClanCommand<string>(playerId, (roleId) => ({ path: `/api/clans/${playerId}/roles/${roleId}`, method: "DELETE" }), ["clan"]);
+}
+
 export function useUpdateClanSettings(playerId: string) {
   return useClanCommand<{ description: string; joinPolicy: ClanJoinPolicy }>(
     playerId,
@@ -224,10 +243,20 @@ export function joinPolicyLabel(policy: string): string {
 /** Значення ClanJoinPolicy з контракту — у порядку, в якому їх показує вибір. */
 export const JOIN_POLICIES: readonly ClanJoinPolicy[] = ["Open", "ByApproval", "InviteOnly"];
 
-const PERMISSIONS = ["Recruit", "Kick", "AssignRoles", "ManageRoles", "EditProfile", "BuildStructures", "Disband", "ManageTechnologies"] as const;
+/** Дозволи клану в порядку, в якому їх показує редактор ролей; satisfies ловить новий дозвіл без підпису. */
+export const CLAN_PERMISSIONS = [
+  "Recruit",
+  "Kick",
+  "AssignRoles",
+  "ManageRoles",
+  "EditProfile",
+  "BuildStructures",
+  "ManageTechnologies",
+  "Disband",
+] as const satisfies readonly Exclude<ClanPermission, "None">[];
 
 export function permissionLabel(permission: string): string {
-  return (PERMISSIONS as readonly string[]).includes(permission)
-    ? t(`social:clan.permission.${permission as (typeof PERMISSIONS)[number]}`)
+  return (CLAN_PERMISSIONS as readonly string[]).includes(permission)
+    ? t(`social:clan.permission.${permission as (typeof CLAN_PERMISSIONS)[number]}`)
     : permission;
 }

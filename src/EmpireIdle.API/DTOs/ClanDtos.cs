@@ -14,6 +14,12 @@ public record UpdateClanSettingsRequest(string Description, ClanJoinPolicy JoinP
 /// <summary>Нова роль для учасника. Роль лідера так не передається.</summary>
 public record AssignClanRoleRequest(Guid RoleId);
 
+/// <summary>
+/// Власна роль клану: назва, ранг 0..100 і дозволи списком назв — так само, як вони приходять у ClanRoleResponse.
+/// Потрібен дозвіл ManageRoles; видати можна лише ті дозволи, які маєш сам, і лише ранг нижчий за власний.
+/// </summary>
+public record ClanRoleRequest(string Name, int Rank, List<ClanPermission> Permissions);
+
 /// <summary>Прохання про допомогу з таймером будівлі або тренування.</summary>
 public record RequestClanHelpRequest(ClanHelpTarget TargetType, Guid TargetId);
 
@@ -57,7 +63,7 @@ public record ClanRoleResponse(
     string Name,
     string? Key,
     int Rank,
-    List<string> Permissions,
+    List<ClanPermission> Permissions,
     bool IsLeaderRole,
     bool IsDefaultRole);
 
@@ -84,7 +90,7 @@ public record MyClanResponse(
     int Capacity,
     DateTime CreatedAt,
     Guid MyRoleId,
-    List<string> MyPermissions,
+    List<ClanPermission> MyPermissions,
     List<ClanRoleResponse> Roles,
     List<ClanMemberResponse> Members);
 

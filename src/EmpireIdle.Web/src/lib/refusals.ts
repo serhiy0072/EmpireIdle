@@ -169,6 +169,7 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "clan.leaderOnly": () => t("errors:refusal.clan.leaderOnly"),
   "clan.roleProtected": () => t("errors:refusal.clan.roleProtected"),
   "clan.roleNameTaken": ({ name }) => t("errors:refusal.clan.roleNameTaken", { name }),
+  "clan.rolesLimit": ({ max }) => t("errors:refusal.clan.rolesLimit", { max }),
   "clan.permissionsExceedOwn": ({ role, roleKey }) =>
     t("errors:refusal.clan.permissionsExceedOwn", { role: clanRoleName(roleKey, role) }),
   "clan.requestResolved": () => t("errors:refusal.clan.requestResolved"),

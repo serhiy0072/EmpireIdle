@@ -4,6 +4,7 @@ import ClanBrowser from "../components/clan/ClanBrowser";
 import ClanHelpPanel from "../components/clan/ClanHelpPanel";
 import ClanMembers from "../components/clan/ClanMembers";
 import ClanRequestsPanel from "../components/clan/ClanRequestsPanel";
+import ClanRoles from "../components/clan/ClanRoles";
 import ClanSettings from "../components/clan/ClanSettings";
 import ClanShopPanel from "../components/clan/ClanShopPanel";
 import ClanTechnologiesPanel from "../components/clan/ClanTechnologiesPanel";
@@ -28,6 +29,9 @@ import {
   useRequestHelp,
   useResolveRequest,
   useTransferLeadership,
+  useCreateClanRole,
+  useDeleteClanRole,
+  useUpdateClanRole,
   useUpdateClanSettings,
 } from "../lib/queries/clans";
 import { clanRoleName } from "../lib/clanRoles";
@@ -74,6 +78,9 @@ export default function ClanPage() {
   const assignRole = useAssignRole(playerId);
   const transferLeadership = useTransferLeadership(playerId);
   const settings = useUpdateClanSettings(playerId);
+  const createRole = useCreateClanRole(playerId);
+  const updateRole = useUpdateClanRole(playerId);
+  const deleteRole = useDeleteClanRole(playerId);
   const requestHelp = useRequestHelp(playerId);
   const giveHelp = useGiveHelp(playerId);
   const recall = useRecallReinforcements(playerId);
@@ -95,7 +102,23 @@ export default function ClanPage() {
     return <ErrorBanner error={clan.error} />;
   }
 
-  const mutations = [create, join, leave, kick, assignRole, transferLeadership, settings, requestHelp, giveHelp, recall, invite, resolve];
+  const mutations = [
+    create,
+    join,
+    leave,
+    kick,
+    assignRole,
+    transferLeadership,
+    settings,
+    createRole,
+    updateRole,
+    deleteRole,
+    requestHelp,
+    giveHelp,
+    recall,
+    invite,
+    resolve,
+  ];
   const busy = mutations.some((mutation) => mutation.isPending);
   // Помилка лише останньої дії: інакше стара відмова однієї кнопки
   // (скажімо, створення клану) перекривала б свіжу відмову іншої
@@ -277,6 +300,21 @@ export default function ClanPage() {
 
       {tab === "settings" && (
         <div className="grid gap-4 md:grid-cols-2">
+          {/* Ролі бачать усі учасники; редактор усередині з'являється лише для ролей, якими можна керувати */}
+          {clan.data !== null && (
+            <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 md:col-span-2">
+              <h3 className="font-medium text-slate-800">{t("social:roles.title")}</h3>
+              <ClanRoles
+                clan={clan.data}
+                canManage={permissions.has("ManageRoles")}
+                busy={busy}
+                onCreate={(role) => createRole.mutate(role)}
+                onUpdate={(roleId, role) => updateRole.mutate({ roleId, role })}
+                onDelete={(roleId) => deleteRole.mutate(roleId)}
+              />
+            </section>
+          )}
+
           <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
             <h3 className="font-medium text-slate-800">{t("social:page.profile")}</h3>
             <ClanSettings

@@ -170,6 +170,20 @@
     "send": "Send",
     "idHint": "Players find their ID in the Clan section — ask them to send it."
   },
+  "roles": {
+    "title": "Roles",
+    "rank": "rank {{rank}}",
+    "noPermissions": "no permissions",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmDelete": "Really delete?",
+    "add": "New role",
+    "name": "Name",
+    "rankField": "Rank",
+    "rankHint": "Rank sets seniority: a member manages only those of a lower rank. You can use ranks 0 to {{max}}.",
+    "save": "Save"
+  },
   "settings": {
     "noDescription": "No description.",
     "joinPolicy": "Joining: {{policy}}",

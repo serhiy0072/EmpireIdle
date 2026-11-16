@@ -119,6 +119,7 @@
       "leaderOnly": "Only the leader can hand over leadership",
       "roleProtected": "The leader and newcomer roles can't be changed or deleted",
       "roleNameTaken": "The clan already has a \"{{name}}\" role",
+      "rolesLimit": "The clan already has the most roles it can have ({{max}})",
       "permissionsExceedOwn": "The \"{{role}}\" role can't grant permissions it doesn't have",
       "requestResolved": "This application has already been handled",
       "requestExpired": "The application has expired",

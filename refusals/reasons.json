@@ -121,6 +121,9 @@
     "name"
   ],
   "clan.roleProtected": [],
+  "clan.rolesLimit": [
+    "max"
+  ],
   "clan.targetInClan": [],
   "clantech.gemLimit": [
     "limit"

@@ -52,7 +52,7 @@ public class ClanChildPersistenceTests
         await using (var context = CreateContext())
         {
             var clan = await LoadClanAsync(context, clanId);
-            roleId = clan.CreateRole(founderId, "Scouts", 20, ClanPermission.Recruit, DateTime.UtcNow);
+            roleId = clan.CreateRole(founderId, "Scouts", 20, ClanPermission.Recruit, maxRoles: 12, DateTime.UtcNow);
             await context.SaveChangesAsync();
         }
 

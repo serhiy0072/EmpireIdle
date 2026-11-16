@@ -274,10 +274,18 @@ namespace EmpireIdle.Domain.Entities
 
         #region Ролі
 
-        /// <summary>Створює роль. Ранг не може дорівнювати власному або перевищувати його.</summary>
-        public Guid CreateRole(Guid actorId, string name, int rank, ClanPermission permissions, DateTime utcNow)
+        /// <summary>
+        /// Створює роль. Ранг не може дорівнювати власному або перевищувати його.
+        /// Кількість ролей обмежена: список ролей читається з кланом щоразу й не має рости без меж.
+        /// </summary>
+        /// <param name="maxRoles">Скільки ролей може мати клан разом із вбудованими (ClanConfig.MaxRoles).</param>
+        public Guid CreateRole(Guid actorId, string name, int rank, ClanPermission permissions, int maxRoles, DateTime utcNow)
         {
             var actor = RequireRole(actorId, ClanPermission.ManageRoles);
+
+            if (_roles.Count >= maxRoles)
+                throw new RequirementNotMetException(RefusalReasons.ClanRolesLimit,
+                    $"Clan {Id} already has {_roles.Count} roles of {maxRoles}.", maxRoles);
 
             EnsureRankBelow(actor, rank);
             EnsurePermissionsWithin(actor, permissions);
@@ -308,6 +316,32 @@ namespace EmpireIdle.Domain.Entities
             EnsureNameFree(name, exceptRoleId: roleId);
 
             role.Update(name, rank, permissions);
+            Touch(utcNow);
+        }
+
+        /// <summary>
+        /// Видаляє роль; її носії переходять на роль за замовчуванням. Роль лідера й роль за замовчуванням
+        /// не видаляються: без першої клан нікому передати, без другої нікуди зарахувати новачка.
+        /// </summary>
+        public void DeleteRole(Guid actorId, Guid roleId, DateTime utcNow)
+        {
+            var actor = RequireRole(actorId, ClanPermission.ManageRoles);
+
+            var role = _roles.FirstOrDefault(r => r.Id == roleId)
+                ?? throw new EntityNotFoundException("Clan role", roleId);
+
+            if (role.IsLeaderRole || role.IsDefaultRole)
+                throw new RequirementNotMetException(RefusalReasons.ClanRoleProtected,
+                    "The leader role and the default role cannot be deleted.");
+
+            EnsureRankBelow(actor, role.Rank);
+
+            var fallback = _roles.Single(r => r.IsDefaultRole);
+
+            foreach (var member in _members.Where(m => m.RoleId == role.Id))
+                member.AssignRole(fallback.Id);
+
+            _roles.Remove(role);
             Touch(utcNow);
         }
 

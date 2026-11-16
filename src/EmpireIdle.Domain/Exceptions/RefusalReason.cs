@@ -184,6 +184,9 @@
 
         public static readonly RefusalReason ClanRoleNameTaken = new("clan.roleNameTaken", "name");
 
+        /// <summary>У клані вже найбільша дозволена кількість ролей; max — скільки їх може бути.</summary>
+        public static readonly RefusalReason ClanRolesLimit = new("clan.rolesLimit", "max");
+
         /// <summary>Роль видає дозволи, яких сама не має; role — назва ролі виконавця, roleKey — ключ вбудованої ролі або порожньо.</summary>
         public static readonly RefusalReason ClanPermissionsExceedOwn = new("clan.permissionsExceedOwn", "role", "roleKey");
 
