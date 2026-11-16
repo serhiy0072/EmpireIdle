@@ -8,7 +8,6 @@ import type {
   ClanJoinPolicy,
   ClanListResponse,
   ClanPermission,
-  ClanProfileResponse,
   ClanRoleRequest,
   MyClanResponse,
 } from "../apiTypes";
@@ -66,14 +65,6 @@ export function useClanBrowse(search: string, page: number): UseQueryResult<Clan
     queryFn: () => api<ClanListResponse>(`/api/clans?${query.toString()}`),
     // Нова сторінка приходить без миготіння порожнім списком
     placeholderData: (previous) => previous,
-  });
-}
-
-export function useClanProfile(clanId: string | null): UseQueryResult<ClanProfileResponse> {
-  return useQuery({
-    queryKey: queryKeys.clanProfile(clanId ?? ""),
-    queryFn: () => api<ClanProfileResponse>(`/api/clans/profile/${clanId}`),
-    enabled: clanId !== null,
   });
 }
 

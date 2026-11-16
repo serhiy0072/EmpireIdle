@@ -127,10 +127,6 @@ async function execute<T>(path: string, options: RequestOptions): Promise<T> {
   return unwrap<T>(response);
 }
 
-export function apiGet<T>(path: string): Promise<T> {
-  return api<T>(path);
-}
-
 export function apiPost<T>(path: string, body: unknown, options: RequestOptions = {}): Promise<T> {
   return api<T>(path, { ...options, method: "POST", body });
 }

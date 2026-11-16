@@ -29,10 +29,6 @@ export async function register(
   return auth;
 }
 
-export function getPlayerId(): string | null {
-  return getSession()?.playerId ?? null;
-}
-
 /**
  * Вихід: сесія зникає локально одразу, а refresh-токен відкликається на сервері — інакше збережена
  * копія жила б до кінця строку. Збій мережі вихід не блокує: локально гравець уже вийшов.

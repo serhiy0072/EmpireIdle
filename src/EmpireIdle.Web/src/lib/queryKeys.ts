@@ -46,7 +46,6 @@ export const queryKeys = {
   clanInvites: (playerId: string) => ["clanRequests", playerId, "invites"] as const,
   /** Каталог кланів нікому не належить: ключ — від пошуку й сторінки. */
   clanBrowse: (search: string, page: number) => ["clans", "browse", search, page] as const,
-  clanProfile: (clanId: string) => ["clans", "profile", clanId] as const,
   /** Територія клану гравця: очки, слоти, споруди, квести клану. */
   territory: (playerId: string) => ["territory", playerId] as const,
   /** Кланові технології гравця: дерево клану, мої спроби, монети й денні пороги. */
