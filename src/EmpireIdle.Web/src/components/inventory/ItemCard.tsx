@@ -14,7 +14,25 @@ interface Props {
   onUse: (request: UseItemRequest) => void;
 }
 
-const TYPES = ["resources", "boost", "teleport", "evolution", "feed", "scoutveil", "energy", "heroxp", "chestkey", "shield"] as const;
+const TYPES = [
+  "resources",
+  "boost",
+  "teleport",
+  "evolution",
+  "feed",
+  "scoutveil",
+  "energy",
+  "heroxp",
+  "chestkey",
+  "shield",
+  "universalshard",
+  "wrench",
+  "repairkit",
+  "whetstone",
+  "speedup",
+  "skillbook",
+  "weaponchest",
+] as const;
 
 /** Типи, що вживаються кнопкою прямо з рюкзака; щит одразу піднімає або подовжує щит села. */
 const USABLE: readonly string[] = ["resources", "boost", "scoutveil", "energy", "heroxp", "shield"];

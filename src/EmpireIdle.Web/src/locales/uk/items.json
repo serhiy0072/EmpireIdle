@@ -32,7 +32,14 @@
     "energy": "Енергія данжів",
     "heroxp": "Досвід героїв",
     "chestkey": "Ключ скрині",
-    "shield": "Щит села"
+    "shield": "Щит села",
+    "universalshard": "Універсальний осколок",
+    "wrench": "Різець",
+    "repairkit": "Ремонт спорядження",
+    "whetstone": "Заточка",
+    "speedup": "Прискорення",
+    "skillbook": "Книга вмінь",
+    "weaponchest": "Скриня зброї"
   },
   "item": {
     "all": "усі",

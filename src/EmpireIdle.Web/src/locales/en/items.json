@@ -32,7 +32,14 @@
     "energy": "Dungeon energy",
     "heroxp": "Hero XP",
     "chestkey": "Chest key",
-    "shield": "Village shield"
+    "shield": "Village shield",
+    "universalshard": "Universal shard",
+    "wrench": "Chisel",
+    "repairkit": "Gear repair",
+    "whetstone": "Sharpening",
+    "speedup": "Speed-up",
+    "skillbook": "Skill book",
+    "weaponchest": "Weapon chest"
   },
   "item": {
     "all": "all",
