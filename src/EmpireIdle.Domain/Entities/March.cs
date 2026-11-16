@@ -169,6 +169,7 @@ namespace EmpireIdle.Domain.Entities
 
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
+            ArrivalRetryAt = null;
             LegStartedAt = utcNow;
 
             Touch(utcNow);
@@ -186,6 +187,7 @@ namespace EmpireIdle.Domain.Entities
 
             State = MarchState.Camping;
             ArrivesAt = utcNow;
+            ArrivalRetryAt = null;
             LegStartedAt = utcNow;
 
             RaiseDomainEvent(new HostileMarchCalledOff(Id, TargetType, TargetId, utcNow));
@@ -204,6 +206,7 @@ namespace EmpireIdle.Domain.Entities
             OriginY = originY;
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
+            ArrivalRetryAt = null;
             LegStartedAt = utcNow;
 
             Touch(utcNow);
@@ -229,6 +232,7 @@ namespace EmpireIdle.Domain.Entities
             OriginY = originY;
             State = MarchState.Returning;
             ArrivesAt = utcNow;
+            ArrivalRetryAt = null;
             LegStartedAt = utcNow;
 
             Touch(utcNow);
@@ -259,6 +263,7 @@ namespace EmpireIdle.Domain.Entities
 
             State = MarchState.Returning;
             ArrivesAt = utcNow + returnDuration;
+            ArrivalRetryAt = null;
             LegStartedAt = utcNow;
 
             Touch(utcNow);
@@ -326,7 +331,8 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>
         /// Прибуття впало — відкладає наступну спробу на стільки, на скільки похід уже прострочений
         /// (від 10 секунд до години). Пауза подвоюється сама собою без лічильника спроб, а нова нога
-        /// з новим ArrivesAt починає відлік спочатку.
+        /// з новим ArrivesAt починає відлік спочатку — кожен перехід, що задає ArrivesAt, скидає ArrivalRetryAt:
+        /// інакше розворот після переїзду села чекав би паузи, призначеної ще попередній нозі.
         /// </summary>
         public void DeferArrival(DateTime utcNow)
         {
