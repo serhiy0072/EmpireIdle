@@ -62,7 +62,7 @@ namespace EmpireIdle.Application.Heroes.Commands
 
             // Спорядження міняють удома: герой у дорозі не переодягається
             if (hero.StationedGarrisonId is null)
-                throw new RequirementNotMetException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on the move.");
+                throw new InvalidStateException(RefusalReasons.HeroOnTheMove, $"Hero {hero.Id} is on the move.");
 
             var item = await _inventoryRepository.GetEquipmentByIdAsync(request.EquipmentId, cancellationToken)
                 ?? throw new EntityNotFoundException("Equipment", request.EquipmentId.ToString());
