@@ -47,6 +47,42 @@ const STATS: readonly StatKey[] = [
   "LootCashback",
 ];
 
+/** Значок стату — поки без малюнків. Запис на кожен стат: новий без значка не збереться. */
+const STAT_ICONS: Record<StatKey, string> = {
+  Attack: "⚔️",
+  Defense: "🛡️",
+  ConvoySize: "🚩",
+  MarchSpeed: "🐎",
+  Carry: "🛒",
+  Production: "⛏️",
+  MealUpkeep: "🍖",
+  ConstructionSpeed: "🏗️",
+  TrainingSpeed: "🎯",
+  UnitLevelUpSpeed: "⬆️",
+  ResearchSpeed: "📜",
+  WoundedCapacity: "🩹",
+  UnitCapacity: "🏕️",
+  HeroExperience: "⭐",
+  TameChance: "🐾",
+  ProtectedStorage: "🔐",
+  HelpShareCap: "🤝",
+  OfferingAttempts: "🙏",
+  CoinBonus: "🪙",
+  TerritoryAttack: "🗡️",
+  TerritoryDefense: "🏰",
+  StructureBuildSpeed: "🧱",
+  StructureGarrison: "💂",
+  StructureCost: "💰",
+  LootCashback: "💎",
+};
+
+/** Значок стату технології; невідомий стат — пробірка. */
+export function statIcon(stat: TechnologyStat | undefined): string {
+  const key = stat === undefined ? undefined : STATS[stat];
+
+  return key === undefined ? "🔬" : STAT_ICONS[key];
+}
+
 /** Сумарний бонус технологій зі ResearchView.bonuses. */
 export interface TechnologyBonus {
   stat: TechnologyStat;
