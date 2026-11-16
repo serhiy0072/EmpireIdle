@@ -228,6 +228,7 @@
   },
   "sell": {
     "equipped": "(equipped)",
+    "unequipWarning": "A hero is wearing this artifact. Listing it on the market takes it off the hero.",
     "full": "All listing slots are taken. Wait for a sale, withdraw a listing or upgrade the market.",
     "nothing": "Nothing to sell: gear and tradeable items (boosts, essences) will show up here.",
     "what": "What to sell",

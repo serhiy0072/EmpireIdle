@@ -19,6 +19,8 @@ interface Option {
   goods: MarketGoods;
   /** Скільки штук є — лише для стакових предметів. */
   available?: number;
+  /** Артефакт зараз на герої: виставлення зніме його. */
+  equipped?: boolean;
 }
 
 /**
@@ -44,6 +46,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
           item.equippedByHeroId != null ? ` ${t("items:sell.equipped")}` : ""
         }`,
         goods: { kind: MARKET_KIND.Equipment, equipmentId: item.id, quantity: 1 },
+        equipped: item.equippedByHeroId != null,
       }));
 
     const stacks = (inventory.data?.items ?? [])
@@ -103,6 +106,10 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
           ))}
         </select>
       </label>
+
+      {selected?.equipped === true && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">{t("items:sell.unequipWarning")}</p>
+      )}
 
       {selected?.available !== undefined && (
         <label className="block text-sm">
