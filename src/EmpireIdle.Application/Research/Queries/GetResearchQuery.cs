@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.ReadModels;
@@ -43,8 +44,7 @@ namespace EmpireIdle.Application.Research.Queries
         public async Task<ResearchView> Handle(GetResearchQuery request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
             var research = await _research.GetByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
             var server = await _servers.GetByIdAsync(_serverContext.ServerId, cancellationToken);
 

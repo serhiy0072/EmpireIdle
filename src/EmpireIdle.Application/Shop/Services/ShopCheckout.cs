@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
@@ -68,8 +69,7 @@ namespace EmpireIdle.Application.Shop.Services
                 ?? throw new EntityNotFoundException("Player", playerId);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new EntityNotFoundException("Wallet", player.UserId);
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
             var total = offer.PriceGems * count;
 

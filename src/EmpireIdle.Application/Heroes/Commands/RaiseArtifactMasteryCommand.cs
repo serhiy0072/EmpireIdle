@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
@@ -69,8 +70,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new RequirementNotMetException(RefusalReasons.EquipmentMaxMastery,
                     $"Artifact {item.Id} mastery is already {item.Mastery}.", equipment.MaxMastery);
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             if (!village.HasBuilding(equipment.ForgeBuildingKey))
                 throw new RequirementNotMetException(RefusalReasons.BuildingRequired,

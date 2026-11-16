@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
@@ -37,8 +38,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
         public async Task Handle(MoveBuildingCommand request, CancellationToken cancellationToken)
         {
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             village.MoveBuilding(request.BuildingId, request.X, request.Y, _catalog.Buildings,
                 _timeProvider.GetUtcNow().UtcDateTime);

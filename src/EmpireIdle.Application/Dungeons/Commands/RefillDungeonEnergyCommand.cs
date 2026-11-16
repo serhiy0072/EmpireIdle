@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -72,8 +73,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
                 ?? throw new EntityNotFoundException("Player", playerId);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new EntityNotFoundException("Wallet", player.UserId);
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
             // Перевірка до списання: гравцю потрібна відмова з цифрами, а не виняток value object
             if (wallet.GemBalance.Value < price)

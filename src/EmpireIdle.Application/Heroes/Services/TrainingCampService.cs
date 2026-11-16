@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
@@ -72,8 +73,7 @@ namespace EmpireIdle.Application.Heroes.Services
             var player = await _players.GetByIdAsync(playerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Player", playerId);
 
-            var wallet = await _wallets.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new EntityNotFoundException("Wallet", player.UserId);
+            var wallet = await _wallets.RequireByUserAsync(player.UserId, cancellationToken);
 
             if (wallet.GemBalance.Value < cost)
                 throw new NotEnoughResourcesException("gems", cost, wallet.GemBalance.Value);

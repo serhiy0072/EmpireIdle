@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
@@ -30,8 +31,7 @@ namespace EmpireIdle.Application.Wallets.Queries
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                ?? throw new InvalidOperationException("Wallet not found.");
+            var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
             var vipLevel = _vip.Level(wallet.PurchasedGems);
 

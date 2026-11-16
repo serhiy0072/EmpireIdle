@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
@@ -108,8 +109,7 @@ namespace EmpireIdle.Application.Banners.Commands
             var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Player", request.PlayerId);
 
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new EntityNotFoundException("Wallet", player.UserId);
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
             // Перевірка до списання — на всю серію одразу: половина серії за
             // рештки валюти була б несподіванкою, а Subtract кинув би виняток рівня

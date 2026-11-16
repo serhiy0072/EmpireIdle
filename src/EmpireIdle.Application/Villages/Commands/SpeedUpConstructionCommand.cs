@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -45,8 +46,7 @@ namespace EmpireIdle.Application.Villages.Commands
         public async Task Handle(SpeedUpConstructionCommand request, CancellationToken cancellationToken)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             var building = village.Buildings.FirstOrDefault(b => b.Id == request.BuildingId)
                 ?? throw new EntityNotFoundException("Building", request.BuildingId);
@@ -61,8 +61,7 @@ namespace EmpireIdle.Application.Villages.Commands
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                ?? throw new InvalidOperationException("Wallet not found.");
+            var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
             wallet.SpendGems(new GemAmount(cost), $"Speed up construction of {building.Type}", request.PlayerId, now);
 

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
@@ -64,8 +65,7 @@ namespace EmpireIdle.Application.Speedups.Services
                 });
             }
 
-            var village = await _villageRepository.GetByPlayerIdAsync(playerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {playerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(playerId, cancellationToken);
 
             if (timer == SpeedUpTimer.Construction)
             {
@@ -86,8 +86,7 @@ namespace EmpireIdle.Application.Speedups.Services
                 });
             }
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
             switch (timer)
             {

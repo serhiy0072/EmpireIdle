@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
@@ -47,11 +48,9 @@ namespace EmpireIdle.Application.Garrisons.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
             var order = garrison.LevelUpOrders.FirstOrDefault(o => o.Id == request.OrderId)
                 ?? throw new EntityNotFoundException("Level-up order", request.OrderId);
@@ -63,8 +62,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                ?? throw new InvalidOperationException("Wallet not found.");
+            var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
             wallet.SpendGems(new GemAmount(cost), $"Speed up levelling up {order.UnitType}", request.PlayerId, now);
 

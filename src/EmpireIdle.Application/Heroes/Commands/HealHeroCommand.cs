@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -57,8 +58,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             if (hero.PlayerId != request.PlayerId)
                 throw new EntityNotFoundException("Hero", request.HeroId.ToString());
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             var buildingKey = _catalog.Config.HeroSettings.HealBuildingKey;
 

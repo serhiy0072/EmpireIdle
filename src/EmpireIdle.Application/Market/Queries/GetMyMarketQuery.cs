@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Market.Contracts;
@@ -35,8 +36,7 @@ namespace EmpireIdle.Application.Market.Queries
 
         public async Task<MyMarketView> Handle(GetMyMarketQuery request, CancellationToken cancellationToken)
         {
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
             var open = _desk.IsOpen(village);
 

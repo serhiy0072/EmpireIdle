@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Beasts.ReadModels;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -33,8 +34,7 @@ namespace EmpireIdle.Application.Beasts.Queries
             if (!_catalog.Beasts.TryGetValue(request.BeastKey, out var beast))
                 throw new EntityNotFoundException("Beast", request.BeastKey);
 
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
             var monster = await _monsters.GetNearestAsync(village.ServerId, beast.MonsterKey, village.X, village.Y, cancellationToken);
 

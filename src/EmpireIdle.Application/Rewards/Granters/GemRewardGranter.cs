@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.ValueObjects;
@@ -30,8 +31,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             var player = await _playerRepository.GetByIdAsync(context.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Player {context.PlayerId} not found.");
 
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new InvalidOperationException($"Wallet not found for player {context.PlayerId}.");
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
             wallet.GrantGems(new GemAmount(context.Reward.Amount), context.Reference, now);
         }

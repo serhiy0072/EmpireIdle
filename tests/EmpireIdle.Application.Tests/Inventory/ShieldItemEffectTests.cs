@@ -63,11 +63,12 @@ public class ShieldItemEffectTests
         Assert.False(_village.IsShieldedAt(Now.AddHours(2)));
     }
 
+    /// <summary>Гравець без села — поломка даних, а не відмова гравцю: збій сервера зі слідом у логах.</summary>
     [Fact]
-    public async Task Shield_ShouldRefuse_WithoutAVillage()
+    public async Task Shield_ShouldFail_WithoutAVillage()
     {
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns((Village?)null);
 
-        await Assert.ThrowsAsync<EntityNotFoundException>(() => Use());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Use());
     }
 }

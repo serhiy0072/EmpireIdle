@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -46,8 +47,7 @@ namespace EmpireIdle.Application.Villages.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             // Буфер рахується від останньої матеріалізації, тож потрібне вікно буста
             var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);

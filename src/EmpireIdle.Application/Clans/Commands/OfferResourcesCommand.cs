@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -47,8 +48,7 @@ namespace EmpireIdle.Application.Clans.Commands
             var cost = _technologies.AttemptCost(request.Tier, node)
                 ?? throw new InvalidOperationException($"Clan technology {key} has no priced resource.");
 
-            var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             var ledger = await _offerings.LedgerOfAsync(request.PlayerId, now, cancellationToken);
             var offering = _technologies.Offering;

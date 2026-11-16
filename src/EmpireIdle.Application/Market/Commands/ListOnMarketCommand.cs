@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Market.Services;
@@ -67,8 +68,7 @@ namespace EmpireIdle.Application.Market.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             _desk.RequireOpen(village);
             var limit = _desk.ListingLimit;

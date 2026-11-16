@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
@@ -52,11 +53,9 @@ namespace EmpireIdle.Application.Garrisons.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
             var config = _catalog.FindUnit(request.UnitType)
                 ?? throw new EntityNotFoundException("Unit type", request.UnitType);

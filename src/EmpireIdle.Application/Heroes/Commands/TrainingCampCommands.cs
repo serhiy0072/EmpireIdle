@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
@@ -81,8 +82,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                     $"Hero {hero.Id} is one of the {_rules.ReferenceSize} strongest heroes outside the camp.",
                     _rules.ReferenceSize);
 
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
             var camp = await _camps.GetOrCreateCampAsync(request.PlayerId, now, cancellationToken);
             var totalSlots = _rules.TotalSlots(_status.MainBuildingLevel(village), camp.PurchasedSlots);

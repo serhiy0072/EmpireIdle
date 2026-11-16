@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Beasts.ReadModels;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -55,8 +56,7 @@ namespace EmpireIdle.Application.Beasts.Commands
             var pen = await _pens.GetByPlayerAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Beast", request.BeastKey);
 
-            var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             // Звіринцю бракує корму — звірі голодні й не працюють, доки їх не нагодують (рішення 20.10.2026)
             if (village.BeastsHungry)

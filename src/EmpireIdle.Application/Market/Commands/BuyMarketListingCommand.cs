@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Market.Services;
@@ -59,8 +60,7 @@ namespace EmpireIdle.Application.Market.Commands
             var listing = await _market.GetByIdAsync(request.ListingId, cancellationToken)
                 ?? throw new EntityNotFoundException("Market listing", request.ListingId.ToString());
 
-            var buyerVillage = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var buyerVillage = await _villages.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             // Купувати можна лише з відкритим ринком — так само, як і продавати
             _desk.RequireOpen(buyerVillage);
@@ -73,8 +73,7 @@ namespace EmpireIdle.Application.Market.Commands
             await _goods.HandOverAsync(listing, request.PlayerId, now,
                 TimeSpan.FromHours(_catalog.Config.Market.ResaleCooldownHours), cancellationToken);
 
-            var sellerVillage = await _villages.GetByPlayerIdAsync(listing.SellerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for seller {listing.SellerId}.");
+            var sellerVillage = await _villages.RequireByPlayerAsync(listing.SellerId, cancellationToken);
 
             sellerVillage.GrantResources([new ResourceCost { Resource = "gold", Amount = listing.PriceGold }], now);
 

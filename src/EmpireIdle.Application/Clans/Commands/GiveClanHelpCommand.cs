@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
@@ -107,8 +108,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private async Task ApplyReductionAsync(Domain.Entities.ClanHelpRequest helpRequest, TimeSpan reduction,
             DateTime now, CancellationToken cancellationToken)
         {
-            var village = await _villageRepository.GetByPlayerIdAsync(helpRequest.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", helpRequest.PlayerId);
+            var village = await _villageRepository.RequireByPlayerAsync(helpRequest.PlayerId, cancellationToken);
 
             switch (helpRequest.TargetType)
             {
@@ -123,8 +123,7 @@ namespace EmpireIdle.Application.Clans.Commands
                     break;
 
                 case ClanHelpTarget.Training:
-                    var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                        ?? throw new EntityNotFoundException("Garrison for village", village.Id);
+                    var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
                     garrison.ReduceTrainingTime(helpRequest.TargetId, reduction, now);
                     break;
