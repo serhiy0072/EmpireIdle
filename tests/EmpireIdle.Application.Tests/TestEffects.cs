@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.TestKit;
 using NSubstitute;
 
@@ -20,4 +21,14 @@ internal static class TestEffects
         return new EffectResolver(effects, pens ?? Substitute.For<IBeastPenRepository>(), resolved,
             new BeastProgression(resolved), TestTechnologies.For(resolved, research, clanResearch));
     }
+
+    /// <summary>Множники виробітку без бустів і технологій; мапа — з фікстури TestKit, бо конфіги тестів її не описують.</summary>
+    public static VillageProductionRates Rates(GameCatalog catalog)
+        => new(Substitute.For<IServerRepository>(), Resolver(Substitute.For<IActiveEffectRepository>(), catalog: catalog),
+            new WorldGeometry(new GameConfigBuilder()
+                .WithMap(m => m.Geometry = new MapGeometryConfig
+                {
+                    RingBoundaries = [0.5], RingMultipliers = [1.0, 1.0], RingsAtFirstLevel = 1.0, FogMinShare = 1.0, FogMaxShare = 1.0
+                })
+                .Build().Map));
 }

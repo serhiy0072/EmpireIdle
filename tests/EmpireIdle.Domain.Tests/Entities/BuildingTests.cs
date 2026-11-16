@@ -18,7 +18,7 @@ public class BuildingTests
         for (var i = 0; i < times; i++)
         {
             building.BeginUpgrade(Farm, TimeSpan.Zero, utcNow, ProductionBoost.None, locationMultiplier: 1.0);
-            building.CompleteConstruction(utcNow);
+            building.CompleteConstruction(Farm, utcNow, ProductionBoost.None, locationMultiplier: 1.0);
         }
     }
 
@@ -136,34 +136,34 @@ public class BuildingTests
         Assert.Equal(50, building.StoredAt(Farm, start.AddMinutes(5), boost, locationMultiplier: 1.0));
     }
 
-    /// <summary>Під час будівництва виробництво зупинене.</summary>
+    /// <summary>Будівля на апгрейді виробляє на поточному рівні (рішення 16.11.2026).</summary>
     [Fact]
-    public void StoredAt_ShouldFreezeDuringConstruction()
+    public void StoredAt_ShouldKeepProducingAtTheCurrentLevel_DuringConstruction()
     {
         var building = CreateFarm();
         var start = building.LastAccruedAt;
 
         building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), start.AddMinutes(3), ProductionBoost.None, locationMultiplier: 1.0);
 
-        // 30 накопичено до апгрейду; далі нічого, скільки б не минуло
-        Assert.Equal(30, building.StoredAt(Farm, start.AddMinutes(9), ProductionBoost.None, locationMultiplier: 1.0));
+        // 30 накопичено до апгрейду + 2 хв × 10/хв на тому самому 1 рівні
+        Assert.Equal(50, building.StoredAt(Farm, start.AddMinutes(5), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
     /// <summary>
-    /// Період будівництва не зараховується як виробіток —
-    /// і тим паче не за новою, вищою ставкою.
+    /// Період будівництва зараховується за старим рівнем: нова, вища ставка
+    /// діє лише з моменту завершення й не перераховує вже вироблене.
     /// </summary>
     [Fact]
-    public void CompleteConstruction_ShouldNotCreditTheConstructionPeriod()
+    public void CompleteConstruction_ShouldCreditTheConstructionPeriod_AtTheOldLevel()
     {
         var building = CreateFarm();
         var start = building.LastAccruedAt;
 
-        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), start.AddMinutes(3), ProductionBoost.None, locationMultiplier: 1.0);
-        var completedAt = start.AddMinutes(13);
-        building.CompleteConstruction(completedAt);
+        building.BeginUpgrade(Farm, TimeSpan.FromMinutes(2), start.AddMinutes(1), ProductionBoost.None, locationMultiplier: 1.0);
+        var completedAt = start.AddMinutes(3);
+        building.CompleteConstruction(Farm, completedAt, ProductionBoost.None, locationMultiplier: 1.0);
 
-        // 30 до апгрейду + 2 рівень × 10/хв × 1 хв = 20
+        // 10 до апгрейду + 2 хв апгрейду × 10/хв на 1 рівні + 1 хв × 20/хв на 2 рівні
         Assert.Equal(50, building.StoredAt(Farm, completedAt.AddMinutes(1), ProductionBoost.None, locationMultiplier: 1.0));
     }
 
@@ -180,7 +180,7 @@ public class BuildingTests
 
         building.BeginUpgrade(Farm, TimeSpan.FromMinutes(10), upgradeAt, ProductionBoost.None, locationMultiplier: 1.0);
         building.ReduceConstructionTime(TimeSpan.FromMinutes(12));
-        building.CompleteConstruction(upgradeAt.AddMinutes(1));
+        building.CompleteConstruction(Farm, upgradeAt.AddMinutes(1), ProductionBoost.None, locationMultiplier: 1.0);
 
         // 30 до апгрейду + 2 рівень × 10/хв × 1 хв від старту апгрейду, а не від хвилини −2
         Assert.Equal(50, building.StoredAt(Farm, upgradeAt.AddMinutes(1), ProductionBoost.None, locationMultiplier: 1.0));

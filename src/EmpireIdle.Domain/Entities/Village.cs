@@ -229,7 +229,10 @@ namespace EmpireIdle.Domain.Entities
         /// Завершує всі будівництва, чий час настав. Викликається сканером.
         /// Повертає кількість завершених (для логування).
         /// </summary>
-        public int CompleteDueConstructions(DateTime utcNow, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        /// <param name="boost">Вікно дії буста виробництва: вироблене на апгрейді фіксується за старим рівнем.</param>
+        /// <param name="locationMultiplier">Множник від кільця карти.</param>
+        public int CompleteDueConstructions(DateTime utcNow, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            ProductionBoost boost, double locationMultiplier)
         {
             var due = _buildings
                 .Where(b => b.IsUnderConstruction && b.ConstructionCompletesAt <= utcNow)
@@ -240,9 +243,13 @@ namespace EmpireIdle.Domain.Entities
                 var completedAt = building.ConstructionCompletesAt!.Value;
                 var levelBefore = MainBuildingLevel(buildingConfigs);
 
-                building.CompleteConstruction(utcNow);
+                // Не доменне правило: будівля стоїть, а конфіг її типу зник — битий конфіг, має бути 500
+                if (!buildingConfigs.TryGetValue(building.Type, out var config))
+                    throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
 
-                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.IsMainBuilding)
+                building.CompleteConstruction(config, utcNow, boost, locationMultiplier);
+
+                if (config.IsMainBuilding)
                     StartProductionUnlockedAbove(levelBefore, buildingConfigs, completedAt);
 
                 RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level, utcNow));
@@ -344,8 +351,8 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Спільне ядро збору. Будівля під будівництвом віддає те, що встигла
-        /// накопичити до нього.
+        /// Спільне ядро збору. Будівля на апгрейді збирається як звичайна:
+        /// вона виробляє на поточному рівні.
         /// </summary>
         private int Collect(Building building, BuildingConfig config,
             DateTime utcNow, ProductionBoost boost, double locationMultiplier)

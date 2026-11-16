@@ -105,7 +105,7 @@ public class LevelUpUnitsCommandTests
         {
             building.BeginUpgrade(catalog.Buildings[type], TimeSpan.Zero, Now,
                 ProductionBoost.None, locationMultiplier: 1.0);
-            building.CompleteConstruction(Now);
+            building.CompleteConstruction(catalog.Buildings[type], Now, ProductionBoost.None, locationMultiplier: 1.0);
         }
     }
 

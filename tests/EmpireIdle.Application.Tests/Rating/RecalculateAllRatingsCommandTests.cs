@@ -60,7 +60,8 @@ public class RecalculateAllRatingsCommandTests
         {
             townhall.BeginUpgrade(configs["townhall"], TimeSpan.Zero, Now,
                 Domain.ValueObjects.ProductionBoost.None, locationMultiplier: 1.0);
-            townhall.CompleteConstruction(Now);
+            townhall.CompleteConstruction(configs["townhall"], Now,
+                Domain.ValueObjects.ProductionBoost.None, locationMultiplier: 1.0);
         }
 
         return village;

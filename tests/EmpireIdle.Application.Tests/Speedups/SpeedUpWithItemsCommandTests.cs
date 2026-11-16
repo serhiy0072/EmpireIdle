@@ -90,7 +90,7 @@ public class SpeedUpWithItemsCommandTests
 
         return new SpeedUpWithItemsCommandHandler(_inventory,
             new SpeedUpTargets(_villages, _garrisons, _marches, _research, catalog,
-                TestTechnologies.Settlement(catalog, _villages, _research)),
+                TestTechnologies.Settlement(catalog, _villages, _research), TestEffects.Rates(catalog)),
             new SpeedUpCalculator(config.Monetization), catalog, _unitOfWork, new FakeTimeProvider(Now),
             NullLogger<SpeedUpWithItemsCommandHandler>.Instance);
     }

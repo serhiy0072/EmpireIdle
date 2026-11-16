@@ -94,7 +94,7 @@ public class SpeedUpCommandTests
 
     private SpeedUpConstructionCommandHandler ConstructionHandler() => new(
         _villages, _wallets, _currentPlayer, _unitOfWork,
-        Calculator(), new GameCatalog(Config()), new FakeTimeProvider(Now),
+        Calculator(), TestEffects.Rates(new GameCatalog(Config())), new GameCatalog(Config()), new FakeTimeProvider(Now),
         NullLogger<SpeedUpConstructionCommandHandler>.Instance);
 
     /// <summary>
@@ -147,7 +147,8 @@ public class SpeedUpCommandTests
         monetization.SpeedUpFloorSeconds[EmpireIdle.Domain.Enums.SpeedUpTimer.Construction] = 0;
 
         var handler = new SpeedUpConstructionCommandHandler(_villages, _wallets, _currentPlayer, _unitOfWork,
-            new SpeedUpCalculator(monetization), new GameCatalog(Config()), new FakeTimeProvider(Now),
+            new SpeedUpCalculator(monetization), TestEffects.Rates(new GameCatalog(Config())), new GameCatalog(Config()),
+            new FakeTimeProvider(Now),
             NullLogger<SpeedUpConstructionCommandHandler>.Instance);
 
         await handler.Handle(new SpeedUpConstructionCommand(PlayerId, building.Id), CancellationToken.None);

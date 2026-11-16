@@ -507,7 +507,7 @@ public class SendMarchCommandTests
         for (var i = 1; i < level; i++)
         {
             townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
-            townhall.CompleteConstruction(Now);
+            townhall.CompleteConstruction(catalog.Buildings["townhall"], Now, ProductionBoost.None, locationMultiplier: 1.0);
         }
     }
 

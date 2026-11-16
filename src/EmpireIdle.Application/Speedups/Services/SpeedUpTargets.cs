@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Enums;
@@ -24,11 +25,13 @@ namespace EmpireIdle.Application.Speedups.Services
         private readonly IPlayerResearchRepository _researchRepository;
         private readonly GameCatalog _catalog;
         private readonly ResearchSettlement _settlement;
+        private readonly VillageProductionRates _rates;
 
         public SpeedUpTargets(IVillageRepository villageRepository, IGarrisonRepository garrisonRepository,
             IMarchRepository marchRepository, IPlayerResearchRepository researchRepository, GameCatalog catalog,
-            ResearchSettlement settlement)
+            ResearchSettlement settlement, VillageProductionRates rates)
         {
+            _rates = rates;
             _settlement = settlement;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
@@ -73,10 +76,13 @@ namespace EmpireIdle.Application.Speedups.Services
                     throw new InvalidStateException(RefusalReasons.BuildingAlreadyCompleted,
                         $"Building {targetId} is not under construction.");
 
+                // Завершення фіксує вироблене на апгрейді за старим рівнем — множники читаємо наперед, Apply синхронний
+                var rates = await _rates.ForAsync(village, utcNow, cancellationToken);
+
                 return new SpeedUpTarget(building.ConstructionCompletesAt!.Value, (cut, now) =>
                 {
                     building.ReduceConstructionTime(cut);
-                    village.CompleteDueConstructions(now, _catalog.Buildings);
+                    village.CompleteDueConstructions(now, _catalog.Buildings, rates.Boost, rates.LocationMultiplier);
                 });
             }
 

@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Common.Security;
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
@@ -21,19 +22,21 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly ICurrentPlayer _currentPlayer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly SpeedUpCalculator _calculator;
+        private readonly VillageProductionRates _rates;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<SpeedUpConstructionCommandHandler> _logger;
 
         public SpeedUpConstructionCommandHandler(
             IVillageRepository villageRepository, IPlayerWalletRepository walletRepository, ICurrentPlayer currentPlayer, IUnitOfWork unitOfWork,
-            SpeedUpCalculator calculator, GameCatalog catalog, TimeProvider timeProvider, ILogger<SpeedUpConstructionCommandHandler> logger)
+            SpeedUpCalculator calculator, VillageProductionRates rates, GameCatalog catalog, TimeProvider timeProvider, ILogger<SpeedUpConstructionCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _walletRepository = walletRepository;
             _currentPlayer = currentPlayer;
             _unitOfWork = unitOfWork;
             _calculator = calculator;
+            _rates = rates;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -66,7 +69,9 @@ namespace EmpireIdle.Application.Villages.Commands
             building.ReduceConstructionTime(cut);
 
             // Дозріле завершуємо одразу, а не чекаємо сканера: гравець заплатив за «зараз»
-            village.CompleteDueConstructions(now, _catalog.Buildings);
+            var rates = await _rates.ForAsync(village, now, cancellationToken);
+
+            village.CompleteDueConstructions(now, _catalog.Buildings, rates.Boost, rates.LocationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Services;
 using MediatR;
@@ -15,6 +16,7 @@ namespace EmpireIdle.Application.Villages.Commands
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly VillageProductionRates _rates;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<CompleteVillageConstructionsCommandHandler> _logger;
@@ -22,12 +24,14 @@ namespace EmpireIdle.Application.Villages.Commands
         public CompleteVillageConstructionsCommandHandler(
             IVillageRepository villageRepository,
             IUnitOfWork unitOfWork,
+            VillageProductionRates rates,
             GameCatalog catalog,
             TimeProvider timeProvider,
             ILogger<CompleteVillageConstructionsCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
+            _rates = rates;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -42,7 +46,10 @@ namespace EmpireIdle.Application.Villages.Commands
             if (village is null)
                 return;
 
-            var completed = village.CompleteDueConstructions(now, _catalog.Buildings);
+            // Будівля на апгрейді виробляла на старому рівні — завершення фіксує це за старою ставкою
+            var rates = await _rates.ForAsync(village, now, cancellationToken);
+
+            var completed = village.CompleteDueConstructions(now, _catalog.Buildings, rates.Boost, rates.LocationMultiplier);
             if (completed == 0)
                 return;
 

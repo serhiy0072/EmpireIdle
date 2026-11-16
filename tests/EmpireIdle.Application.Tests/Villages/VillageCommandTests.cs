@@ -115,7 +115,7 @@ public class VillageCommandTests
         {
             townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now,
                 ProductionBoost.None, locationMultiplier: 1.0);
-            townhall.CompleteConstruction(Now);
+            townhall.CompleteConstruction(catalog.Buildings["townhall"], Now, ProductionBoost.None, locationMultiplier: 1.0);
         }
 
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
@@ -192,8 +192,8 @@ public class VillageCommandTests
     }
 
     /// <summary>
-    /// Будівля під будівництвом не виробляє, але накопичене до апгрейду
-    /// забанковане — «зібрати все» віддає його так само, як одиночний збір.
+    /// Накопичене до апгрейду забанковане на його старті — «зібрати все» віддає його
+    /// так само, як одиночний збір, і будівля на апгрейді для збору не особлива.
     /// </summary>
     [Fact]
     public async Task CollectAll_ShouldCollectTheBankedBuffer_OfBuildingsUnderConstruction()

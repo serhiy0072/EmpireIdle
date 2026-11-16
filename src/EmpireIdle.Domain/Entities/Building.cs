@@ -35,7 +35,7 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime LastAccruedAt { get; private set; }
 
-        /// <summary>Чи триває апгрейд будівлі (виробництво на цей час зупинене).</summary>
+        /// <summary>Чи триває апгрейд будівлі. Вона при цьому працює й виробляє на поточному рівні.</summary>
         public bool IsUnderConstruction => ConstructionCompletesAt is not null;
 
         /// <summary>
@@ -118,8 +118,9 @@ namespace EmpireIdle.Domain.Entities
         {
             var cap = GetStorageCap(config.BaseStorage);
 
-            // Під час будівництва виробництво зупинене; невиробнича будівля не накопичує
-            if (IsUnderConstruction || config.ProducesResource is null || utcNow <= LastAccruedAt)
+            // Невиробнича будівля не накопичує. Будівля на апгрейді виробляє на поточному рівні
+            // (рішення 16.11.2026): рівень, а з ним і ставка, змінюється лише в CompleteConstruction
+            if (config.ProducesResource is null || utcNow <= LastAccruedAt)
                 return Math.Min(AccruedAmount, cap);
 
             var totalMinutes = (utcNow - LastAccruedAt).TotalMinutes;
@@ -242,8 +243,8 @@ namespace EmpireIdle.Domain.Entities
             if (IsUnderConstruction)
                 throw new InvalidStateException(RefusalReasons.BuildingUnderConstruction, $"Building {Id} is already under construction.");
 
-            // Банкуємо вироблене ДО зупинки: під час будівництва виробництва немає,
-            // і без цього накопичене за попередній період загубилось би
+            // Буфер фіксується на старті: від цієї мітки CompleteConstruction відрізняє
+            // завершення, зсунуте допомогою клану в минуле, від звичайного
             Materialize(config, utcNow, boost, locationMultiplier);
 
             ConstructionCompletesAt = utcNow + duration;
@@ -253,20 +254,27 @@ namespace EmpireIdle.Domain.Entities
         /// Завершити будівництво: підняти рівень і вийти зі стану будівництва.
         /// Викликається сканером, коли настав ConstructionCompletesAt.
         /// </summary>
+        /// <param name="config">Конфіг будівлі — для виробітку за старим рівнем.</param>
         /// <param name="utcNow">Поточний час — запобіжник, якщо викликано раніше строку.</param>
-        public void CompleteConstruction(DateTime utcNow)
+        /// <param name="boost">Вікно дії буста виробництва.</param>
+        /// <param name="locationMultiplier">Множник від кільця карти.</param>
+        public void CompleteConstruction(BuildingConfig config, DateTime utcNow, ProductionBoost boost, double locationMultiplier)
         {
             // Патерн замість !IsUnderConstruction: дає ненульовий локал,
             // інакше компілятор не бачить зв'язку і попереджає на .Value
             if (ConstructionCompletesAt is not { } completesAt)
                 throw new InvalidStateException($"Building {Id} is not under construction.");
 
-            // Виробництво стартує з моменту завершення, а не з приходу сканера:
-            // інакше кожна хвилина затримки Hangfire — втрачений виробіток.
-            // Але не раніше за вже зафіксоване: допомога клану могла зсунути завершення
-            // до старту апгрейду, і тоді той самий проміжок нарахувався б удруге
-            var startsAt = completesAt <= utcNow ? completesAt : utcNow;
-            LastAccruedAt = startsAt > LastAccruedAt ? startsAt : LastAccruedAt;
+            // Нова ставка діє з моменту завершення, а не з приходу сканера: інакше кожна хвилина
+            // затримки Hangfire — виробіток за старим рівнем. Усе до цього моменту фіксуємо за старим
+            // рівнем — будівля на апгрейді виробляла (рішення 16.11.2026), і нова ставка не має
+            // перерахувати вже вироблене. Мітка назад не рухається: допомога клану могла зсунути
+            // завершення до старту апгрейду, і тоді той самий проміжок нарахувався б удруге
+            var levelChangesAt = completesAt <= utcNow ? completesAt : utcNow;
+
+            if (levelChangesAt > LastAccruedAt)
+                Materialize(config, levelChangesAt, boost, locationMultiplier);
+
             Level = Level.Next();
             ConstructionCompletesAt = null;
         }

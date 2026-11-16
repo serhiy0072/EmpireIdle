@@ -157,7 +157,7 @@ namespace EmpireIdle.Domain.Tests.Entities
                 TestKit.Entities.Now, ProductionBoost.None, 1.0);
 
             // Сканер прийшов на 20 хвилин пізніше за завершення
-            village.CompleteDueConstructions(TestKit.Entities.Now.AddMinutes(30), configs);
+            village.CompleteDueConstructions(TestKit.Entities.Now.AddMinutes(30), configs, ProductionBoost.None, locationMultiplier: 1.0);
 
             Assert.True(village.IsProducing(mine, configs));
             // 2 хвилини після відкриття × 10/хв; без скидання буфер стояв би на капі 60
@@ -283,11 +283,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             village.BeginBuildingUpgrade(farm.Id, configs, startedAt, ProductionBoost.None,
                 mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0);
 
-            Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs));
+            Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs, ProductionBoost.None, locationMultiplier: 1.0));
             Assert.Equal(1, farm.Level.Value);
 
             // Рівень 1 несе "ранній податок" (×3): 5 базових хвилин стають 15
-            Assert.Equal(1, village.CompleteDueConstructions(startedAt.AddMinutes(16), configs));
+            Assert.Equal(1, village.CompleteDueConstructions(startedAt.AddMinutes(16), configs, ProductionBoost.None, locationMultiplier: 1.0));
             Assert.Equal(2, farm.Level.Value);
             Assert.False(farm.IsUnderConstruction);
         }
