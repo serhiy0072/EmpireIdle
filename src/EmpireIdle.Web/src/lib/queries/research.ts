@@ -3,6 +3,7 @@ import { api } from "../api";
 import type { ResearchView } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
 import { bonusOf } from "../technologies";
+import { useClanTechnologies } from "./clanTechnologies";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
 
@@ -16,13 +17,17 @@ export function useResearch(playerId: string): UseQueryResult<ResearchView> {
 }
 
 /**
- * Бонус технологій гравця на один стат «для всіх» — для локальних розрахунків часу, що дзеркалять сервер.
+ * Бонус технологій гравця на один стат «для всіх» — для локальних розрахунків часу, що дзеркалять сервер:
+ * особисті плюс кланові, як PlayerTechnologies на сервері. Поза кланом кланових немає.
  * Поки дослідження не завантажились, бонус нульовий: таймер покаже базовий час, а не неправдивий.
  */
 export function useTechnologyBonus(playerId: string, stat: Parameters<typeof bonusOf>[1]): number {
   const research = useResearch(playerId);
+  const clan = useClanTechnologies(playerId, playerId !== "");
 
-  return research.data === undefined ? 0 : bonusOf(research.data.bonuses, stat);
+  if (research.data === undefined) return 0;
+
+  return bonusOf(research.data.bonuses, stat) + bonusOf(clan.data?.bonuses ?? [], stat);
 }
 
 /** Старт списує ресурси села. */

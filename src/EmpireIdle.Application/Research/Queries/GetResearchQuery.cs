@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.ReadModels;
@@ -19,13 +20,16 @@ namespace EmpireIdle.Application.Research.Queries
         private readonly IServerRepository _servers;
         private readonly IServerContext _serverContext;
         private readonly PersonalTechnologies _technologies;
+        private readonly ClanBonuses _clanBonuses;
         private readonly VillageStatus _status;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
 
         public GetResearchQueryHandler(IVillageRepository villages, IPlayerResearchRepository research, IServerRepository servers,
-            IServerContext serverContext, PersonalTechnologies technologies, VillageStatus status, GameCatalog catalog, TimeProvider timeProvider)
+            IServerContext serverContext, PersonalTechnologies technologies, ClanBonuses clanBonuses, VillageStatus status, GameCatalog catalog,
+            TimeProvider timeProvider)
         {
+            _clanBonuses = clanBonuses;
             _villages = villages;
             _research = research;
             _servers = servers;
@@ -58,7 +62,10 @@ namespace EmpireIdle.Application.Research.Queries
 
             var tree = _technologies.Tree;
             var bonuses = tree.Bonuses(levels);
-            var speed = 1 + bonuses.Of(TechnologyStat.ResearchSpeed);
+
+            // Час наступного рівня — той самий, що порахує StartResearchCommand: особисті бонуси плюс кланові
+            var clan = await _clanBonuses.ForMemberAsync(request.PlayerId, cancellationToken);
+            var speed = 1 + bonuses.Of(TechnologyStat.ResearchSpeed) + clan.Of(TechnologyStat.ResearchSpeed);
 
             var nodes = tree.Tiers
                 .SelectMany(tier => tree.Nodes.Select(node => NodeView(levels, tier.Tier, node, mainBuildingLevel, worldLevel, speed)))

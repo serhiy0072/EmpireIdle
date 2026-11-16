@@ -20,7 +20,13 @@ public class GetResearchQueryTests
     private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IServerContext _serverContext = Substitute.For<IServerContext>();
-    private readonly GameConfig _config = new GameConfigBuilder().WithTechnologies().Build();
+    private readonly IClanResearchRepository _clanResearch = TestTechnologies.NoClan();
+
+    // Кланова v_attack_all додатково дає +50% швидкості досліджень за рівень
+    private readonly GameConfig _config = new GameConfigBuilder()
+        .WithTechnologies(t => t.Clan.Nodes.Single(n => n.Key == "v_attack_all").Effects
+            .Add(new TechnologyEffectConfig { Stat = TechnologyStat.ResearchSpeed, PerLevel = 0.5 }))
+        .Build();
     private readonly Village _village = Entities.VillageWithTownhall(townhallLevel: 6);
 
     public GetResearchQueryTests()
@@ -35,7 +41,8 @@ public class GetResearchQueryTests
         var catalog = new GameCatalog(_config);
 
         return new GetResearchQueryHandler(_villages, _research, _servers, _serverContext,
-                new PersonalTechnologies(_config.Technologies.Personal), new VillageStatus(catalog), catalog, new FakeTimeProvider(at))
+                new PersonalTechnologies(_config.Technologies.Personal), TestTechnologies.ClanBonuses(catalog, _clanResearch),
+                new VillageStatus(catalog), catalog, new FakeTimeProvider(at))
             .Handle(new GetResearchQuery(_village.PlayerId), CancellationToken.None);
     }
 
@@ -52,6 +59,22 @@ public class GetResearchQueryTests
         Assert.Equal(("Available", 900, 0), (first.Availability, first.NextSeconds, first.Level));
         Assert.Equal([true, false], view.Tiers.Select(t => t.Open));
         Assert.Null(view.Active);
+    }
+
+    /// <summary>
+    /// Час наступного рівня враховує й кланову швидкість досліджень — рівно як StartResearchCommand:
+    /// інакше Лабораторія показує 15 хвилин, а дослідження стартує на 10.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldShortenTheNextLevelTime_WithTheClansResearchSpeed()
+    {
+        _clanResearch.GetLevelsByMemberAsync(_village.PlayerId, Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, int> { [new TechnologyKey(1, "v_attack_all").ToString()] = 1 });
+
+        var view = await Query(Now);
+
+        // 900 с / (1 + 0.5)
+        Assert.Equal(600, view.Nodes.Single(n => n.Tier == 1 && n.Node == "attack_infantry").NextSeconds);
     }
 
     /// <summary>Запит нічого не змінює, але дозріле дослідження показує вже вивченим, а не «ще 0 с».</summary>
