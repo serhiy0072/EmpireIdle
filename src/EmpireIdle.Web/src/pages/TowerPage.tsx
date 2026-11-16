@@ -11,6 +11,7 @@ import { loadAutoSkills } from "../lib/battleSettings";
 import { useHeroes } from "../lib/queries/heroes";
 import { usePreviewTowerFloor, useStormTowerFloor, useTower, useTowerLeaderboard } from "../lib/queries/tower";
 import { loadSquad, saveSquad } from "../lib/squad";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 type Tab = "tower" | "rating";
@@ -250,7 +251,7 @@ export default function TowerPage() {
             {next != null && view.unlocked && fight === null && (
               <div className="space-y-2">
                 <SquadPicker heroes={ready} lanes={lanes} onChange={changeSquad} />
-                <ErrorBanner error={storm.error ?? preview.error} />
+                <ErrorBanner error={latestError([storm, preview])} />
                 <div className="flex justify-end gap-2">
                   <GameButton variant="secondary" onClick={startAuto} disabled={!canStorm || autoRunning}>
                     {t("battle:towerPage.auto")}

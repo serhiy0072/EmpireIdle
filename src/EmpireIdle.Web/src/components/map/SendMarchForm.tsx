@@ -14,6 +14,7 @@ import { GameButton, RoleBadge, StarRow } from "../game/GameUi";
 import HeroPortrait from "../heroes/HeroPortrait";
 import { useHotkeys } from "../../hooks/useHotkeys";
 import { formatNumber } from "../../lib/format";
+import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 
 interface Props {
@@ -188,7 +189,7 @@ export default function SendMarchForm({ playerId, target, onSent, onCancel }: Pr
             )}
           </div>
 
-          <ErrorBanner error={preview.error ?? send.error} />
+          <ErrorBanner error={latestError([preview, send])} />
 
           {reinforce && (
             <p className="rounded-lg bg-emerald-900/50 px-3 py-2 text-sm text-emerald-100 ring-1 ring-emerald-400/40">

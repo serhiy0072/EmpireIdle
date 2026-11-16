@@ -12,6 +12,7 @@ import { useBuyShopItem, useCheckout, useShop } from "../lib/queries/shop";
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
 import { formatMoment, formatNumber } from "../lib/format";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 const TYPES = ["evolution", "boost", "resources", "teleport", "scoutveil", "feed", "lootbox", "weaponchest", "chestkey"] as const;
@@ -143,7 +144,7 @@ export default function ShopPage() {
         <p className="text-sm text-slate-500">💎 {formatNumber(gems)}</p>
       </div>
 
-      <ErrorBanner error={buy.error ?? buyLootbox.error ?? checkout.error} />
+      <ErrorBanner error={latestError([buy, buyLootbox, checkout])} />
 
       {drops !== null && (
         <LootboxDrops

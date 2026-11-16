@@ -19,6 +19,7 @@ import { useEquip, useInventory, useUnequip, useUseItem } from "../lib/queries/i
 import { useOpenLootbox } from "../lib/queries/lootboxes";
 import { rarityKey } from "../lib/rarity";
 import { speedUpMinutesLabel } from "../lib/speedUp";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 type Tab = "resources" | "speedups" | "bonus" | "equipment" | "other";
@@ -107,7 +108,7 @@ export default function InventoryPage() {
   }
 
   const busy = consume.isPending || equip.isPending || unequip.isPending;
-  const failure = consume.error ?? equip.error ?? unequip.error ?? reopen.error;
+  const failure = latestError([consume, equip, unequip, reopen]);
   const roster = heroes.data?.heroes ?? [];
 
   // Скринь лишилось — «Відкрити ще» стільки ж, скільки минулого разу, але не більше за залишок; порожньо — кнопки немає

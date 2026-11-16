@@ -5,6 +5,7 @@ import { formatRemaining } from "../lib/time";
 import { HEAL_PAYMENT, useGarrison, useHealWounded, useRecoverUnits } from "../lib/queries/garrison";
 import ErrorBanner from "./ErrorBanner";
 import { formatNumber } from "../lib/format";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 interface Props {
@@ -42,7 +43,7 @@ export default function HospitalPanel({ playerId }: Props) {
     <div className="space-y-4 border-t border-slate-200 pt-3">
       <h4 className="text-sm font-medium text-slate-700">{t("village:hospital.title")}</h4>
 
-      <ErrorBanner error={heal.error ?? recover.error} />
+      <ErrorBanner error={latestError([heal, recover])} />
 
       {wounded.length > 0 && (
         <div className="space-y-3">

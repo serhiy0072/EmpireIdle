@@ -5,6 +5,7 @@ import { useBuyWeaponShards, useOpenWeaponChests, useUpgradeWeapon, type HeroSum
 import { useWallet } from "../../../lib/queries/wallet";
 import { GameButton } from "../../game/GameUi";
 import { formatNumber } from "../../../lib/format";
+import { latestError } from "../../../lib/latestError";
 import { t } from "i18next";
 
 /** Іконка зброї за класом героя: окремого предмета-зброї немає, тож і арту за ключем теж. */
@@ -130,7 +131,7 @@ export function WeaponDetails({ playerId, hero, config, items }: DetailsProps) {
         </div>
       )}
 
-      <ErrorBanner error={upgrade.error ?? openChests.error ?? buyShards.error} />
+      <ErrorBanner error={latestError([upgrade, openChests, buyShards])} />
     </div>
   );
 }

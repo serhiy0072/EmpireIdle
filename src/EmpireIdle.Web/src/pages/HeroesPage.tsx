@@ -19,6 +19,7 @@ import {
 import { useInventory } from "../lib/queries/inventory";
 import { parseRosterSort, ROSTER_SORTS, sortRoster } from "../lib/heroOrder";
 import { formatNumber } from "../lib/format";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 type Tab = "heroes" | "camp";
@@ -65,7 +66,7 @@ export default function HeroesPage() {
     buyCampSlot.isPending ||
     resetLevel.isPending;
   const failure =
-    summon.error ?? upgradeShards.error ?? placeInCamp.error ?? removeFromCamp.error ?? skipCampCooldown.error ?? buyCampSlot.error ?? resetLevel.error;
+    latestError([summon, upgradeShards, placeInCamp, removeFromCamp, skipCampCooldown, buyCampSlot, resetLevel]);
 
   const roster = sortRoster(heroes.data.heroes, (key) => catalog.hero(key)?.rank, sort);
   const free = roster.filter((hero) => hero.state === "Idle").length;

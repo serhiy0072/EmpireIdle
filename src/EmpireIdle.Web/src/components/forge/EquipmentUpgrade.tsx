@@ -5,6 +5,7 @@ import { useFeedArtifact, useInventory, useRaiseMastery, useRepairArtifact } fro
 import { useWallet } from "../../lib/queries/wallet";
 import ErrorBanner from "../ErrorBanner";
 import { formatNumber } from "../../lib/format";
+import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 
 /** Скільки предметів сервер приймає за одне згодовування — FeedArtifactCommand.MaxFood. */
@@ -274,7 +275,7 @@ export function EquipmentMastery({ playerId, selected }: Props) {
 
   return (
     <>
-      <ErrorBanner error={mastery.error ?? repair.error} />
+      <ErrorBanner error={latestError([mastery, repair])} />
       <section className="space-y-2">
         <h3 className="text-sm font-medium text-slate-800">
           {t("items:forge.masteryTitle", { mastery: selected.mastery, max: catalog.maxMastery })}

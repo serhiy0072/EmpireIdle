@@ -6,6 +6,7 @@ import { useSession } from "../hooks/useSession";
 import type { QuestView, QuestWindow } from "../lib/apiTypes";
 import { nextDailyResetAt, QUEST_STATE, QUEST_WINDOW, useClaimAllQuests, useClaimQuest, useQuests, useServerQuests } from "../lib/queries/quests";
 import { formatRemaining } from "../lib/time";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 /** Порядок секцій: спершу те, що обнуляється, — щоденні горять. */
@@ -65,7 +66,7 @@ export default function QuestsPage() {
         </div>
       </div>
 
-      <ErrorBanner error={claim.error ?? claimAll.error} />
+      <ErrorBanner error={latestError([claim, claimAll])} />
 
       {SECTIONS.map((section) => {
         const items = quests.data.filter((quest) => quest.window === section.window).sort(byUrgency);

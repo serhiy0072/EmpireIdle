@@ -15,6 +15,7 @@ import {
   type MailLetterView,
 } from "../lib/queries/mail";
 import { formatMoment } from "../lib/format";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 const ANNOUNCEMENTS = ["News", "Event", "Maintenance"] as const;
@@ -225,7 +226,7 @@ export default function MailPage() {
         )}
       </div>
 
-      <ErrorBanner error={claimAll.error ?? claimLetter.error} />
+      <ErrorBanner error={latestError([claimAll, claimLetter])} />
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:mail.announcements")}</h2>

@@ -5,6 +5,7 @@ import { fetchDungeonRun, useAbandonDungeonRun, useDungeonTurn } from "../../lib
 import ErrorBanner from "../ErrorBanner";
 import CombatantCard from "./CombatantCard";
 import DungeonRewardCard from "./DungeonRewardCard";
+import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 import { Trans } from "react-i18next";
 
@@ -297,7 +298,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         </div>
       </div>
 
-      <ErrorBanner error={turn.error ?? abandon.error} />
+      <ErrorBanner error={latestError([turn, abandon])} />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <section className="space-y-2">

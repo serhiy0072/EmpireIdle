@@ -20,6 +20,7 @@ import { useHeroes } from "../lib/queries/heroes";
 import { rarityStyle } from "../lib/rarity";
 import { formatRemaining } from "../lib/time";
 import { formatNumber } from "../lib/format";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 /**
@@ -135,7 +136,7 @@ export default function DungeonsPage() {
         </div>
       </div>
 
-      <ErrorBanner error={start.error ?? refill.error} />
+      <ErrorBanner error={latestError([start, refill])} />
 
       <div className="grid gap-4 lg:grid-cols-[2fr_3fr]">
         <div className="space-y-2">

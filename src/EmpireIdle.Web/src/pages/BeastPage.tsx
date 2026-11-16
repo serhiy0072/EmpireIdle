@@ -12,6 +12,7 @@ import { useSession } from "../hooks/useSession";
 import { FEED_ITEM, useActivateBeast, useBeastPen, useFeedBeast } from "../lib/queries/beasts";
 import { useCatalog } from "../lib/queries/catalog";
 import { useInventory } from "../lib/queries/inventory";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 /**
@@ -60,7 +61,7 @@ export default function BeastPage() {
   return (
     <div className="space-y-3">
       {pen.data.isHungry && <HungerBanner kind="beasts" />}
-      <ErrorBanner error={feed.error ?? activate.error} />
+      <ErrorBanner error={latestError([feed, activate])} />
 
       <GameScreen
         title={

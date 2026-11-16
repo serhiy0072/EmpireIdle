@@ -14,6 +14,7 @@ import {
   useMyMarket,
   type MarketKind,
 } from "../lib/queries/market";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 type Tab = "browse" | "mine" | "sell";
@@ -100,7 +101,7 @@ export default function MarketPage() {
         ))}
       </nav>
 
-      <ErrorBanner error={buy.error ?? cancel.error} />
+      <ErrorBanner error={latestError([buy, cancel])} />
 
       {tab === "browse" && (
         <section className="space-y-3">

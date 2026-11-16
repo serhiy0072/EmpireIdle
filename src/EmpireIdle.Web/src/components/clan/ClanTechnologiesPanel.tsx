@@ -9,6 +9,7 @@ import { GameTabs } from "../game/GameUi";
 import { TierTree } from "../research/TechnologyTree";
 import { RewardLine } from "../tower/TowerPanels";
 import ClanTechnologyDialog from "./ClanTechnologyDialog";
+import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 
 interface Props {
@@ -42,7 +43,7 @@ export default function ClanTechnologiesPanel({ playerId, view, now, canMark }: 
   const bonus = Math.round(view.markedBonus * 100);
   const daily = view.daily;
   const contributors = [...view.contributors].sort((a, b) => b.today - a.today || b.total - a.total);
-  const failure = offer.error ?? offerGems.error ?? mark.error;
+  const failure = latestError([offer, offerGems, mark]);
 
   const remember = (key: string) => (value: ClanOfferingResult) => setResult({ key, value });
 
