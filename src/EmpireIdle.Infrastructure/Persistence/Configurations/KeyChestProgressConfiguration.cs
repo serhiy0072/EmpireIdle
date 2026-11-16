@@ -15,7 +15,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(p => p.ChestKey).IsRequired().HasMaxLength(50);
 
             // Два паралельні кліки інакше взяли б одне безкоштовне відкриття двічі
-            builder.Property(p => p.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             // Один рядок на пару гравець-скриня: перше відкриття у двох вкладках створило б два
             builder.HasIndex(p => new { p.PlayerId, p.ChestKey }).IsUnique();

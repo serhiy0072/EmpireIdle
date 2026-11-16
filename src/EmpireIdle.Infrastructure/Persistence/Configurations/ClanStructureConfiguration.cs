@@ -13,7 +13,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(s => s.Id).ValueGeneratedNever(); // ключ ставить домен, не БД/EF
 
             // Два марші прибувають одночасно — кожен зсуває час добудови
-            builder.Property(s => s.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             // Список споруд клану й бонус території читаються за кланом
             builder.HasIndex(s => s.ClanId);

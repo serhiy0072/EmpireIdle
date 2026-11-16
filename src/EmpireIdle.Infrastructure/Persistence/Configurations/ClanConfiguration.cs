@@ -34,7 +34,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Navigation(c => c.Members).UsePropertyAccessMode(PropertyAccessMode.Field);
             builder.Navigation(c => c.Roles).UsePropertyAccessMode(PropertyAccessMode.Field);
 
-            builder.Property(c => c.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
         }
     }
 }

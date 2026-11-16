@@ -16,7 +16,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(p => p.State).HasConversion<int>();
 
             // Внески учасників приходять паралельно — другий мусить перечитати
-            builder.Property(p => p.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             // Один рядок на клан і квест: перший внесок двох учасників одночасно розв'язує індекс
             builder.HasIndex(p => new { p.ClanId, p.QuestKey }).IsUnique();

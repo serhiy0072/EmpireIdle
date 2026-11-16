@@ -59,9 +59,6 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime UpdatedAt { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin).</summary>
-        public uint Version { get; private set; }
-
         public MarketListing(Guid id, int serverId, Guid sellerId, MarketListingKind kind, Guid? equipmentId,
             string itemKey, int quantity, double units, string pricingKey, int priceGold, int taxGold,
             DateTime utcNow, TimeSpan duration) : base(id)

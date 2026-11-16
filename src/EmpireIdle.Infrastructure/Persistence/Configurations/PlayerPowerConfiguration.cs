@@ -18,7 +18,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasIndex(p => new { p.ServerId, p.TotalPower })
                 .IsDescending(false, true);
 
-            builder.Property(p => p.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
         }
     }
 }

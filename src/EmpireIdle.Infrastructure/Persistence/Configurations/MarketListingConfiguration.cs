@@ -19,7 +19,7 @@ public class MarketListingConfiguration : IEntityTypeConfiguration<MarketListing
         builder.Property(l => l.PricingKey).IsRequired().HasMaxLength(64);
 
         // Дві паралельні покупки одного лота розводить xmin: друга бачить конфлікт
-        builder.Property(l => l.Version).IsRowVersion();
+        builder.Property<uint>("Version").IsRowVersion();
 
         var active = $"\"State\" = {(int)MarketListingState.Active}";
 

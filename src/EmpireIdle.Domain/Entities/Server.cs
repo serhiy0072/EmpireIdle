@@ -38,9 +38,6 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime UpdatedAt { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin).</summary>
-        public uint Version { get; private set; }
-
         public Server(int id, string name, DateTime utcNow)
         {
             Id = id;

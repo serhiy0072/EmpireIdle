@@ -41,9 +41,6 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime UpdatedAt { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin): два марші прибувають одночасно.</summary>
-        public uint Version { get; private set; }
-
         #endregion
 
         #region Створення

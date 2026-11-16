@@ -20,7 +20,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             // Два ходи з двох вкладок інакше прочитали б однаковий стан
             // і обидва зарахували б свою дію
-            builder.Property(r => r.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             // Один незавершений забіг на гравця: частковий індекс замість перевірки
             // в коді, бо дві вкладки стартують одночасно
@@ -40,7 +40,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasKey(e => e.Id);
             builder.Property(e => e.Id).ValueGeneratedNever();
 
-            builder.Property(e => e.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
             builder.HasIndex(e => e.PlayerId).IsUnique();
 
             builder.Ignore(e => e.DomainEvents);

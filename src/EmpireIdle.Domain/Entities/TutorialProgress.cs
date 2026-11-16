@@ -34,9 +34,6 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime UpdatedAt { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin): дві вкладки можуть позначати кроки одночасно.</summary>
-        public uint Version { get; private set; }
-
         public TutorialProgress(Guid id, Guid playerId, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;

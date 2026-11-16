@@ -36,9 +36,6 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime UpdatedAt { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin).</summary>
-        public uint Version { get; private set; }
-
         public PlayerPower(Guid id, Guid playerId, int serverId, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;

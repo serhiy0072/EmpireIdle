@@ -44,9 +44,6 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public long ContributionPoints { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin).</summary>
-        public uint Version { get; private set; }
-
         #endregion
 
         #region Створення

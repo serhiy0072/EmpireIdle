@@ -18,7 +18,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             // Рейтинг сервера: найвищий поверх, за рівності — хто дійшов раніше
             builder.HasIndex(p => new { p.ServerId, p.HighestFloor, p.ReachedAt }).IsDescending(false, true, false);
 
-            builder.Property(p => p.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             builder.Ignore(p => p.DomainEvents);
         }

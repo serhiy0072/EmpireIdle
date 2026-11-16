@@ -101,9 +101,6 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin).</summary>
-        public uint Version { get; private set; }
-
         public Hero(Guid id, Guid playerId, int serverId, string heroKey, Guid garrisonId,
             DateTime utcNow, int nativeTier = 1) : base(id)
         {

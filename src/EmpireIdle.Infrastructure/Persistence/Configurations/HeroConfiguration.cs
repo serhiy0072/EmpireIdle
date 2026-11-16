@@ -32,7 +32,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                         levels => new Dictionary<string, int>(levels)));
 
             // xmin — той самий токен паралелізму, що й у решті агрегатів
-            builder.Property(h => h.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             builder.HasIndex(h => new { h.PlayerId, h.ServerId });
 
