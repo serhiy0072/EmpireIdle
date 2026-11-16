@@ -20,7 +20,7 @@ namespace EmpireIdle.Application.Clans.ReadModels
         string Name,
         string? Key,
         int Rank,
-        ClanPermission Permissions,
+        IReadOnlyList<ClanPermission> Permissions,
         bool IsLeaderRole,
         bool IsDefaultRole);
 
@@ -35,7 +35,7 @@ namespace EmpireIdle.Application.Clans.ReadModels
         int Capacity,
         DateTime CreatedAt,
         Guid MyRoleId,
-        ClanPermission MyPermissions,
+        IReadOnlyList<ClanPermission> MyPermissions,
         List<ClanRoleView> Roles,
         List<ClanMemberView> Members);
 }

@@ -1162,17 +1162,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanListResponse"
+                  "$ref": "#/components/schemas/ClanListPage"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanListResponse"
+                  "$ref": "#/components/schemas/ClanListPage"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanListResponse"
+                  "$ref": "#/components/schemas/ClanListPage"
                 }
               }
             }
@@ -1203,17 +1203,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanProfileResponse"
+                  "$ref": "#/components/schemas/ClanProfile"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanProfileResponse"
+                  "$ref": "#/components/schemas/ClanProfile"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanProfileResponse"
+                  "$ref": "#/components/schemas/ClanProfile"
                 }
               }
             }
@@ -1264,17 +1264,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyClanResponse"
+                  "$ref": "#/components/schemas/MyClan"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyClanResponse"
+                  "$ref": "#/components/schemas/MyClan"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyClanResponse"
+                  "$ref": "#/components/schemas/MyClan"
                 }
               }
             }
@@ -1417,7 +1417,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanHelpItemResponse"
+                    "$ref": "#/components/schemas/ClanHelpItem"
                   }
                 }
               },
@@ -1425,7 +1425,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanHelpItemResponse"
+                    "$ref": "#/components/schemas/ClanHelpItem"
                   }
                 }
               },
@@ -1433,7 +1433,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanHelpItemResponse"
+                    "$ref": "#/components/schemas/ClanHelpItem"
                   }
                 }
               }
@@ -13127,7 +13127,7 @@
         },
         "additionalProperties": false
       },
-      "ClanHelpItemResponse": {
+      "ClanHelpItem": {
         "required": [
           "alreadyHelped",
           "createdAt",
@@ -13155,7 +13155,7 @@
             "type": "string"
           },
           "targetType": {
-            "type": "string"
+            "$ref": "#/components/schemas/ClanHelpTarget"
           },
           "targetId": {
             "type": "string",
@@ -13295,7 +13295,7 @@
         ],
         "type": "string"
       },
-      "ClanListItemResponse": {
+      "ClanListItem": {
         "required": [
           "capacity",
           "description",
@@ -13322,7 +13322,7 @@
             "type": "string"
           },
           "joinPolicy": {
-            "type": "string"
+            "$ref": "#/components/schemas/ClanJoinPolicy"
           },
           "memberCount": {
             "type": "integer",
@@ -13338,7 +13338,7 @@
         },
         "additionalProperties": false
       },
-      "ClanListResponse": {
+      "ClanListPage": {
         "required": [
           "items",
           "page",
@@ -13350,7 +13350,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanListItemResponse"
+              "$ref": "#/components/schemas/ClanListItem"
             }
           },
           "total": {
@@ -13368,7 +13368,7 @@
         },
         "additionalProperties": false
       },
-      "ClanMemberResponse": {
+      "ClanMemberView": {
         "required": [
           "joinedAt",
           "lastActiveAt",
@@ -13528,7 +13528,7 @@
         ],
         "type": "string"
       },
-      "ClanProfileResponse": {
+      "ClanProfile": {
         "required": [
           "capacity",
           "createdAt",
@@ -13556,7 +13556,7 @@
             "type": "string"
           },
           "joinPolicy": {
-            "type": "string"
+            "$ref": "#/components/schemas/ClanJoinPolicy"
           },
           "memberCount": {
             "type": "integer",
@@ -13647,7 +13647,7 @@
         },
         "additionalProperties": false
       },
-      "ClanRoleResponse": {
+      "ClanRoleView": {
         "required": [
           "id",
           "isDefaultRole",
@@ -16145,7 +16145,7 @@
         },
         "additionalProperties": false
       },
-      "MyClanResponse": {
+      "MyClan": {
         "required": [
           "capacity",
           "createdAt",
@@ -16176,7 +16176,7 @@
             "type": "string"
           },
           "joinPolicy": {
-            "type": "string"
+            "$ref": "#/components/schemas/ClanJoinPolicy"
           },
           "memberCount": {
             "type": "integer",
@@ -16203,13 +16203,13 @@
           "roles": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanRoleResponse"
+              "$ref": "#/components/schemas/ClanRoleView"
             }
           },
           "members": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanMemberResponse"
+              "$ref": "#/components/schemas/ClanMemberView"
             }
           }
         },
