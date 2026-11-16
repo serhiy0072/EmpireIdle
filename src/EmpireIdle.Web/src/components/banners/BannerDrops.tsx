@@ -39,12 +39,13 @@ interface Props {
   onClose: () => void;
   again?: DropsAgain;
   pending?: boolean;
+  error?: unknown;
 }
 
 /** Що випало з банера — те саме вікно «Нагороди», що й у скринь: гравець бачить результат там, де клікнув. */
-export default function BannerDrops({ drops, onClose, again, pending }: Props) {
+export default function BannerDrops({ drops, onClose, again, pending, error }: Props) {
   return (
-    <RewardsWindow onClose={onClose} again={again} pending={pending}>
+    <RewardsWindow onClose={onClose} again={again} pending={pending} error={error}>
       {drops.map((drop, index) => (
         <BannerTile key={index} drop={drop} />
       ))}

@@ -244,6 +244,7 @@ export default function InventoryPage() {
           onClose={() => setOpened(null)}
           again={againOf(opened)}
           pending={reopen.isPending}
+          error={reopen.error}
         />
       )}
 

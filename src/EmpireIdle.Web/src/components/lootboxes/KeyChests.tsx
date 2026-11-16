@@ -116,6 +116,7 @@ export default function KeyChests({ playerId }: { playerId: string }) {
           drops={drops}
           onClose={() => setDrops(null)}
           pending={open.isPending}
+          error={open.error}
           again={
             lastChest === undefined
               ? undefined

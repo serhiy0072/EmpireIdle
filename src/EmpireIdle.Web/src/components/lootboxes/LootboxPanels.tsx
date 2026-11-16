@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import type { LootboxDrop } from "../../lib/apiTypes";
 import { useCatalog, type Catalog } from "../../lib/queries/catalog";
 import { rarityLabel } from "../../lib/rarity";
+import ErrorBanner from "../ErrorBanner";
 import ItemIcon from "../inventory/ItemIcon";
 import { useHotkeys } from "../../hooks/useHotkeys";
 import { formatNumber } from "../../lib/format";
@@ -125,6 +126,8 @@ interface DropsProps {
   again?: DropsAgain;
   /** Поки йде повторне відкриття — плитки приглушені, кнопка неактивна. */
   pending?: boolean;
+  /** Відмова «ще раз»: показується у вікні, бо сторінка під ним не видна. */
+  error?: unknown;
 }
 
 /** Значок нагороди, що не є предметом рюкзака. */
@@ -179,7 +182,7 @@ function DropTile({ drop, amount, pity }: { drop: LootboxDrop; amount: number; p
  * не залежать від кількості нагород — зайве прокручується всередині сітки, тож кнопка не стрибає.
  * Однакові нагороди згорнуті в одну плитку з сумою. Клік будь-де поза кнопкою закриває вікно.
  */
-export function LootboxDrops({ drops, onClose, again, pending = false }: DropsProps) {
+export function LootboxDrops({ drops, onClose, again, pending = false, error }: DropsProps) {
   const merged = new Map<string, { drop: LootboxDrop; amount: number; pity: boolean }>();
 
   for (const drop of drops) {
@@ -191,7 +194,7 @@ export function LootboxDrops({ drops, onClose, again, pending = false }: DropsPr
   }
 
   return (
-    <RewardsWindow onClose={onClose} again={again} pending={pending}>
+    <RewardsWindow onClose={onClose} again={again} pending={pending} error={error}>
       {[...merged.entries()].map(([id, { drop, amount, pity }]) => (
         <DropTile key={id} drop={drop} amount={amount} pity={pity} />
       ))}
@@ -204,13 +207,14 @@ interface WindowProps {
   onClose: () => void;
   again?: DropsAgain;
   pending?: boolean;
+  error?: unknown;
 }
 
 /**
  * Рамка вікна нагород, спільна для скринь і банерів: сталий розмір, плитки прокручуються всередині,
  * кнопка «ще раз» не стрибає. Клік будь-де поза кнопкою чи Esc закриває вікно.
  */
-export function RewardsWindow({ children, onClose, again, pending = false }: WindowProps) {
+export function RewardsWindow({ children, onClose, again, pending = false, error }: WindowProps) {
   useHotkeys({ Escape: onClose, Enter: onClose }, { modal: true });
 
   return (
@@ -234,6 +238,11 @@ export function RewardsWindow({ children, onClose, again, pending = false }: Win
 
         <div className="mt-3 text-5xl" aria-hidden>
           🧰
+        </div>
+
+        {/* Відмова «ще раз» — тут, а не на сторінці: вікно її закриває собою */}
+        <div className="mt-2 w-full">
+          <ErrorBanner error={error} />
         </div>
 
         <div className="mt-3 flex h-10 items-center">

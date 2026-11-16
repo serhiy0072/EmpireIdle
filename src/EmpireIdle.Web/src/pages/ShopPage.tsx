@@ -150,6 +150,7 @@ export default function ShopPage() {
           drops={drops}
           onClose={() => setDrops(null)}
           pending={buyLootbox.isPending}
+          error={buyLootbox.error}
           again={
             lastBuy === null
               ? undefined

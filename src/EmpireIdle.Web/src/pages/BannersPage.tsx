@@ -116,6 +116,7 @@ export default function BannersPage() {
           drops={latest}
           onClose={() => setShown(null)}
           pending={roll.isPending}
+          error={roll.error}
           again={{
             label: t("items:banners.again", { count: shown.count, price: formatNumber(shownBanner.priceGems * shown.count) }),
             onClick: () => rollBanner(shown.bannerKey, shown.count),
