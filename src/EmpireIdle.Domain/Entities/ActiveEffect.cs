@@ -31,8 +31,7 @@ namespace EmpireIdle.Domain.Entities
         public ActiveEffect(Guid id, Guid playerId, EffectTarget target, double multiplier,
             DateTime startedAt, DateTime expiresAt, string sourceItemKey) : base(id)
         {
-            if (multiplier <= 0)
-                throw new InvalidOperationException("Multiplier must be positive.");
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(multiplier);
 
             PlayerId = playerId;
             StartedAt = startedAt;
@@ -53,8 +52,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Перезапускає ефект із новим множником і часом.</summary>
         public void Restart(double multiplier, DateTime startedAt, DateTime expiresAt, string sourceItemKey)
         {
-            if (multiplier <= 0)
-                throw new InvalidOperationException("Multiplier must be positive.");
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(multiplier);
 
             Multiplier = multiplier;
             StartedAt = startedAt;

@@ -18,8 +18,7 @@ namespace EmpireIdle.Domain.Entities
 
         public PlayerItem(Guid id, Guid playerId, string itemKey, int count) : base(id)
         {
-            if (count < 1)
-                throw new InvalidOperationException("Item count must be at least 1.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
 
             PlayerId = playerId;
             ItemKey = itemKey;
@@ -31,8 +30,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Додає до стеку.</summary>
         public void Add(int amount)
         {
-            if (amount < 1)
-                throw new InvalidOperationException("Amount to add must be positive.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(amount, 1);
 
             Count += amount;
         }
@@ -40,8 +38,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Витрачає предмети зі стеку.</summary>
         public void Consume(int amount)
         {
-            if (amount < 1)
-                throw new InvalidOperationException("Amount to consume must be positive.");
+            ArgumentOutOfRangeException.ThrowIfLessThan(amount, 1);
 
             if (Count < amount)
                 throw new NotEnoughResourcesException(ItemKey, amount, Count);

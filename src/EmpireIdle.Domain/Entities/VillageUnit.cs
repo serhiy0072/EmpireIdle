@@ -26,8 +26,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Знімає юнітів із гарнізону.</summary>
         public void Subtract(int amount)
         {
-            if (amount < 0)
-                throw new InvalidOperationException("Amount to subtract cannot be negative.");
+            ArgumentOutOfRangeException.ThrowIfNegative(amount);
 
             if (Count < amount)
                 throw new NotEnoughResourcesException(UnitType, amount, Count);

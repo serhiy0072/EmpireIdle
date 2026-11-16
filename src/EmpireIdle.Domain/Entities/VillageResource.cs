@@ -26,8 +26,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Додає кількість ресурсу.</summary>
         public void Add(long amount)
         {
-            if (amount < 0)
-                throw new InvalidOperationException("Amount to add cannot be negative.");
+            ArgumentOutOfRangeException.ThrowIfNegative(amount);
 
             // Насичення замість переповнення: запас без стелі, а long.MaxValue недосяжний чесною грою
             Amount = amount > long.MaxValue - Amount ? long.MaxValue : Amount + amount;
@@ -36,8 +35,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Списує кількість ресурсу. Кидає виняток, якщо не вистачає.</summary>
         public void Subtract(long amount)
         {
-            if (amount < 0)
-                throw new InvalidOperationException("Amount to subtract cannot be negative.");
+            ArgumentOutOfRangeException.ThrowIfNegative(amount);
 
             if (Amount < amount)
                 throw new NotEnoughResourcesException(ResourceType, amount, Amount);
