@@ -77,7 +77,7 @@ namespace EmpireIdle.Application.Marches.Commands
 
             var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
-            wallet.SpendGems(new GemAmount(cost), "Speed up march", request.PlayerId, now);
+            wallet.SpendGems(new GemAmount(cost), "speedup:march", request.PlayerId, now);
 
             march.ReduceTravelTime(cut, now);
 

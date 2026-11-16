@@ -63,7 +63,7 @@ namespace EmpireIdle.Application.Villages.Commands
 
             var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
-            wallet.SpendGems(new GemAmount(cost), $"Speed up construction of {building.Type}", request.PlayerId, now);
+            wallet.SpendGems(new GemAmount(cost), $"speedup:construction:{building.Type}", request.PlayerId, now);
 
             building.ReduceConstructionTime(cut);
 

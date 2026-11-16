@@ -67,7 +67,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
             // Кине виняток при нестачі gems — SaveChanges не дійде, стеки лишаться на місці
-            wallet.SpendGems(new GemAmount(cost), $"Recover {recovered.Values.Sum()} units", request.PlayerId, now);
+            wallet.SpendGems(new GemAmount(cost), $"recover:{recovered.Values.Sum()}", request.PlayerId, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

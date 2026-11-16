@@ -67,7 +67,7 @@ namespace EmpireIdle.Application.Clans.Commands
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
             var wallet = await _wallets.RequireByUserAsync(userId, cancellationToken);
 
-            wallet.SpendGems(new GemAmount(price), "clan-offering", request.PlayerId, now);
+            wallet.SpendGems(new GemAmount(price), "clan:offering", request.PlayerId, now);
             ledger.RecordGemOffering(now);
 
             var result = await _offerings.RecordAsync(clan, research, ledger, request.PlayerId, key, node,

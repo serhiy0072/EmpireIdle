@@ -75,11 +75,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
             // Гаманець належить акаунту, тож ідемо через Player за UserId
             var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
-            // Перевірка до списання: гравцю потрібна відмова з цифрами, а не виняток value object
-            if (wallet.GemBalance.Value < price)
-                throw new NotEnoughResourcesException("gems", price, wallet.GemBalance.Value);
-
-            wallet.SpendGems(new GemAmount(price), "dungeon-energy-refill", playerId, now);
+            wallet.SpendGems(new GemAmount(price), "dungeon:energy", playerId, now);
         }
     }
 }

@@ -174,7 +174,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new RequirementNotMetException(RefusalReasons.CampSlotReady,
                     $"Camp slot {request.Slot} is not cooling down.", request.Slot + 1);
 
-            await _camps.ChargeGemsAsync(request.PlayerId, _rules.SkipCooldownGems, $"camp-cooldown:{request.Slot}", now,
+            await _camps.ChargeGemsAsync(request.PlayerId, _rules.SkipCooldownGems, $"camp:cooldown:{request.Slot}", now,
                 cancellationToken);
             camp.SkipCooldown(request.Slot, now);
 
@@ -207,7 +207,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 ?? throw new RequirementNotMetException(RefusalReasons.CampAllSlotsBought,
                     "Every extra camp slot is already bought.", _rules.MaxPurchasableSlots);
 
-            await _camps.ChargeGemsAsync(request.PlayerId, price, $"camp-slot:{camp.PurchasedSlots + 1}", now, cancellationToken);
+            await _camps.ChargeGemsAsync(request.PlayerId, price, $"camp:slot:{camp.PurchasedSlots + 1}", now, cancellationToken);
             camp.AddPurchasedSlot(_rules.MaxPurchasableSlots, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -73,10 +73,6 @@ namespace EmpireIdle.Application.Shop.Services
 
             var total = offer.PriceGems * count;
 
-            // Перевірка до списання: гравцю потрібна відмова з цифрами, а не виняток value object
-            if (wallet.GemBalance.Value < total)
-                throw new NotEnoughResourcesException("gems", total, wallet.GemBalance.Value);
-
             var reference = $"shop:{offer.ItemKey}";
 
             wallet.SpendGems(new GemAmount(total), reference, playerId, utcNow);

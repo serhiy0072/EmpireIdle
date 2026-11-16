@@ -84,10 +84,6 @@ namespace EmpireIdle.Application.Shop.Commands
 
             var total = price * request.Count;
 
-            // Перевірка до списання: гравцю потрібна відмова з цифрами, а не виняток value object
-            if (wallet.GemBalance.Value < total)
-                throw new NotEnoughResourcesException("gems", total, wallet.GemBalance.Value);
-
             wallet.SpendGems(new GemAmount(total), $"shop:weapon:{hero.HeroKey}", request.PlayerId, now);
             hero.AddWeaponShards(request.Count, now);
 

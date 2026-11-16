@@ -75,9 +75,6 @@ namespace EmpireIdle.Application.Heroes.Services
 
             var wallet = await _wallets.RequireByUserAsync(player.UserId, cancellationToken);
 
-            if (wallet.GemBalance.Value < cost)
-                throw new NotEnoughResourcesException("gems", cost, wallet.GemBalance.Value);
-
             wallet.SpendGems(new GemAmount(cost), reason, playerId, utcNow);
         }
     }

@@ -99,10 +99,6 @@ namespace EmpireIdle.Application.Heroes.Commands
             // Гаманець належить акаунту, тож ідемо через Player за UserId
             var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
-            // Перевірка до списання: гравцю потрібна відмова з цифрами, а не виняток value object
-            if (wallet.GemBalance.Value < price)
-                throw new NotEnoughResourcesException("gems", price, wallet.GemBalance.Value);
-
             wallet.SpendGems(new GemAmount(price), $"repair:{equipmentId}", playerId, now);
         }
     }

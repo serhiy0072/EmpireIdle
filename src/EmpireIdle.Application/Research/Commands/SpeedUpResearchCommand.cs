@@ -54,7 +54,7 @@ namespace EmpireIdle.Application.Research.Commands
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
             var wallet = await _wallets.RequireByUserAsync(userId, cancellationToken);
 
-            wallet.SpendGems(new GemAmount(cost), $"Speed up research {research.ActiveKey}", request.PlayerId, now);
+            wallet.SpendGems(new GemAmount(cost), $"speedup:research:{research.ActiveKey}", request.PlayerId, now);
 
             research.Shorten(cut, now);
 

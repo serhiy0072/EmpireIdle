@@ -90,7 +90,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
-            wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units", playerId, utcNow);
+            wallet.SpendGems(new GemAmount(cost), $"heal:{total}", playerId, utcNow);
         }
 
         /// <summary>Списує ресурси: половина вартості створення юніта.</summary>
