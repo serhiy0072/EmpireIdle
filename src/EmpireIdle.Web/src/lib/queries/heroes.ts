@@ -89,8 +89,9 @@ export function useResetHeroLevel(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/reset-level`, ["heroes", "power"]);
 }
 
+/** Еволюція тіру списує предмет із рюкзака. */
 export function useEvolveHero(playerId: string) {
-  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/evolve`, ["heroes", "power"]);
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/evolve`, ["heroes", "power", "inventory"]);
 }
 
 /** Лікування героя списує ресурси села. */

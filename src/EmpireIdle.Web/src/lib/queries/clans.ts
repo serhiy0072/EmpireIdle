@@ -94,11 +94,17 @@ function useClanCommand<TInput>(
   });
 }
 
+/**
+ * Усе, що змінює сам факт членства — створення, вступ, прийняте запрошення: клан відкриває бонус території,
+ * кланові квести, дерево технологій і полиці кланового магазину.
+ */
+const CLAN_MEMBERSHIP_SCOPES: readonly PlayerScope[] = ["clan", "clanRequests", "territory", "quests", "clanTechnologies", "clanShop"];
+
 export function useCreateClan(playerId: string) {
   return useClanCommand<{ name: string; tag: string }>(
     playerId,
     (input) => ({ path: `/api/clans/${playerId}`, body: input }),
-    ["clan", "clanRequests", "clanTechnologies"],
+    CLAN_MEMBERSHIP_SCOPES,
   );
 }
 
@@ -107,8 +113,7 @@ export function useJoinClan(playerId: string) {
   return useClanCommand<string>(
     playerId,
     (clanId) => ({ path: `/api/clans/${playerId}/join/${clanId}` }),
-    // Клан відкриває бонус території й кланові квести
-    ["clan", "clanRequests", "territory", "quests", "clanTechnologies"],
+    CLAN_MEMBERSHIP_SCOPES,
   );
 }
 
@@ -198,7 +203,7 @@ export function useResolveRequest(playerId: string) {
   return useClanCommand<{ requestId: string; approve: boolean }>(
     playerId,
     (input) => ({ path: `/api/clans/${playerId}/requests/${input.requestId}/resolve`, body: { approve: input.approve } }),
-    ["clan", "clanRequests", "clanHelp", "clanTechnologies"],
+    [...CLAN_MEMBERSHIP_SCOPES, "clanHelp"],
   );
 }
 
