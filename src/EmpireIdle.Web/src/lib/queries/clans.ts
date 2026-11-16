@@ -44,6 +44,8 @@ export function useClanApplications(playerId: string, enabled: boolean): UseQuer
     queryKey: queryKeys.clanApplications(playerId),
     queryFn: () => api<ClanApplicationResponse[]>(`/api/clans/${playerId}/requests`),
     enabled,
+    // Про нову заявку рекрутерам подія не приходить: без опитування вона з'являлась лише після перезавантаження
+    refetchInterval: 30_000,
   });
 }
 
