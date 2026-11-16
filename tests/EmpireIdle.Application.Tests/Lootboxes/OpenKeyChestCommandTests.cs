@@ -124,9 +124,8 @@ public class OpenKeyChestCommandTests
     {
         var keys = GivenKeys(1);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Open(free: false, count: 2));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Open(free: false, count: 2));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.Equal(1, keys.Count);
         Assert.Empty(_granted);
     }

@@ -101,9 +101,8 @@ public class RepairArtifactCommandTests
     {
         var item = GivenBroken();
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Repair(item, useKit: true));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Repair(item, useKit: true));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.True(item.IsBroken);
     }
 

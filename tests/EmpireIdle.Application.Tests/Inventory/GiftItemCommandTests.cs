@@ -148,10 +148,9 @@ public class GiftItemCommandTests
     {
         var stack = GivenStack("teleport", 1);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() =>
             Handler().Handle(new GiftItemCommand(_giver.Id, _clanmate.Id, "teleport", 2), CancellationToken.None));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.Equal(1, stack.Count);
     }
 }

@@ -143,7 +143,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "item.notGiftable": () => t("errors:refusal.item.notGiftable"),
   "item.giftNotClanmate": () => t("errors:refusal.item.giftNotClanmate"),
   "item.giftToSelf": () => t("errors:refusal.item.giftToSelf"),
-  "item.notEnough": ({ item, need, have }, n) => t("errors:refusal.item.notEnough", { item: n.itemName(String(item)), need, have }),
   "lootbox.freeNotReady": ({ at }) => t("errors:refusal.lootbox.freeNotReady", { at: localTime(at) }),
   "teleport.outsideRegion": () => t("errors:refusal.teleport.outsideRegion"),
   "teleport.cellUnsuitable": () => t("errors:refusal.teleport.cellUnsuitable"),
@@ -246,7 +245,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
   "hero.skillLocked": ({ skill, level }, n) => t("errors:refusal.hero.skillLocked", { skill: n.skillName(String(skill)), level }),
   "hero.skillStarCapped": ({ stars }) => t("errors:refusal.hero.skillStarCapped", { stars }),
   "hero.skillMaxed": ({ level }) => t("errors:refusal.hero.skillMaxed", { level }),
-  "hero.skillNoBook": ({ book, need, have }, n) => t("errors:refusal.hero.skillNoBook", { book: n.itemName(String(book)), need, have }),
   "hero.notOwned": ({ hero }, n) =>
     t("errors:refusal.hero.notOwned", { hero: n.heroName(String(hero)) }),
   "hero.shardUpgradeLocked": () => t("errors:refusal.hero.shardUpgradeLocked"),
@@ -302,7 +300,6 @@ const TEXTS: { [K in RefusalKey]: (args: RefusalArgs, names: RefusalNames) => st
     t("errors:refusal.beast.penFull", { capacity }),
   "beast.notTameable": () => t("errors:refusal.beast.notTameable"),
   "beasts.hungry": () => t("errors:refusal.beasts.hungry"),
-  "beast.notEnoughFeed": ({ need, have }) => t("errors:refusal.beast.notEnoughFeed", { need, have }),
   "beast.levelCapped": ({ level }) =>
     t("errors:refusal.beast.levelCapped", { level }),
   "beast.onCooldown": ({ readyAt }) =>

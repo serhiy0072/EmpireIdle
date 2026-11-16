@@ -111,9 +111,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             var have = stack?.Count ?? 0;
 
             if (stack is null || have < stones)
-                throw new RequirementNotMetException(RefusalReasons.ItemNotEnough,
-                    $"Mastery needs {stones} '{key}', the player has {have}.",
-                    key, stones, have);
+                throw new NotEnoughResourcesException(key, stones, have);
 
             stack.Consume(stones);
 

@@ -171,9 +171,8 @@ public class OpenLootboxCommandTests
     {
         var stack = GivenChests(TestKeys.SmallChest, 1);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Open(TestKeys.SmallChest, count: 2));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Open(TestKeys.SmallChest, count: 2));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.Equal(1, stack.Count);
         Assert.Empty(_granted);
     }

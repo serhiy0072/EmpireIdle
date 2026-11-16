@@ -95,9 +95,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
             var stack = await _inventory.GetItemAsync(playerId, keyItemKey, cancellationToken);
 
             if (stack is null || stack.Count < count)
-                throw new RequirementNotMetException(RefusalReasons.ItemNotEnough,
-                    $"Not enough '{keyItemKey}': {stack?.Count ?? 0} of {count}.",
-                    keyItemKey, count, stack?.Count ?? 0);
+                throw new NotEnoughResourcesException(keyItemKey, count, stack?.Count ?? 0);
 
             stack.Consume(count);
 

@@ -81,8 +81,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             var stack = await _inventoryRepository.GetItemAsync(playerId, key, cancellationToken);
 
             if (stack is null || stack.Count < 1)
-                throw new RequirementNotMetException(RefusalReasons.ItemNotEnough, $"No '{key}' to repair with.",
-                    key, 1, 0);
+                throw new NotEnoughResourcesException(key, 1, 0);
 
             stack.Consume(1);
 

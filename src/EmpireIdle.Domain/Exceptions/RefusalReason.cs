@@ -131,9 +131,6 @@
         /// <summary>Подарувати собі не можна.</summary>
         public static readonly RefusalReason ItemGiftToSelf = new("item.giftToSelf");
 
-        /// <summary>Предметів менше, ніж треба; need — скільки, have — скільки є.</summary>
-        public static readonly RefusalReason ItemNotEnough = new("item.notEnough", "item", "need", "have");
-
         /// <summary>Безкоштовне відкриття ключової скрині ще не готове; at — UTC у форматі ISO 8601.</summary>
         public static readonly RefusalReason KeyChestFreeNotReady = new("lootbox.freeNotReady", "at");
 
@@ -386,9 +383,6 @@
         /// <summary>Слот не перезаряджається — пропускати нічого; slot — його номер від 1.</summary>
         public static readonly RefusalReason CampSlotReady = new("camp.slotReady", "slot");
 
-        /// <summary>Немає книги для цього вміння (GDD §6.1); book — ключ потрібної книги.</summary>
-        public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book", "need", "have");
-
         // ---------- Спорядження ----------
 
         /// <summary>Артефакт уже на стелі рівня (GDD §6.4); max — стеля.</summary>
@@ -494,9 +488,6 @@
 
         /// <summary>Цей монстр не приручається.</summary>
         public static readonly RefusalReason BeastNotTameable = new("beast.notTameable");
-
-        /// <summary>Корму менше, ніж гравець хоче віддати. need — скільки просив, have — скільки є.</summary>
-        public static readonly RefusalReason BeastNotEnoughFeed = new("beast.notEnoughFeed", "need", "have");
 
         /// <summary>Звір на стелі рівня для свого рангу: далі веде лише дублікат. level — стеля.</summary>
         public static readonly RefusalReason BeastLevelCapped = new("beast.levelCapped", "level");

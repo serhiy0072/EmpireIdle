@@ -77,8 +77,7 @@
       "strongerBoostActive": "A stronger ×{{multiplier}} boost is active until {{until}} — this one won't work",
       "notGiftable": "This item can't be given away",
       "giftNotClanmate": "You can only give gifts to members of your clan",
-      "giftToSelf": "You can't give a gift to yourself",
-      "notEnough": "Not enough {{item}}: {{need}} needed, {{have}} available"
+      "giftToSelf": "You can't give a gift to yourself"
     },
     "lootbox": {
       "freeNotReady": "The free opening will be available {{at}}"
@@ -162,7 +161,6 @@
       "skillLocked": "{{skill}} unlocks at hero level {{level}}",
       "skillStarCapped": "The next skill level unlocks at the hero's star {{stars}}",
       "skillMaxed": "The skill is already at its top level, {{level}}",
-      "skillNoBook": "Not enough {{book}}: {{need}} needed, {{have}} available",
       "notOwned": "Universal shards only go to an unlocked hero, and {{hero}} hasn't been summoned yet",
       "shardUpgradeLocked": "The exchange opens once every hero of this rarity has all their stars"
     },
@@ -225,7 +223,6 @@
       "penMissing": "Nowhere to keep a tamed beast: open the Beast Pen first",
       "penFull": "The Beast Pen is full: all {{capacity}} places are taken. Upgrade the Beast Pen",
       "notTameable": "This monster can't be tamed",
-      "notEnoughFeed": "Not enough treats: {{need}} needed, {{have}} available",
       "levelCapped": "The beast has hit the level {{level}} cap for its rank — raise the rank by taming another beast of its kind",
       "onCooldown": "The beast is still resting — the passive can be activated {{readyAt}}",
       "effectActive": "Another beast already gives the same bonus — wait until its effect ends"

@@ -64,8 +64,7 @@ namespace EmpireIdle.Application.Inventory.Commands
             var have = stack?.Count ?? 0;
 
             if (stack is null || have < request.Count)
-                throw new RequirementNotMetException(RefusalReasons.ItemNotEnough,
-                    $"Not enough '{request.ItemKey}' to gift.", request.ItemKey, request.Count, have);
+                throw new NotEnoughResourcesException(request.ItemKey, request.Count, have);
 
             stack.Consume(request.Count);
 

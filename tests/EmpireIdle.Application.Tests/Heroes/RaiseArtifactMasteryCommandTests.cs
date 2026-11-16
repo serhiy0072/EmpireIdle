@@ -213,9 +213,8 @@ public class RaiseArtifactMasteryCommandTests
         GivenVillage(stones: 9);
         var item = GivenItem();
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Raise(item));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Raise(item));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.Equal(0, item.Mastery);
         Assert.Equal(9, Stones());
     }
@@ -227,9 +226,8 @@ public class RaiseArtifactMasteryCommandTests
         GivenVillage(stones: 0);
         var item = GivenItem();
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Raise(item));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Raise(item));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
     }
 
     /// <summary>Остання пачка каменів пішла на спробу — порожній стек прибирається з рюкзака.</summary>

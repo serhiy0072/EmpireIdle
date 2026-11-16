@@ -15,10 +15,6 @@
   "beast.levelCapped": [
     "level"
   ],
-  "beast.notEnoughFeed": [
-    "need",
-    "have"
-  ],
   "beast.notTameable": [],
   "beast.onCooldown": [
     "readyAt"
@@ -236,11 +232,6 @@
   "hero.skillMaxed": [
     "level"
   ],
-  "hero.skillNoBook": [
-    "book",
-    "need",
-    "have"
-  ],
   "hero.skillStarCapped": [
     "stars"
   ],
@@ -266,11 +257,6 @@
   ],
   "item.giftNotClanmate": [],
   "item.giftToSelf": [],
-  "item.notEnough": [
-    "item",
-    "need",
-    "have"
-  ],
   "item.notGiftable": [],
   "item.strongerBoostActive": [
     "multiplier",
