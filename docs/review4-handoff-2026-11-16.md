@@ -1,7 +1,7 @@
 # Рев'ю 4: що лишилось і як це робити
 
 Стан на 16.11.2026, гілка `phase/36-technologies`. Усе локально, нічого не запушено.
-Тести зелені: Domain 1488, Application 1075, Architecture 37, Api 170. Клієнт: `typecheck`, `lint`, `build` чисті.
+Тести зелені: Domain 1488, Application 1075, Architecture 37, Api 170 (17.11.2026). Клієнт: `typecheck`, `lint`, `build` чисті.
 
 Документ для виконавця, який продовжує серію. Спершу — правила роботи, далі — задачі за пріоритетом.
 Повний список знахідок рев'ю з позначками зробленого лежить у пам'яті проєкту (`review4-full-2026-11-15`).
@@ -87,26 +87,21 @@ Dev-база — зона Сергія: дозвіл на роботу з нею
 
 Порядок — від дешевих і безпечних до дорогих. Кожен пункт — окремий коміт або коротка серія.
 
-### 2.1. Пошук власного запису гравця (~17 місць)
-Зараз двома формами: `EntityNotFoundException("Player", request.PlayerId)` і `InvalidOperationException`.
-**Як:** додати в `Application/Common/RequiredAggregates.cs` метод `RequireAsync(this IPlayerRepository, Guid playerId, ct)`
-з `InvalidOperationException`. Замінювати **лише** там, де аргумент — гравець, що діє
-(`request.PlayerId`, `playerId` обробника). Чужого гравця (`request.TargetPlayerId`, `recipientId`,
-`clanRequest.PlayerId`) не чіпати: його може не бути чесно, там лишається 404.
-Скрипт заміни є сенс писати за зразком уже зробленого для сіл: регулярка
-`await X.GetByIdAsync(args) ?? throw new …("Player" …)`, але кожне спрацювання переглянути очима.
-Тести, що чекали `EntityNotFoundException` для власного гравця, перевести на `InvalidOperationException`.
+### 2.1. Пошук власного запису гравця — ЗРОБЛЕНО
+`IPlayerRepository.RequireAsync` у `RequiredAggregates`, 15 місць. Чужі гравці (`TargetPlayerId`, `recipientId`,
+`clanRequest.PlayerId`, платіж, нагорода-gems) лишились на `GetByIdAsync` із 404.
 
-### 2.2. Множники виробітку (~15 обробників)
-Трійка «`EffectResolver.GetProductionBoostAsync` + `IServerRepository.GetLevelAsync` + `WorldGeometry.ProductionMultiplierAt`»
-скопійована в `CollectBuildingCommand`, `CollectAllBuildingsCommand`, `AutoCollectVillageCommand`, `RepairVillageCommand`,
-`UpgradeBuildingCommand`, `PayProvisionsCommand`, `ActivateBeastCommand`, `VillageRelocator`, `ResearchSettlement`,
-`VillageBattleService`, `CityFallService`, `BoostItemEffect`, `ScoutService`, `GetVillageQuery`.
-**Як:** замінити на `VillageProductionRates.ForAsync(village, now, ct)`. Після заміни з конструктора обробника
-зникають `EffectResolver`/`WorldGeometry`/інколи `IServerRepository` — прибрати поля (аналізатор IDE0052 валить збірку
-на невикористаному полі) і поправити конструктори в тестах. У тестах брати `TestEffects.Rates(catalog)`;
-якщо тест перевіряє саме буст чи кільце, зібрати `VillageProductionRates` з тих самих підставних репозиторіїв.
-По одному модулю на коміт, після кожного — повний прогін.
+### 2.2. Множники виробітку — ЗРОБЛЕНО частково
+На `VillageProductionRates` переведено: `CollectBuildingCommand`, `CollectAllBuildingsCommand`, `AutoCollectVillageCommand`,
+`RepairVillageCommand`, `ActivateBeastCommand`, `BoostItemEffect`, `ResearchSettlement`. Для конвертації є шаблон —
+дивись коміти `5442ab4f` і `e5c55bbb`: тест будує `new VillageProductionRates(_servers, TestEffects.Resolver(...), new WorldGeometry(...))`
+з тих самих підставних об'єктів, що й раніше, тож очікування не міняються.
+Лишилось і чому не механічно:
+- `UpgradeBuildingCommand`, `GetVillageQuery` — `serverLevel` потрібен і для іншого (стеля рівня будівлі, тіри);
+  `IServerRepository` лишається, прибирається лише `EffectResolver`/`WorldGeometry`.
+- `VillageRelocator` рахує множник і для старої, і для нової клітини — сервіс тут не підходить, лишити.
+- `PayProvisionsCommand`, `CityFallService`, `VillageBattleService`, `ScoutService` — множники рахуються для
+  села-цілі; конструктори тягнуть каскад у `CompleteMarchCommandTests` (1 400 рядків). Робити по одному сервісу.
 
 ### 2.3. Будівля змінюється повз агрегат — ЗРОБЛЕНО
 Скорочення таймера йде через `Village.ReduceConstructionTime`, методи будівлі стали `internal`
