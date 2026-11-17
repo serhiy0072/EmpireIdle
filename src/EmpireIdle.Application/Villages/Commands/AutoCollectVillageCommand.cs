@@ -14,27 +14,21 @@ namespace EmpireIdle.Application.Villages.Commands
     public sealed class AutoCollectVillageCommandHandler : IRequestHandler<AutoCollectVillageCommand>
     {
         private readonly IVillageRepository _villageRepository;
-        private readonly IServerRepository _serverRepository;
-        private readonly EffectResolver _effectResolver;
-        private readonly WorldGeometry _geometry;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly VillageProductionRates _rates;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
 
         public AutoCollectVillageCommandHandler(
             IVillageRepository villageRepository,
-            IServerRepository serverRepository,
-            EffectResolver effectResolver,
-            WorldGeometry geometry,
             IUnitOfWork unitOfWork,
+            VillageProductionRates rates,
             GameCatalog catalog,
             TimeProvider timeProvider)
         {
             _villageRepository = villageRepository;
-            _serverRepository = serverRepository;
-            _effectResolver = effectResolver;
-            _geometry = geometry;
             _unitOfWork = unitOfWork;
+            _rates = rates;
             _catalog = catalog;
             _timeProvider = timeProvider;
         }
@@ -48,11 +42,9 @@ namespace EmpireIdle.Application.Villages.Commands
             if (village is null)
                 return;
 
-            var boost = await _effectResolver.GetProductionBoostAsync(village.PlayerId, now, cancellationToken);
-            var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
-            var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
+            var rates = await _rates.ForAsync(village, now, cancellationToken);
 
-            village.AutoCollect(_catalog.Buildings, now, boost, locationMultiplier);
+            village.AutoCollect(_catalog.Buildings, now, rates.Boost, rates.LocationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
