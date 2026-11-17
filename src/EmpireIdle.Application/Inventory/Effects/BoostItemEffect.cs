@@ -16,20 +16,16 @@ namespace EmpireIdle.Application.Inventory.Effects
 
         private readonly IActiveEffectRepository _repository;
         private readonly IVillageRepository _villageRepository;
-        private readonly IServerRepository _serverRepository;
         private readonly GameCatalog _catalog;
-        private readonly WorldGeometry _geometry;
-        private readonly EffectResolver _effects;
+        private readonly VillageProductionRates _rates;
 
-        public BoostItemEffect(IActiveEffectRepository repository, IVillageRepository villageRepository, IServerRepository serverRepository,
-            GameCatalog catalog, WorldGeometry geometry, EffectResolver effects)
+        public BoostItemEffect(IActiveEffectRepository repository, IVillageRepository villageRepository, GameCatalog catalog,
+            VillageProductionRates rates)
         {
             _repository = repository;
             _villageRepository = villageRepository;
-            _serverRepository = serverRepository;
             _catalog = catalog;
-            _geometry = geometry;
-            _effects = effects;
+            _rates = rates;
         }
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
@@ -96,12 +92,9 @@ namespace EmpireIdle.Application.Inventory.Effects
                 return;
 
             // Ефект іще старий: Restart буде після, тож вікна — ті, за якими буфер накопичувався
-            var boost = await _effects.GetProductionBoostAsync(context.PlayerId, context.UtcNow, cancellationToken);
+            var rates = await _rates.ForAsync(village, context.UtcNow, cancellationToken);
 
-            var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
-            var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
-
-            village.MaterializeProduction(_catalog.Buildings, context.UtcNow, boost, locationMultiplier);
+            village.MaterializeProduction(_catalog.Buildings, context.UtcNow, rates.Boost, rates.LocationMultiplier);
         }
     }
 }

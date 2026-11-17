@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Clans.Commands;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Rewards;
@@ -68,9 +69,11 @@ public class ClanProductionSettlementTests
     {
         var research = Substitute.For<IPlayerResearchRepository>();
 
-        return new ResearchSettlement(_villages, _servers,
+        var rates = new VillageProductionRates(_servers,
             TestEffects.Resolver(Substitute.For<IActiveEffectRepository>(), catalog: _catalog, research: research, clanResearch: _clanResearch),
-            new WorldGeometry(_catalog.Config.Map), _catalog, new PersonalTechnologies(_catalog.Config.Technologies.Personal));
+            new WorldGeometry(_catalog.Config.Map));
+
+        return new ResearchSettlement(_villages, rates, _catalog, new PersonalTechnologies(_catalog.Config.Technologies.Personal));
     }
 
     /// <summary>Село гравця з фермою, що виробляє годину.</summary>

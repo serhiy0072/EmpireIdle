@@ -23,24 +23,20 @@ namespace EmpireIdle.Application.Beasts.Commands
     {
         private readonly IBeastPenRepository _pens;
         private readonly IVillageRepository _villages;
-        private readonly IServerRepository _servers;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly EffectResolver _effects;
-        private readonly WorldGeometry _geometry;
+        private readonly VillageProductionRates _rates;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<ActivateBeastCommandHandler> _logger;
 
-        public ActivateBeastCommandHandler(IBeastPenRepository pens, IVillageRepository villages, IServerRepository servers,
-            IUnitOfWork unitOfWork, EffectResolver effects, WorldGeometry geometry, GameCatalog catalog, TimeProvider timeProvider,
+        public ActivateBeastCommandHandler(IBeastPenRepository pens, IVillageRepository villages, IUnitOfWork unitOfWork,
+            VillageProductionRates rates, GameCatalog catalog, TimeProvider timeProvider,
             ILogger<ActivateBeastCommandHandler> logger)
         {
             _pens = pens;
             _villages = villages;
-            _servers = servers;
             _unitOfWork = unitOfWork;
-            _effects = effects;
-            _geometry = geometry;
+            _rates = rates;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -87,11 +83,9 @@ namespace EmpireIdle.Application.Beasts.Commands
         private async Task MaterializeProductionAsync(Guid playerId, Domain.Entities.Village village, DateTime utcNow,
             CancellationToken cancellationToken)
         {
-            var boost = await _effects.GetProductionBoostAsync(playerId, utcNow, cancellationToken);
-            var serverLevel = await _servers.GetLevelAsync(village.ServerId, cancellationToken);
+            var rates = await _rates.ForAsync(village, utcNow, cancellationToken);
 
-            village.MaterializeProduction(_catalog.Buildings, utcNow, boost,
-                _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel));
+            village.MaterializeProduction(_catalog.Buildings, utcNow, rates.Boost, rates.LocationMultiplier);
         }
     }
 }

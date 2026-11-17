@@ -1,4 +1,5 @@
 ﻿using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Application.Inventory.Effects;
 using EmpireIdle.Domain.Entities;
@@ -28,8 +29,8 @@ public class BoostItemEffectTests
             .Returns(new ActiveEffect(Guid.NewGuid(), playerId, EffectTarget.Attack, 1.5, Now, Now.AddHours(2), "attack_boost_big"));
 
         var config = new GameConfigBuilder().WithBuildings().Build();
-        var effect = new BoostItemEffect(effects, Substitute.For<IVillageRepository>(), Substitute.For<IServerRepository>(),
-            new GameCatalog(config), new WorldGeometry(config.Map), TestEffects.Resolver(effects));
+        var effect = new BoostItemEffect(effects, Substitute.For<IVillageRepository>(), new GameCatalog(config),
+            new VillageProductionRates(Substitute.For<IServerRepository>(), TestEffects.Resolver(effects), new WorldGeometry(config.Map)));
 
         var weaker = new ItemConfig { Key = "attack_boost_small", BoostTarget = "Attack", Multiplier = 1.2, DurationHours = 1 };
 

@@ -16,19 +16,15 @@ namespace EmpireIdle.Application.Research.Services
     public sealed class ResearchSettlement
     {
         private readonly IVillageRepository _villages;
-        private readonly IServerRepository _servers;
-        private readonly EffectResolver _effects;
-        private readonly WorldGeometry _geometry;
+        private readonly VillageProductionRates _rates;
         private readonly GameCatalog _catalog;
         private readonly PersonalTechnologies _technologies;
 
-        public ResearchSettlement(IVillageRepository villages, IServerRepository servers, EffectResolver effects,
-            WorldGeometry geometry, GameCatalog catalog, PersonalTechnologies technologies)
+        public ResearchSettlement(IVillageRepository villages, VillageProductionRates rates, GameCatalog catalog,
+            PersonalTechnologies technologies)
         {
             _villages = villages;
-            _servers = servers;
-            _effects = effects;
-            _geometry = geometry;
+            _rates = rates;
             _catalog = catalog;
             _technologies = technologies;
         }
@@ -56,11 +52,9 @@ namespace EmpireIdle.Application.Research.Services
             if (village is null)
                 return;
 
-            var serverLevel = await _servers.GetLevelAsync(village.ServerId, cancellationToken);
-            var boost = await _effects.GetProductionBoostAsync(playerId, utcNow, cancellationToken);
+            var rates = await _rates.ForAsync(village, utcNow, cancellationToken);
 
-            village.MaterializeProduction(_catalog.Buildings, utcNow, boost,
-                _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel));
+            village.MaterializeProduction(_catalog.Buildings, utcNow, rates.Boost, rates.LocationMultiplier);
         }
     }
 }
