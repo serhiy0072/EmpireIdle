@@ -93,8 +93,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         private async Task PayWithGemsAsync(Guid playerId, int price, Guid equipmentId, DateTime now,
             CancellationToken cancellationToken)
         {
-            var player = await _playerRepository.GetByIdAsync(playerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", playerId);
+            var player = await _playerRepository.RequireAsync(playerId, cancellationToken);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
             var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);

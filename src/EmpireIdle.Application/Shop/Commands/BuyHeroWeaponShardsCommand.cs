@@ -76,8 +76,7 @@ namespace EmpireIdle.Application.Shop.Commands
                 throw new RequirementNotMetException(
                     $"Hero {hero.Id} needs only {Math.Max(0, toMax)} more weapon shards to reach the top level, {request.Count} requested.");
 
-            var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+            var player = await _playerRepository.RequireAsync(request.PlayerId, cancellationToken);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
             var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);

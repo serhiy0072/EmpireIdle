@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
@@ -22,8 +23,7 @@ namespace EmpireIdle.Application.Chat.Queries
 
         public async Task<PlayerSettingsView> Handle(GetPlayerSettingsQuery request, CancellationToken cancellationToken)
         {
-            var player = await _players.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId.ToString());
+            var player = await _players.RequireAsync(request.PlayerId, cancellationToken);
 
             return new PlayerSettingsView(player.Language, _catalog.Config.Localization.SupportedLanguages);
         }

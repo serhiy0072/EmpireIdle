@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -32,8 +33,7 @@ namespace EmpireIdle.Application.Chat.Commands
             if (!_catalog.Config.Localization.SupportedLanguages.Contains(request.Language))
                 throw new RequirementNotMetException($"Language '{request.Language}' is not supported.");
 
-            var player = await _players.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId.ToString());
+            var player = await _players.RequireAsync(request.PlayerId, cancellationToken);
 
             player.ChangeLanguage(request.Language);
 

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
@@ -65,8 +66,7 @@ namespace EmpireIdle.Application.Clans.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+            var player = await _playerRepository.RequireAsync(request.PlayerId, cancellationToken);
 
             if (player.ClanId is not null)
                 throw new InvalidStateException(RefusalReasons.ClanAlreadyInClan, "Leave your current clan first.");

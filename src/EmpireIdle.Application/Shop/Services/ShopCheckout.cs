@@ -65,8 +65,7 @@ namespace EmpireIdle.Application.Shop.Services
                     throw new RequirementNotMetException(RefusalReasons.ShopOfferClosed, $"'{offer.ItemKey}' is not on sale now.");
             }
 
-            var player = await _playerRepository.GetByIdAsync(playerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", playerId);
+            var player = await _playerRepository.RequireAsync(playerId, cancellationToken);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
             var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);

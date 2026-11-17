@@ -9,7 +9,9 @@ namespace EmpireIdle.Application.Common
     /// клієнт показав би гравцю як звичайну відмову. Одне місце на всі обробники — щоб тип винятку
     /// й текст не розходились від файлу до файлу.
     ///
-    /// Сутності, які називає сам запит (герой, клан, заявка, предмет), сюди не належать:
+    /// Те саме для запису гравця, що діє.
+    ///
+    /// Сутності, які називає сам запит (герой, клан, заявка, предмет, інший гравець), сюди не належать:
     /// їх може не бути чесно, і для них лишається EntityNotFoundException.
     /// </summary>
     public static class RequiredAggregates
@@ -34,6 +36,11 @@ namespace EmpireIdle.Application.Common
             CancellationToken cancellationToken)
             => await wallets.GetByUserIdAsync(userId, cancellationToken)
                ?? throw new InvalidOperationException($"Wallet not found for user {userId}.");
+
+        /// <summary>Запис гравця, що діє: він є, раз гравець пройшов перевірку власника. Чужий гравець — через GetByIdAsync і 404.</summary>
+        public static async Task<Player> RequireAsync(this IPlayerRepository players, Guid playerId, CancellationToken cancellationToken)
+            => await players.GetByIdAsync(playerId, cancellationToken)
+               ?? throw new InvalidOperationException($"Player {playerId} not found.");
 
         private static InvalidOperationException MissingVillage(Guid playerId) => new($"Village not found for player {playerId}.");
 

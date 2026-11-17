@@ -91,8 +91,7 @@ namespace EmpireIdle.Application.Banners.Commands
                 throw new RequirementNotMetException(RefusalReasons.BannerClosed, $"Banner '{banner.Key}' closed at {end:u}.");
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
-            var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+            var player = await _playerRepository.RequireAsync(request.PlayerId, cancellationToken);
 
             var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
@@ -59,8 +60,7 @@ namespace EmpireIdle.Application.Clans.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+            var player = await _playerRepository.RequireAsync(request.PlayerId, cancellationToken);
 
             var clan = await _clanRepository.GetByMemberAsync(player.Id, cancellationToken)
                 ?? throw new InvalidStateException(RefusalReasons.ClanNotMember, "You are not in a clan.");

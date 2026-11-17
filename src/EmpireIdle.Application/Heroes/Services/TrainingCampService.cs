@@ -70,8 +70,7 @@ namespace EmpireIdle.Application.Heroes.Services
         public async Task ChargeGemsAsync(Guid playerId, int cost, string reason, DateTime utcNow, CancellationToken cancellationToken)
         {
             // Гаманець належить акаунту, тож ідемо через Player за UserId
-            var player = await _players.GetByIdAsync(playerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", playerId);
+            var player = await _players.RequireAsync(playerId, cancellationToken);
 
             var wallet = await _wallets.RequireByUserAsync(player.UserId, cancellationToken);
 
