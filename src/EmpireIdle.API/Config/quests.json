@@ -383,6 +383,79 @@
         ]
       },
       {
+        "Key": "laboratory_first",
+        "DisplayName": "Перше відкриття",
+        "Window": "Chain",
+        "Prerequisite": "intro_townhall_5",
+        "Objectives": [
+          {
+            "Type": "ResearchCompleted",
+            "Count": 1,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 300
+          },
+          {
+            "Type": "Resource",
+            "Key": "food",
+            "Amount": 2000
+          }
+        ]
+      },
+      {
+        "Key": "laboratory_tier1_battle",
+        "DisplayName": "Військова наука",
+        "Window": "Chain",
+        "Prerequisite": "laboratory_first",
+        "Objectives": [
+          {
+            "Type": "ResearchCompleted",
+            "Target": "battle",
+            "Count": 10,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 600
+          },
+          {
+            "Type": "Item",
+            "Key": "boost_attack_25_1h",
+            "Amount": 1
+          }
+        ]
+      },
+      {
+        "Key": "clan_first_offering",
+        "DisplayName": "Перший дар",
+        "Window": "Chain",
+        "Prerequisite": "military_first_blood",
+        "Objectives": [
+          {
+            "Type": "ClanOfferingMade",
+            "Count": 5,
+            "Mode": "Accumulate"
+          }
+        ],
+        "Rewards": [
+          {
+            "Type": "Gems",
+            "Amount": 200
+          },
+          {
+            "Type": "Item",
+            "Key": "speedup_5m",
+            "Amount": 5
+          }
+        ]
+      },
+      {
         "Key": "clan_hunt",
         "DisplayName": "Облава",
         "Scope": "Clan",
@@ -423,6 +496,20 @@
           }
         ],
         "ClanPoints": 1200
+      },
+      {
+        "Key": "clan_scholars",
+        "DisplayName": "Книжники",
+        "Scope": "Clan",
+        "Window": "Chain",
+        "Objectives": [
+          {
+            "Type": "ClanOfferingMade",
+            "Count": 500,
+            "Mode": "Accumulate"
+          }
+        ],
+        "ClanPoints": 1000
       }
     ]
   }

@@ -70,6 +70,7 @@ namespace EmpireIdle.Application
             services.AddScoped<IItemEffect, BoostItemEffect>();
             services.AddScoped<IItemEffect, TeleportItemEffect>();
             services.AddScoped<IItemEffect, ScoutVeilItemEffect>();
+            services.AddScoped<IItemEffect, ShieldItemEffect>();
             services.AddScoped<IItemEffect, HeroExperienceItemEffect>();
             services.AddScoped<IItemEffect, DungeonEnergyItemEffect>();
 
@@ -82,10 +83,13 @@ namespace EmpireIdle.Application
             services.AddScoped<TrainingCampService>();
             services.AddScoped<PlayerVip>();
             services.AddScoped<PlayerTechnologies>();
+            services.AddScoped<ResearchSettlement>();
             services.AddScoped<MonsterExperienceReward>();
             services.AddScoped<ReinforcementReturner>();
             services.AddScoped<ClanSuccession>();
             services.AddScoped<ClanDisbander>();
+            services.AddScoped<ClanOfferings>();
+            services.AddScoped<ClanBonuses>();
             services.AddScoped<QuestThresholds>();
             services.AddScoped<ClanStructureRemover>();
             services.AddScoped<StructureMarchRules>();
@@ -105,6 +109,7 @@ namespace EmpireIdle.Application
             services.AddScoped<VillageRelocator>();
             services.AddScoped<CityFallService>();
             services.AddScoped<HeroCombatants>();
+            services.AddScoped<ArmyBuffs>();
             services.AddScoped<GarrisonDefenders>();
             services.AddScoped<MonsterBattleService>();
             services.AddScoped<BeastTamer>();
@@ -151,6 +156,8 @@ namespace EmpireIdle.Application
             services.AddScoped<IQuestSignalMapper, BattleFoughtMapper>();
             services.AddScoped<IQuestSignalMapper, GemsSpentMapper>();
             services.AddScoped<IQuestSignalMapper, UnitsTrainedMapper>();
+            services.AddScoped<IQuestSignalMapper, ResearchCompletedMapper>();
+            services.AddScoped<IQuestSignalMapper, ClanOfferingMadeMapper>();
 
             // Закриті типи хендлера — MediatR не вміє резолвити відкритий генерик
             // для вкладеної нотифікації, тому реєструємо їх рефлексією

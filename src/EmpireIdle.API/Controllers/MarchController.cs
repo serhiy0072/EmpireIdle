@@ -150,7 +150,7 @@ namespace EmpireIdle.API.Controllers
             var units = request.Units.ToDictionary(kv => UnitStackKey.Parse(kv.Key), kv => kv.Value);
 
             var preview = await _mediator.Send(
-                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.HeroIds, units),
+                new GetBattlePreviewQuery(playerId, request.TargetType, request.TargetId, request.HeroIds, units, request.Intent),
                 cancellationToken);
 
             return Ok(preview);

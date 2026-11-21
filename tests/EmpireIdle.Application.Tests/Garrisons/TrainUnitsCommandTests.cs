@@ -21,6 +21,7 @@ public class TrainUnitsCommandTests
     private readonly IGarrisonRepository _garrisons = Substitute.For<IGarrisonRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private EffectResolver Effects() => TestEffects.Resolver(_effects);
 
     private static GameConfig Config() => new()
@@ -77,7 +78,21 @@ public class TrainUnitsCommandTests
         var catalog = new GameCatalog(Config());
 
         return new(_villages, _garrisons, _unitOfWork, new FakeTimeProvider(Now),
-            NullLogger<TrainUnitsCommandHandler>.Instance, catalog, new VillageStatus(catalog));
+            NullLogger<TrainUnitsCommandHandler>.Instance, catalog, new VillageStatus(catalog),
+            TestTechnologies.For(TestTechnologies.TreeWith(
+                (TechnologyStat.TrainingSpeed, 0.25), (TechnologyStat.UnitCapacity, 0.1)), _research));
+    }
+
+    /// <summary>Технологія швидкості тренування +25% скорочує 10 с до 8 (база / 1.25).</summary>
+    [Fact]
+    public async Task Handle_ShouldTrainFaster_WithTheTrainingSpeedTechnology()
+    {
+        var (_, garrison) = GivenVillage();
+        _research.Researched(PlayerId, "attack_infantry", 1);
+
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 5), CancellationToken.None);
+
+        Assert.Equal(Now.AddSeconds(8), Assert.Single(garrison.TrainingOrders).CompletesAt);
     }
 
     /// <summary>Село з ратушею й казармами заданих рівнів, гарнізон, ресурси.</summary>
@@ -269,6 +284,22 @@ public class TrainUnitsCommandTests
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
             Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 21), CancellationToken.None));
         Assert.Equal(RefusalReasons.GarrisonArmyCapacity.Key, refusal.Reason);
+    }
+
+    /// <summary>Технологія казарм +10% піднімає стелю казарми 1 рівня з 20 до 22 юнітів.</summary>
+    [Fact]
+    public async Task Handle_ShouldRaiseArmyCapacity_WithTheQuartersTechnology()
+    {
+        var (_, garrison) = GivenVillage(barracksLevel: 1);
+        _research.Researched(PlayerId, "attack_infantry", 1);
+
+        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 23), CancellationToken.None));
+        Assert.Equal(RefusalReasons.GarrisonArmyCapacity.Key, refusal.Reason);
+
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 22), CancellationToken.None);
+
+        Assert.Equal(22, garrison.TrainingOrders.Sum(o => o.Count));
     }
 
     /// <summary>Вища казарма піднімає стелю армії: на 30 рівні — 100 юнітів.</summary>

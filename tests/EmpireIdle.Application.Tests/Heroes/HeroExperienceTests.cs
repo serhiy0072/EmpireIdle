@@ -205,4 +205,22 @@ public class HeroExperienceTests
         Assert.Equal(400, _pool!.Amount);
         await _heroes.Received(1).AddExperienceAsync(Arg.Any<HeroExperiencePool>(), Arg.Any<CancellationToken>());
     }
+
+    /// <summary>Наставництво +50% додає досвіду за монстра: рівень 2 по 1000 — 3000, і стільки ж лягає в пул.</summary>
+    [Fact]
+    public async Task MonsterReward_ShouldBoostTheExperience_WithTheMentorshipTechnology()
+    {
+        GivenExperience(0);
+        var config = new TestKit.GameConfigBuilder().WithBuildings().Build();
+        config.HeroSettings.MonsterExperiencePerLevel = 1000;
+        var research = Substitute.For<IPlayerResearchRepository>();
+        research.Researched(PlayerId, "attack_infantry", 1);
+
+        var granted = await new MonsterExperienceReward(_heroes, _serverContext, new GameCatalog(config),
+                TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.HeroExperience, 0.5), research))
+            .GrantAsync(PlayerId, monsterLevel: 2, Now, CancellationToken.None);
+
+        Assert.Equal(3000, granted);
+        Assert.Equal(3000, _pool!.Amount);
+    }
 }

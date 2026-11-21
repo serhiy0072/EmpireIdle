@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Territory.Services;
@@ -50,14 +51,12 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IHeroRepository _heroRepository;
         private readonly MonsterArmyBuilder _armyBuilder;
-        private readonly HeroCombatModifiers _heroModifiers;
-        private readonly HeroCombatants _combatants;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly GarrisonDefenders _defenders;
         private readonly GameCatalog _catalog;
         private readonly VillageStatus _status;
         private readonly IClanStructureRepository _structureRepository;
         private readonly IClanRepository _clanRepository;
-        private readonly ClanTerritoryRules _territory;
         private readonly TerritoryBonus _territoryBonus;
         private readonly IMarchRepository _marchRepository;
         private readonly HostilityRules _hostility;
@@ -69,14 +68,13 @@ namespace EmpireIdle.Application.Marches.Services
             IGarrisonRepository garrisonRepository,
             IHeroRepository heroRepository,
             MonsterArmyBuilder armyBuilder,
-            HeroCombatModifiers heroModifiers,
-            HeroCombatants combatants,
+            ArmyBuffs armyBuffs,
             GarrisonDefenders defenders,
             GameCatalog catalog,
             VillageStatus status,
             IClanStructureRepository structureRepository,
             IClanRepository clanRepository,
-            ClanTerritoryRules territory,
+            TerritoryBonus territoryBonus,
             IMarchRepository marchRepository,
             EffectResolver effects)
         {
@@ -85,19 +83,17 @@ namespace EmpireIdle.Application.Marches.Services
             _garrisonRepository = garrisonRepository;
             _heroRepository = heroRepository;
             _armyBuilder = armyBuilder;
-            _heroModifiers = heroModifiers;
-            _combatants = combatants;
+            _armyBuffs = armyBuffs;
             _defenders = defenders;
             _status = status;
             _catalog = catalog;
             _structureRepository = structureRepository;
             _clanRepository = clanRepository;
-            _territory = territory;
             _marchRepository = marchRepository;
             _effects = effects;
 
             // Той самий розрахунок, що в бою: прев'ю не має розходитись із результатом
-            _territoryBonus = new TerritoryBonus(clanRepository, structureRepository, territory);
+            _territoryBonus = territoryBonus;
             _hostility = new HostilityRules(clanRepository);
         }
 
@@ -152,7 +148,7 @@ namespace EmpireIdle.Application.Marches.Services
 
                     var buffs = garrison is null
                         ? DefenceBuffs.None
-                        : await BuildDefenceBuffsAsync(garrison.Id, village.PlayerId, cancellationToken);
+                        : await BuildDefenceBuffsAsync(garrison.Id, village.PlayerId, defence, cancellationToken);
 
                     return new MarchTarget(
                         village.X, village.Y,
@@ -180,7 +176,7 @@ namespace EmpireIdle.Application.Marches.Services
 
                     var structureBuffs = structureGarrison is null
                         ? DefenceBuffs.None
-                        : await BuildDefenceBuffsAsync(structureGarrison.Id, Guid.Empty, cancellationToken);
+                        : await BuildDefenceBuffsAsync(structureGarrison.Id, hostPlayerId: null, structureDefence, cancellationToken);
 
                     var clan = await _clanRepository.GetCardAsync(structure.ClanId, cancellationToken);
 
@@ -191,8 +187,7 @@ namespace EmpireIdle.Application.Marches.Services
                         Village: null,
                         structureDefence,
                         structureBuffs,
-                        // Споруда завжди в межах власного радіуса: добудована — під своїм бонусом
-                        _territory.DefenceMultiplier(_territory.Enabled && structure.IsActiveAt(utcNow)),
+                        await _territoryBonus.StructureDefenceMultiplierAsync(structure, utcNow, cancellationToken),
                         structure);
 
                 case MarchTargetType.Camp:
@@ -220,7 +215,7 @@ namespace EmpireIdle.Application.Marches.Services
                         // Армія табору — одного власника; його герої ведуть свої конвої й у обороні
                         DefenceStacks.FromArmy(camp.GetUnits()),
                         new DefenceBuffs(
-                            _heroModifiers.ForMarch(campHeroes, await _combatants.GearAsync(campHeroes, cancellationToken)),
+                            await _armyBuffs.ForArmyAsync(campHome.PlayerId, campHeroes, cancellationToken),
                             new Dictionary<Guid, StackBuff>()),
                         // Стін у полі немає (§2.5); територія — за клітинкою табору
                         await _territoryBonus.DefenceMultiplierAtAsync(
@@ -234,23 +229,19 @@ namespace EmpireIdle.Application.Marches.Services
         }
 
         /// <summary>
-        /// Бонуси героїв оборони — так само, як у бою: захисники господаря (найсильніший кожного класу)
-        /// ведуть юнітів свого класу, герої кожного союзника — лише власний стек.
+        /// Бонуси оборони — так само, як у бою: захисники господаря (найсильніший кожного класу)
+        /// ведуть юнітів свого класу, кожен союзник — під власними героями й технологіями.
         /// </summary>
-        private async Task<DefenceBuffs> BuildDefenceBuffsAsync(Guid garrisonId, Guid hostPlayerId,
-            CancellationToken cancellationToken)
+        /// <param name="hostPlayerId">Господар гарнізону; null — споруда клану, де господаря немає.</param>
+        private async Task<DefenceBuffs> BuildDefenceBuffsAsync(Guid garrisonId, Guid? hostPlayerId,
+            IReadOnlyList<DefenceStack> defence, CancellationToken cancellationToken)
         {
             var stationed = await _heroRepository.GetByGarrisonAsync(garrisonId, cancellationToken);
-            var defenders = await _defenders.ForAsync(hostPlayerId, cancellationToken);
-            var gear = await _combatants.GearAsync(stationed.Concat(defenders), cancellationToken);
+            var defenders = hostPlayerId is { } host
+                ? await _defenders.ForAsync(host, cancellationToken)
+                : [];
 
-            return new DefenceBuffs(
-                _heroModifiers.ForMarch(defenders, gear),
-                // Союзник прийшов із кількома героями — кожен підсилює власні конвої (GDD §6.1)
-                stationed
-                    .Where(h => h.PlayerId != hostPlayerId)
-                    .GroupBy(h => h.PlayerId)
-                    .ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g, gear)));
+            return await _armyBuffs.ForDefenceAsync(hostPlayerId, defenders, stationed, defence, cancellationToken);
         }
 
         /// <summary>

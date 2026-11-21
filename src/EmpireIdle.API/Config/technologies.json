@@ -1,6 +1,8 @@
 {
   "GameConfig": {
     "Technologies": {
+      "MaxMealUpkeepCut": 0.5,
+      "PowerWeights": { "Battle": 2, "Convoy": 2, "None": 1 },
       "Personal": {
         "BuildingKey": "laboratory",
         "Tabs": ["battle", "economy", "development"],
@@ -23,6 +25,7 @@
             "WorldLevel": 1,
             "TimeMultiplier": 1,
             "ReferenceTownHall": 8,
+            "PowerPerLevel": 30,
             "Scales": { "Battle": 1, "Convoy": 1 }
           },
           {
@@ -31,6 +34,7 @@
             "WorldLevel": 1,
             "TimeMultiplier": 5,
             "ReferenceTownHall": 10,
+            "PowerPerLevel": 120,
             "Scales": { "Battle": 1, "Convoy": 1 }
           },
           {
@@ -39,6 +43,7 @@
             "WorldLevel": 2,
             "TimeMultiplier": 10,
             "ReferenceTownHall": 16,
+            "PowerPerLevel": 400,
             "Scales": { "Battle": 1.5, "Convoy": 1 }
           },
           {
@@ -47,6 +52,7 @@
             "WorldLevel": 2,
             "TimeMultiplier": 18,
             "ReferenceTownHall": 20,
+            "PowerPerLevel": 800,
             "Scales": { "Battle": 1.5, "Convoy": 1.5 }
           },
           {
@@ -55,6 +61,7 @@
             "WorldLevel": 3,
             "TimeMultiplier": 30,
             "ReferenceTownHall": 25,
+            "PowerPerLevel": 1200,
             "Scales": { "Battle": 2, "Convoy": 1.5 }
           },
           {
@@ -63,6 +70,7 @@
             "WorldLevel": 3,
             "TimeMultiplier": 45,
             "ReferenceTownHall": 30,
+            "PowerPerLevel": 2000,
             "Scales": { "Battle": 2, "Convoy": 1.5 }
           }
         ],
@@ -319,11 +327,11 @@
         "LevelGrowth": 1.3,
         "PointsRounding": 100,
         "Tiers": [
-          { "Tier": 1, "WorldLevel": 1, "PointsMultiplier": 1, "Scales": { "Battle": 1 } },
-          { "Tier": 2, "WorldLevel": 2, "PointsMultiplier": 2.5, "Scales": { "Battle": 1 } },
-          { "Tier": 3, "WorldLevel": 3, "PointsMultiplier": 5, "Scales": { "Battle": 1.5 } },
-          { "Tier": 4, "WorldLevel": 4, "PointsMultiplier": 9, "Scales": { "Battle": 1.5 } },
-          { "Tier": 5, "WorldLevel": 5, "PointsMultiplier": 15, "Scales": { "Battle": 2 } }
+          { "Tier": 1, "PointsMultiplier": 1, "AttemptCostMultiplier": 1, "PowerPerLevel": 40, "Scales": { "Battle": 1 } },
+          { "Tier": 2, "PointsMultiplier": 2.5, "AttemptCostMultiplier": 1.5, "PowerPerLevel": 120, "Scales": { "Battle": 1 } },
+          { "Tier": 3, "PointsMultiplier": 5, "AttemptCostMultiplier": 2.25, "PowerPerLevel": 350, "Scales": { "Battle": 1.5 } },
+          { "Tier": 4, "PointsMultiplier": 9, "AttemptCostMultiplier": 3.25, "PowerPerLevel": 700, "Scales": { "Battle": 1.5 } },
+          { "Tier": 5, "PointsMultiplier": 15, "AttemptCostMultiplier": 4.5, "PowerPerLevel": 1400, "Scales": { "Battle": 2 } }
         ],
         "Nodes": [
           {
@@ -332,9 +340,9 @@
             "Row": 1,
             "Requires": [],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
-            "Effects": [ { "Stat": "ResearchSpeed", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "ResearchSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "c_production",
@@ -342,9 +350,9 @@
             "Row": 2,
             "Requires": ["c_research"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "None",
-            "Effects": [ { "Stat": "Production", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "Production", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "c_construction",
@@ -352,9 +360,9 @@
             "Row": 2,
             "Requires": ["c_research"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
-            "Effects": [ { "Stat": "ConstructionSpeed", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "ConstructionSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "c_training",
@@ -362,9 +370,9 @@
             "Row": 2,
             "Requires": ["c_research"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "None",
-            "Effects": [ { "Stat": "TrainingSpeed", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "TrainingSpeed", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "c_helpcap",
@@ -372,9 +380,9 @@
             "Row": 3,
             "Requires": ["c_production", "c_construction", "c_training"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "None",
-            "Effects": [ { "Stat": "HelpShareCap", "Target": null, "PerLevel": 0.02 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "HelpShareCap", "Target": null, "PerLevel": 0.02 } ]
           },
           {
             "Key": "c_attempts",
@@ -382,9 +390,9 @@
             "Row": 4,
             "Requires": ["c_helpcap"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
-            "Effects": [ { "Stat": "OfferingAttempts", "Target": null, "PerLevel": 1 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "OfferingAttempts", "Target": null, "PerLevel": 1 } ]
           },
           {
             "Key": "c_coins",
@@ -392,9 +400,9 @@
             "Row": 4,
             "Requires": ["c_helpcap"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "None",
-            "Effects": [ { "Stat": "CoinBonus", "Target": null, "PerLevel": 0.02 } ],
-            "OfferResources": ["gold", "wood"]
+            "Effects": [ { "Stat": "CoinBonus", "Target": null, "PerLevel": 0.02 } ]
           },
           {
             "Key": "l_buildspeed",
@@ -402,9 +410,9 @@
             "Row": 1,
             "Requires": [],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
-            "Effects": [ { "Stat": "StructureBuildSpeed", "Target": null, "PerLevel": 0.05 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "StructureBuildSpeed", "Target": null, "PerLevel": 0.05 } ]
           },
           {
             "Key": "l_attack",
@@ -412,9 +420,9 @@
             "Row": 2,
             "Requires": ["l_buildspeed"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "None",
-            "Effects": [ { "Stat": "TerritoryAttack", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "TerritoryAttack", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "l_defense",
@@ -422,9 +430,9 @@
             "Row": 2,
             "Requires": ["l_buildspeed"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
-            "Effects": [ { "Stat": "TerritoryDefense", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "TerritoryDefense", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "l_garrison",
@@ -432,9 +440,9 @@
             "Row": 3,
             "Requires": ["l_attack", "l_defense"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "None",
-            "Effects": [ { "Stat": "StructureGarrison", "Target": null, "PerLevel": 0.1 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "StructureGarrison", "Target": null, "PerLevel": 0.1 } ]
           },
           {
             "Key": "l_cashback",
@@ -442,9 +450,9 @@
             "Row": 4,
             "Requires": ["l_garrison"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "None",
-            "Effects": [ { "Stat": "LootCashback", "Target": null, "PerLevel": 0.005 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "LootCashback", "Target": null, "PerLevel": 0.005 } ]
           },
           {
             "Key": "l_cost",
@@ -452,9 +460,9 @@
             "Row": 4,
             "Requires": ["l_garrison"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "None",
-            "Effects": [ { "Stat": "StructureCost", "Target": null, "PerLevel": 0.03 } ],
-            "OfferResources": ["wood", "iron"]
+            "Effects": [ { "Stat": "StructureCost", "Target": null, "PerLevel": 0.03 } ]
           },
           {
             "Key": "v_attack_all",
@@ -462,9 +470,9 @@
             "Row": 1,
             "Requires": [],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Attack", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Attack", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "v_attack_infantry",
@@ -472,9 +480,9 @@
             "Row": 2,
             "Requires": ["v_attack_all"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Attack", "Target": "infantry", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Attack", "Target": "infantry", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_attack_spearman",
@@ -482,9 +490,9 @@
             "Row": 2,
             "Requires": ["v_attack_all"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Attack", "Target": "spearman", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Attack", "Target": "spearman", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_attack_archer",
@@ -492,9 +500,9 @@
             "Row": 2,
             "Requires": ["v_attack_all"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Attack", "Target": "archer", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Attack", "Target": "archer", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_defense_all",
@@ -502,9 +510,9 @@
             "Row": 3,
             "Requires": ["v_attack_infantry", "v_attack_spearman", "v_attack_archer"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Defense", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Defense", "Target": null, "PerLevel": 0.01 } ]
           },
           {
             "Key": "v_defense_infantry",
@@ -512,9 +520,9 @@
             "Row": 4,
             "Requires": ["v_defense_all"],
             "Levels": 3,
+            "Resource": "iron",
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Defense", "Target": "infantry", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Defense", "Target": "infantry", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_defense_spearman",
@@ -522,9 +530,9 @@
             "Row": 4,
             "Requires": ["v_defense_all"],
             "Levels": 3,
+            "Resource": "wood",
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Defense", "Target": "spearman", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Defense", "Target": "spearman", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_defense_archer",
@@ -532,9 +540,9 @@
             "Row": 4,
             "Requires": ["v_defense_all"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "Battle",
-            "Effects": [ { "Stat": "Defense", "Target": "archer", "PerLevel": 0.005 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "Defense", "Target": "archer", "PerLevel": 0.005 } ]
           },
           {
             "Key": "v_marchspeed",
@@ -542,57 +550,110 @@
             "Row": 5,
             "Requires": ["v_defense_infantry", "v_defense_spearman", "v_defense_archer"],
             "Levels": 3,
+            "Resource": "food",
             "Scaling": "None",
-            "Effects": [ { "Stat": "MarchSpeed", "Target": null, "PerLevel": 0.01 } ],
-            "OfferResources": ["food", "iron"]
+            "Effects": [ { "Stat": "MarchSpeed", "Target": null, "PerLevel": 0.01 } ]
           }
         ],
         "Offering": {
           "MaxAttempts": 25,
           "AttemptRechargeSeconds": 576,
           "PointsPerAttempt": 10,
-          "AttemptCostPerTownHall": { "gold": 50, "wood": 40, "iron": 40, "food": 50, "fodder": 35 },
+          "AttemptCost": 2000,
+          "ResourceRates": { "food": 1, "wood": 1, "iron": 0.5, "gold": 0.25 },
+          "CostRounding": 50,
           "GemPoints": 50,
-          "GemPriceStep": 20,
-          "GemPriceCap": 400,
+          "GemPriceBase": 10,
+          "GemPriceBatch": 5,
+          "GemPriceGrowth": 2,
           "GemDailyLimit": 50
         },
         "Coins": {
           "BaseAmount": 100,
           "Multipliers": [
-            { "Multiplier": 1, "Weight": 72 },
-            { "Multiplier": 2, "Weight": 18 },
-            { "Multiplier": 5, "Weight": 7 },
-            { "Multiplier": 10, "Weight": 2.5 },
-            { "Multiplier": 20, "Weight": 0.4 },
-            { "Multiplier": 50, "Weight": 0.1 }
+            { "Multiplier": 1, "Weight": 60 },
+            { "Multiplier": 2, "Weight": 20 },
+            { "Multiplier": 5, "Weight": 10 },
+            { "Multiplier": 10, "Weight": 5 },
+            { "Multiplier": 20, "Weight": 3 },
+            { "Multiplier": 50, "Weight": 2 }
           ]
         },
+        "DailyContributionRewards": [
+          { "Points": 100, "Rewards": [ { "Type": "Item", "Key": "speedup_1m", "Amount": 3 } ] },
+          { "Points": 250, "Rewards": [ { "Type": "Gems", "Amount": 10 }, { "Type": "Item", "Key": "hero_xp_1k", "Amount": 1 } ] },
+          { "Points": 500, "Rewards": [ { "Type": "Item", "Key": "speedup_5m", "Amount": 1 } ] },
+          { "Points": 750, "Rewards": [ { "Type": "Gems", "Amount": 20 }, { "Type": "Item", "Key": "beast_feed", "Amount": 5 } ] },
+          { "Points": 1000, "Rewards": [ { "Type": "Item", "Key": "dungeon_energy_10", "Amount": 1 } ] },
+          { "Points": 1500, "Rewards": [ { "Type": "Gems", "Amount": 30 }, { "Type": "Item", "Key": "speedup_10m", "Amount": 1 } ] },
+          { "Points": 2000, "Rewards": [ { "Type": "Item", "Key": "boost_production_1h", "Amount": 1 } ] },
+          { "Points": 2500, "Rewards": [ { "Type": "Item", "Key": "chest_books_common", "Amount": 1 } ] }
+        ],
         "Shop": {
-          "DailySlots": 6,
-          "DailyPool": [
-            { "ItemKey": "speedup_5m", "Price": 1800, "Limit": 5 },
-            { "ItemKey": "speedup_10m", "Price": 3500, "Limit": 3 },
-            { "ItemKey": "hero_xp_1k", "Price": 1500, "Limit": 5 },
-            { "ItemKey": "crate_food_5000", "Price": 2000, "Limit": 3 },
-            { "ItemKey": "crate_wood_5000", "Price": 2000, "Limit": 3 },
-            { "ItemKey": "crate_iron_2500", "Price": 2000, "Limit": 3 },
-            { "ItemKey": "beast_feed", "Price": 400, "Limit": 10 },
-            { "ItemKey": "wrench_common", "Price": 3000, "Limit": 2 },
-            { "ItemKey": "dungeon_energy_10", "Price": 2500, "Limit": 2 },
-            { "ItemKey": "teleport_nearby", "Price": 4000, "Limit": 1 },
-            { "ItemKey": "boost_production_1h", "Price": 5000, "Limit": 1 },
-            { "ItemKey": "universal_shard_common", "Price": 6000, "Limit": 1 }
+          "DailySlots": 15,
+          "WeeklySlots": 15,
+          "FreeWeekly": [
+            { "ItemKey": "teleport_random", "Limit": 10 },
+            { "ItemKey": "shield_8h", "Limit": 5 },
+            { "ItemKey": "teleport_clan", "Limit": 3, "RequiresClan": true }
           ],
-          "Weekly": [
-            { "ItemKey": "speedup_1h", "Price": 20000, "Limit": 3 },
-            { "ItemKey": "speedup_5h", "Price": 100000, "Limit": 1 },
-            { "ItemKey": "hero_xp_10k", "Price": 12000, "Limit": 2 },
-            { "ItemKey": "key_rare", "Price": 20000, "Limit": 1 },
-            { "ItemKey": "chest_books_rare", "Price": 30000, "Limit": 1 },
-            { "ItemKey": "universal_shard_rare", "Price": 40000, "Limit": 1 },
-            { "ItemKey": "teleport_clan", "Price": 10000, "Limit": 1 },
-            { "ItemKey": "dungeon_energy_50", "Price": 12000, "Limit": 1 }
+          "DailyPool": [
+            { "ItemKey": "speedup_1m", "Price": 600, "Limit": 10, "Weight": 10 },
+            { "ItemKey": "speedup_5m", "Price": 3300, "Limit": 3, "Weight": 12 },
+            { "ItemKey": "speedup_10m", "Price": 6600, "Limit": 2, "Weight": 10 },
+            { "ItemKey": "speedup_1h", "Price": 40000, "Limit": 1, "Weight": 2 },
+            { "ItemKey": "hero_xp_small", "Price": 1500, "Limit": 5, "Weight": 10 },
+            { "ItemKey": "hero_xp_1k", "Price": 3000, "Limit": 3, "Weight": 12 },
+            { "ItemKey": "hero_xp_medium", "Price": 12000, "Limit": 1, "Weight": 5 },
+            { "ItemKey": "hero_xp_10k", "Price": 24000, "Limit": 1, "Weight": 2 },
+            { "ItemKey": "crate_food_5000", "Price": 6000, "Limit": 2, "Weight": 8 },
+            { "ItemKey": "crate_wood_5000", "Price": 6000, "Limit": 2, "Weight": 8 },
+            { "ItemKey": "crate_iron_2500", "Price": 3000, "Limit": 2, "Weight": 8 },
+            { "ItemKey": "beast_feed", "Price": 200, "Limit": 25, "Weight": 8 },
+            { "ItemKey": "wrench_common", "Price": 6000, "Limit": 2, "Weight": 8 },
+            { "ItemKey": "wrench_rare", "Price": 18000, "Limit": 1, "Weight": 3 },
+            { "ItemKey": "dungeon_energy_10", "Price": 5000, "Limit": 2, "Weight": 6 },
+            { "ItemKey": "teleport_nearby", "Price": 8000, "Limit": 1, "Weight": 3 },
+            { "ItemKey": "teleport_random", "Price": 6000, "Limit": 1, "Weight": 3 },
+            { "ItemKey": "boost_production_1h", "Price": 10000, "Limit": 1, "Weight": 4 },
+            { "ItemKey": "universal_shard_common", "Price": 12000, "Limit": 1, "Weight": 4 },
+            { "ItemKey": "scout_veil_24h", "Price": 8000, "Limit": 1, "Weight": 3 }
+          ],
+          "WeeklyPool": [
+            { "ItemKey": "speedup_1h", "Price": 40000, "Limit": 2, "Weight": 40, "MaxDiscount": 90 },
+            { "ItemKey": "speedup_5h", "Price": 200000, "Limit": 1, "Weight": 12, "MaxDiscount": 90 },
+            { "ItemKey": "hero_xp_10k", "Price": 24000, "Limit": 2, "Weight": 40, "MaxDiscount": 90 },
+            { "ItemKey": "chest_books_common", "Price": 32000, "Limit": 1, "Weight": 40, "MaxDiscount": 90 },
+            { "ItemKey": "chest_books_rare", "Price": 60000, "Limit": 1, "Weight": 30, "MaxDiscount": 90 },
+            { "ItemKey": "universal_shard_common", "Price": 12000, "Limit": 3, "Weight": 40, "MaxDiscount": 90 },
+            { "ItemKey": "universal_shard_rare", "Price": 120000, "Limit": 1, "Weight": 20, "MaxDiscount": 90 },
+            { "ItemKey": "teleport_clan", "Price": 20000, "Limit": 1, "Weight": 25, "MaxDiscount": 90 },
+            { "ItemKey": "teleport_leader", "Price": 20000, "Limit": 1, "Weight": 15, "MaxDiscount": 90 },
+            { "ItemKey": "dungeon_energy_50", "Price": 24000, "Limit": 1, "Weight": 30, "MaxDiscount": 90 },
+            { "ItemKey": "repair_kit", "Price": 30000, "Limit": 1, "Weight": 25, "MaxDiscount": 90 },
+            { "ItemKey": "wrench_rare", "Price": 18000, "Limit": 3, "Weight": 35, "MaxDiscount": 90 },
+            { "ItemKey": "hero_xp_20k", "Price": 72000, "Limit": 1, "Weight": 2, "MaxDiscount": 50 },
+            { "ItemKey": "chest_books_unique", "Price": 90000, "Limit": 1, "Weight": 2, "MaxDiscount": 50 },
+            { "ItemKey": "whetstone", "Price": 800, "Limit": 50, "Weight": 2, "MaxDiscount": 50 },
+            { "ItemKey": "weapon_chest", "Price": 120000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 },
+            { "ItemKey": "hero_xp_large", "Price": 180000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 },
+            { "ItemKey": "key_unique", "Price": 300000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 },
+            { "ItemKey": "speedup_8h", "Price": 480000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 },
+            { "ItemKey": "universal_shard_unique", "Price": 480000, "Limit": 1, "Weight": 1, "MaxDiscount": 50 }
+          ],
+          "DailyDiscounts": [
+            { "Percent": 0, "Weight": 62 },
+            { "Percent": 10, "Weight": 20 },
+            { "Percent": 20, "Weight": 11 },
+            { "Percent": 50, "Weight": 6 },
+            { "Percent": 90, "Weight": 1 }
+          ],
+          "WeeklyDiscounts": [
+            { "Percent": 0, "Weight": 60 },
+            { "Percent": 10, "Weight": 22 },
+            { "Percent": 20, "Weight": 12 },
+            { "Percent": 50, "Weight": 5 },
+            { "Percent": 90, "Weight": 1 }
           ]
         }
       }

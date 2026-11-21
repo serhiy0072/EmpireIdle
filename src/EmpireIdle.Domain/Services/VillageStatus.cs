@@ -55,8 +55,10 @@ namespace EmpireIdle.Domain.Services
         /// <summary>
         /// Скільки м'яса за годину з'їдає село (рішення 20.10.2026): ставка × сума рівнів відкритих будівель
         /// із рівнями — «чим більше селище, тим більше їсть». Без відкритої Їдальні — нуль.
+        /// Технології провізії зрізають частку (рішення 28.10.2026), але не більше за стелю конфігу.
         /// </summary>
-        public int MealPerHour(Village village)
+        /// <param name="upkeepCut">Сума технологій MealUpkeep гравця (0.1 — на 10% менше).</param>
+        public int MealPerHour(Village village, double upkeepCut = 0)
         {
             var provisions = _catalog.Config.Provisions;
 
@@ -68,7 +70,9 @@ namespace EmpireIdle.Domain.Services
                 .Where(b => _catalog.Buildings.TryGetValue(b.Type, out var c) && c.Upgradable && IsUnlocked(village, b.Type))
                 .Sum(b => b.Level.Value);
 
-            return provisions.MealPerBuildingLevelPerHour * size;
+            var cut = Math.Clamp(upkeepCut, 0, _catalog.Config.Technologies.MaxMealUpkeepCut);
+
+            return (int)Math.Round(provisions.MealPerBuildingLevelPerHour * size * (1 - cut), MidpointRounding.AwayFromZero);
         }
 
         /// <summary>

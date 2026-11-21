@@ -78,6 +78,18 @@
       "title": "Clan",
       "text": "Clanmates cut your timers: each helper takes 2%, up to 40% in total. On clan territory your troops fight 10% harder."
     },
+    "academy": {
+      "title": "Laboratory",
+      "text": "Research personal technologies here: one research at a time, paid with village resources. New tiers open with your Town Hall and the world level, and clanmates shorten the time with help."
+    },
+    "clan-tech": {
+      "title": "Clan technologies",
+      "text": "Offer resources into any open technology: each takes its own resource, and every offering pays you clan coins. An attempt comes back about every 10 minutes. The next row opens once every technology of the previous one has +1. ⭐ is the leadership mark: offerings there give +50% coins."
+    },
+    "clan-shop": {
+      "title": "Clan shop",
+      "text": "Spend the clan coins from offerings here: a daily and a weekly showcase, sometimes discounted. The free showcase gives teleports and shields every week — even without a clan."
+    },
     "rating": {
       "title": "Rating",
       "text": "Rating counts power (55%), growth (25%) and activity (20%)."

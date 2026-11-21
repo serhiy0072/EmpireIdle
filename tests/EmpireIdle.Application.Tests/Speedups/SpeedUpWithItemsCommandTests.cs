@@ -89,7 +89,8 @@ public class SpeedUpWithItemsCommandTests
         var catalog = new GameCatalog(config);
 
         return new SpeedUpWithItemsCommandHandler(_inventory,
-            new SpeedUpTargets(_villages, _garrisons, _marches, _research, catalog),
+            new SpeedUpTargets(_villages, _garrisons, _marches, _research, catalog,
+                TestTechnologies.Settlement(catalog, _villages, _research)),
             new SpeedUpCalculator(config.Monetization), catalog, _unitOfWork, new FakeTimeProvider(Now),
             NullLogger<SpeedUpWithItemsCommandHandler>.Instance);
     }

@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.TestKit;
@@ -10,6 +11,112 @@ namespace EmpireIdle.Domain.Tests.Services;
 /// </summary>
 public class TechnologyConfigValidationTests
 {
+    [Fact]
+    public void Validate_ShouldRejectDailyRewardThresholdsThatDoNotGrow()
+        => Assert.Contains("must grow", Rejects(c => c.Technologies.Clan.DailyContributionRewards =
+        [
+            new ClanDailyRewardConfig { Points = 100, Rewards = [new RewardConfig { Type = "Gems", Amount = 1 }] },
+            new ClanDailyRewardConfig { Points = 100, Rewards = [new RewardConfig { Type = "Gems", Amount = 1 }] }
+        ]).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectADailyRewardWithAnUnknownItem()
+        => Assert.Contains("known keys", Rejects(c => c.Technologies.Clan.DailyContributionRewards =
+        [
+            new ClanDailyRewardConfig { Points = 100, Rewards = [new RewardConfig { Type = "Item", Key = "nothing", Amount = 1 }] }
+        ]).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectMoreWeeklySlotsThanThePoolHolds()
+        => Assert.Contains("WeeklySlots", Rejects(c => c.Technologies.Clan.Shop.WeeklySlots = 2).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectADiscountOfAHundredPercent()
+        => Assert.Contains("discount", Rejects(c => c.Technologies.Clan.Shop.DailyDiscounts =
+            [new ClanShopDiscountConfig { Percent = 100, Weight = 1 }]).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectAnItemTwiceInOnePool()
+        => Rejects(c => c.Technologies.Clan.Shop.DailyPool.Add(
+            new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 1, Limit = 1 }));
+
+    /// <summary>Скриня сама не торгується, але випадає з неї те, що торгується: монети дійшли б до gems.</summary>
+    [Fact]
+    public void Validate_ShouldRejectAChestThatOpensIntoSomethingTradeable()
+        => Assert.Contains("opens into something tradeable", Rejects(c =>
+        {
+            c.Items.Add(new ItemConfig { Key = "trade_good", DisplayName = "x", Description = "x", Type = "resources", Tradeable = true });
+            c.Items.Add(new ItemConfig { Key = "leaky_chest", DisplayName = "x", Description = "x", Type = "lootbox" });
+            c.Lootboxes.Add(new LootboxConfig
+            {
+                Key = "leaky_chest",
+                Entries = [new LootboxEntryConfig { Type = "Item", Key = "trade_good", Amount = 1, Weight = 1 }]
+            });
+            c.Technologies.Clan.Shop.WeeklyPool[0].ItemKey = "leaky_chest";
+        }).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectAnItemThatGrantsTheMarketCurrency()
+        => Assert.Contains("opens into something tradeable", Rejects(c =>
+        {
+            c.Items.Add(new ItemConfig
+            {
+                Key = "gold_crate", DisplayName = "x", Description = "x", Type = "resources",
+                Resources = [new ResourceCost { Resource = TestKeys.Gold, Amount = 100 }]
+            });
+            c.Technologies.Clan.Shop.WeeklyPool[0].ItemKey = "gold_crate";
+        }).Message);
+
+    [Fact]
+    public void Validate_ShouldAcceptAFreeWeeklyItem()
+    {
+        var config = Valid();
+        config.Technologies.Clan.Shop.FreeWeekly = [new ClanFreeItemConfig { ItemKey = TestKeys.ClanShopItem, Limit = 1 }];
+
+        Assert.Null(Record.Exception(() => GameConfigValidator.Validate(config)));
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectAnUnknownFreeWeeklyItem()
+        => Assert.Contains("unknown item", Rejects(c => c.Technologies.Clan.Shop.FreeWeekly =
+            [new ClanFreeItemConfig { ItemKey = "nothing", Limit = 1 }]).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectAFreeWeeklyItemWithoutALimit()
+        => Assert.Contains("limit", Rejects(c => c.Technologies.Clan.Shop.FreeWeekly =
+            [new ClanFreeItemConfig { ItemKey = TestKeys.ClanShopItem, Limit = 0 }]).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectAFreeWeeklyItemTwice()
+        => Rejects(c => c.Technologies.Clan.Shop.FreeWeekly =
+        [
+            new ClanFreeItemConfig { ItemKey = TestKeys.ClanShopItem, Limit = 1 },
+            new ClanFreeItemConfig { ItemKey = TestKeys.ClanShopItem, Limit = 1 }
+        ]);
+
+    [Fact]
+    public void Validate_ShouldRejectATradeableFreeWeeklyItem()
+        => Assert.Contains("tradeable", Rejects(c =>
+        {
+            c.Items.Single(i => i.Key == TestKeys.ClanShopItem).Tradeable = true;
+            c.Technologies.Clan.Shop.FreeWeekly = [new ClanFreeItemConfig { ItemKey = TestKeys.ClanShopItem, Limit = 1 }];
+        }).Message);
+
+    [Theory]
+    [InlineData(TeleportScope.ClanTerritory)]
+    [InlineData(TeleportScope.ClanLeader)]
+    public void Validate_ShouldRejectAFreeClanTeleportWithoutRequiresClan(TeleportScope scope)
+        => Assert.Contains("RequiresClan", Rejects(c =>
+        {
+            c.Items.Add(new ItemConfig { Key = "clan_jump", DisplayName = "x", Description = "x", Type = "teleport", TeleportScope = scope });
+            c.Technologies.Clan.Shop.FreeWeekly = [new ClanFreeItemConfig { ItemKey = "clan_jump", Limit = 1 }];
+        }).Message);
+
+    [Fact]
+    public void Validate_ShouldRejectAShieldWithoutADuration()
+        => Assert.Contains("DurationHours", Rejects(c => c.Items.Add(
+            new ItemConfig { Key = "empty_shield", DisplayName = "x", Description = "x", Type = "shield" })).Message);
+
     private static GameConfig Valid() => new GameConfigBuilder().WithTechnologies().Build();
 
     private static InvalidOperationException Rejects(Action<GameConfig> break_)
@@ -83,13 +190,8 @@ public class TechnologyConfigValidationTests
         => Assert.Contains("no resource prices", Rejects(c => c.Technologies.Personal.TabResources.Clear()).Message);
 
     [Fact]
-    public void Validate_ShouldRejectAnOfferingResourceWithoutAPrice()
-        => Assert.Contains("AttemptCostPerTownHall", Rejects(c =>
-            c.Technologies.Clan.Nodes[0].OfferResources = [TestKeys.Iron]).Message);
-
-    [Fact]
     public void Validate_ShouldRejectAnUnknownShopItem()
-        => Assert.Contains("unknown item", Rejects(c => c.Technologies.Clan.Shop.Weekly[0].ItemKey = "nothing").Message);
+        => Assert.Contains("unknown item", Rejects(c => c.Technologies.Clan.Shop.WeeklyPool[0].ItemKey = "nothing").Message);
 
     /// <summary>Річ із ринку в магазині за монети — монети перетекли б у gems через продаж іншим.</summary>
     [Fact]

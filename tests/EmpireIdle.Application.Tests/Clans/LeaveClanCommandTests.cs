@@ -30,6 +30,8 @@ public class LeaveClanCommandTests
     private readonly IClanRequestRepository _requests = Substitute.For<IClanRequestRepository>();
     private readonly IClanHelpRepository _helps = Substitute.For<IClanHelpRepository>();
     private readonly IClanQuestRepository _quests = Substitute.For<IClanQuestRepository>();
+    private readonly IClanResearchRepository _research = Substitute.For<IClanResearchRepository>();
+    private readonly IClanOfferingRepository _offerings = Substitute.For<IClanOfferingRepository>();
     private readonly IMapRepository _map = Substitute.For<IMapRepository>();
 
     // Окремий стаб у тесті має перекривати цей — тому він у конструкторі, а не в Handler()
@@ -59,11 +61,12 @@ public class LeaveClanCommandTests
 
         var structureRemover = new ClanStructureRemover(_structures, _garrisons, _map, returner,
             NullLogger<ClanStructureRemover>.Instance);
-        var disbander = new ClanDisbander(_clans, _structures, _requests, _helps, _quests, structureRemover,
+        var disbander = new ClanDisbander(_clans, _structures, _requests, _helps, _quests, _research, _offerings, structureRemover,
             NullLogger<ClanDisbander>.Instance);
 
         return new LeaveClanCommandHandler(_clans, _players, _villages, _helps, _unitOfWork, new FakeTimeProvider(Now),
-            returner, new ClanSuccession(_players), disbander, NullLogger<LeaveClanCommandHandler>.Instance);
+            returner, new ClanSuccession(_players), disbander, TestTechnologies.Settlement(catalog, Substitute.For<IVillageRepository>()),
+            NullLogger<LeaveClanCommandHandler>.Instance);
     }
 
     private Clan GivenClan(params (Guid Id, string Role, DateTime LastSeen)[] members)
@@ -157,6 +160,8 @@ public class LeaveClanCommandTests
         await _requests.Received(1).RemoveByClanAsync(clan.Id, Arg.Any<CancellationToken>());
         await _helps.Received(1).RemoveByClanAsync(clan.Id, Arg.Any<CancellationToken>());
         await _quests.Received(1).RemoveByClanAsync(clan.Id, Arg.Any<CancellationToken>());
+        await _research.Received(1).RemoveByClanAsync(clan.Id, Arg.Any<CancellationToken>());
+        await _offerings.Received(1).RemoveContributionsByClanAsync(clan.Id, Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).BeginTransactionAsync(Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).CommitTransactionAsync(Arg.Any<CancellationToken>());
     }

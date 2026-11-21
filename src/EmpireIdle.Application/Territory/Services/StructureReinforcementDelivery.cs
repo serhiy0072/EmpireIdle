@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Combat;
@@ -22,11 +24,11 @@ namespace EmpireIdle.Application.Territory.Services
         private readonly IClanRepository _clanRepository;
         private readonly IClanStructureRepository _structureRepository;
         private readonly CombatCalculator _combat;
-        private readonly HeroCombatModifiers _heroModifiers;
-        private readonly HeroCombatants _combatants;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly TerrainGenerator _terrain;
         private readonly MarchLogistics _logistics;
         private readonly ClanTerritoryRules _rules;
+        private readonly ClanBonuses _clanBonuses;
         private readonly ILogger<StructureReinforcementDelivery> _logger;
 
         public StructureReinforcementDelivery(
@@ -35,20 +37,20 @@ namespace EmpireIdle.Application.Territory.Services
             IClanRepository clanRepository,
             IClanStructureRepository structureRepository,
             CombatCalculator combat,
-            HeroCombatModifiers heroModifiers,
-            HeroCombatants combatants,
+            ArmyBuffs armyBuffs,
             TerrainGenerator terrain,
             MarchLogistics logistics,
             ClanTerritoryRules rules,
+            ClanBonuses clanBonuses,
             ILogger<StructureReinforcementDelivery> logger)
         {
+            _clanBonuses = clanBonuses;
             _garrisonRepository = garrisonRepository;
             _villageRepository = villageRepository;
             _clanRepository = clanRepository;
             _structureRepository = structureRepository;
             _combat = combat;
-            _heroModifiers = heroModifiers;
-            _combatants = combatants;
+            _armyBuffs = armyBuffs;
             _terrain = terrain;
             _logistics = logistics;
             _rules = rules;
@@ -82,16 +84,19 @@ namespace EmpireIdle.Application.Territory.Services
 
             // Сила маршу, а не кількість маршів: один сильний прискорює більше за кілька слабких
             var power = _combat.CalculatePower(units, _terrain.GetTerrainType(march.ServerId, structure.X, structure.Y),
-                isAttacker: true, _heroModifiers.ForMarch(heroes, await _combatants.GearAsync(heroes, cancellationToken)));
+                isAttacker: true, await _armyBuffs.ForArmyAsync(ownerVillage.PlayerId, heroes, cancellationToken));
 
             var accelerated = structure.Accelerate(_rules.BuildShareFor(power), _rules.MaxBuildShare, utcNow);
 
-            var free = Math.Max(0, _rules.GarrisonCapacity - structureGarrison.ReinforcementCount);
+            var capacity = _rules.GarrisonCapacityWith(
+                (await _clanBonuses.ForClanAsync(structure.ClanId, cancellationToken)).Of(TechnologyStat.StructureGarrison));
+
+            var free = Math.Max(0, capacity - structureGarrison.ReinforcementCount);
             var (accepted, rejected) = ReinforcementSplit.Take(units, free);
 
             if (accepted.Count > 0)
                 structureGarrison.AddReinforcements(ownerVillage.PlayerId, ownerGarrison.Id, accepted,
-                    _rules.GarrisonCapacity, utcNow);
+                    capacity, utcNow);
 
             // Герої лишаються завжди: слота гарнізону вони не займають, а бонус тримають над своїми конвоями
             foreach (var hero in heroes)

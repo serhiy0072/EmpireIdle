@@ -506,8 +506,18 @@
             static TechnologyTierConfig Tier(int tier) => new()
             {
                 Tier = tier, MainBuildingLevel = tier * 5, WorldLevel = tier, TimeMultiplier = tier, ReferenceTownHall = tier * 5,
-                PointsMultiplier = tier, Scales = new() { [TechnologyScaling.Battle] = tier }
+                PointsMultiplier = tier, AttemptCostMultiplier = tier, Scales = new() { [TechnologyScaling.Battle] = tier }
             };
+
+            // Кланові тіри без гейтів ратуші й світу: тір відкриває лише попередній шар (рішення 12.11)
+            static TechnologyTierConfig ClanTier(int tier)
+            {
+                var config = Tier(tier);
+                config.MainBuildingLevel = 0;
+                config.WorldLevel = 1;
+
+                return config;
+            }
 
             _config.Technologies = new TechnologiesConfig
             {
@@ -534,25 +544,26 @@
                 Clan = new ClanTechnologiesConfig
                 {
                     Tabs = ["valor"],
-                    Tiers = [Tier(1), Tier(2)],
+                    Tiers = [ClanTier(1), ClanTier(2)],
                     Nodes =
                     [
                         new TechnologyNodeConfig
                         {
-                            Key = "v_attack_all", Tab = "valor", Row = 1, Levels = 3, Scaling = TechnologyScaling.Battle,
-                            OfferResources = [TestKeys.Gold],
+                            Key = "v_attack_all", Tab = "valor", Row = 1, Levels = 3, Resource = TestKeys.Gold, Scaling = TechnologyScaling.Battle,
                             Effects = [new TechnologyEffectConfig { Stat = TechnologyStat.Attack, PerLevel = 0.01 }]
                         },
                         new TechnologyNodeConfig
                         {
-                            Key = "c_coins", Tab = "valor", Row = 2, Levels = 3, Requires = ["v_attack_all"],
-                            OfferResources = [TestKeys.Gold, TestKeys.Wood],
+                            Key = "c_coins", Tab = "valor", Row = 2, Levels = 3, Requires = ["v_attack_all"], Resource = TestKeys.Wood,
                             Effects = [new TechnologyEffectConfig { Stat = TechnologyStat.CoinBonus, PerLevel = 0.02 }]
                         }
                     ],
                     Offering = new ClanOfferingConfig
                     {
-                        AttemptCostPerTownHall = new() { [TestKeys.Gold] = 50, [TestKeys.Wood] = 40 }
+                        // Тір 1: 100 золота у v_attack_all, 50 дерева в c_coins; тір 2 — удвічі дорожче
+                        AttemptCost = 100,
+                        CostRounding = 10,
+                        ResourceRates = new() { [TestKeys.Gold] = 1, [TestKeys.Wood] = 0.5 }
                     },
                     Coins = new ClanCoinsConfig
                     {
@@ -561,8 +572,9 @@
                     Shop = new ClanShopConfig
                     {
                         DailySlots = 1,
+                        WeeklySlots = 1,
                         DailyPool = [new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 1000, Limit = 3 }],
-                        Weekly = [new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 5000, Limit = 1 }]
+                        WeeklyPool = [new ClanShopItemConfig { ItemKey = TestKeys.ClanShopItem, Price = 5000, Limit = 1 }]
                     }
                 }
             };

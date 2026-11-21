@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Technologies;
 
@@ -94,6 +95,8 @@ namespace EmpireIdle.Domain.Entities
 
             var levels = new Dictionary<string, int>(Levels) { [active] = ActiveLevel };
             Levels = levels;
+
+            RaiseDomainEvent(new ResearchCompleted(PlayerId, active, ActiveLevel, utcNow));
 
             ActiveKey = null;
             ActiveLevel = 0;

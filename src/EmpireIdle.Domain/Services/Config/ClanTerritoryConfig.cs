@@ -50,6 +50,9 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Частка здобичі з перемоги над монстром, яку клан отримує очками вкладу. Гравцю нагорода не зменшується.</summary>
         public double MonsterLootCashbackShare { get; set; } = 0.05;
+
+        /// <summary>Найбільша частка ціни споруди, яку зрізають технології клану.</summary>
+        public double MaxTechnologyCostCut { get; set; } = 0.45;
     }
 
     /// <summary>Умова відкриття одного слота: рівно одне з двох.</summary>

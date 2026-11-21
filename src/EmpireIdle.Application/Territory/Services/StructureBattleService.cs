@@ -29,9 +29,8 @@ namespace EmpireIdle.Application.Territory.Services
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
         private readonly VillageStatus _status;
-        private readonly HeroCombatModifiers _heroModifiers;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly HeroCombatants _combatants;
-        private readonly ClanTerritoryRules _rules;
         private readonly TerritoryBonus _territoryBonus;
         private readonly ClanStructureRemover _remover;
         private readonly IStructureFallRepository _falls;
@@ -50,9 +49,8 @@ namespace EmpireIdle.Application.Territory.Services
             MarchLogistics logistics,
             BattleAftermath aftermath,
             VillageStatus status,
-            HeroCombatModifiers heroModifiers,
+            ArmyBuffs armyBuffs,
             HeroCombatants combatants,
-            ClanTerritoryRules rules,
             TerritoryBonus territoryBonus,
             ClanStructureRemover remover,
             IStructureFallRepository falls,
@@ -70,9 +68,8 @@ namespace EmpireIdle.Application.Territory.Services
             _logistics = logistics;
             _aftermath = aftermath;
             _status = status;
-            _heroModifiers = heroModifiers;
+            _armyBuffs = armyBuffs;
             _combatants = combatants;
-            _rules = rules;
             _territoryBonus = territoryBonus;
             _remover = remover;
             _falls = falls;
@@ -109,11 +106,8 @@ namespace EmpireIdle.Application.Territory.Services
             // Господаря немає: лідер кожного учасника діє лише на свій стек
             var stationed = await _heroRepository.GetByGarrisonAsync(defenderGarrison.Id, cancellationToken);
 
-            var stationedGear = await _combatants.GearAsync(stationed, cancellationToken);
-
-            var defenceBuffs = new DefenceBuffs(
-                StackBuff.None,
-                stationed.GroupBy(h => h.PlayerId).ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g, stationedGear)));
+            var defenceBuffs = await _armyBuffs.ForDefenceAsync(
+                hostPlayerId: null, hostHeroes: [], stationed, defence, cancellationToken);
 
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
@@ -121,15 +115,14 @@ namespace EmpireIdle.Application.Territory.Services
                     attackerVillage.PlayerId, EffectTarget.Attack, utcNow, cancellationToken)
                 * await _territoryBonus.AttackMultiplierAsync(attackerVillage, utcNow, cancellationToken);
 
-            // Добудована споруда стоїть у власному радіусі — під своїм бонусом
-            var defenderBonus = _rules.DefenceMultiplier(_rules.Enabled && structure.IsActiveAt(utcNow));
+            var defenderBonus = await _territoryBonus.StructureDefenceMultiplierAsync(structure, utcNow, cancellationToken);
 
             var seed = _random.Next(int.MaxValue);
 
             // Споруда без господаря: лідери учасників лише підсилюють свої конвої, б'ються герої нападу
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
-                attackerBonus, defenderBonus, _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison),
-                _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken)), defenceBuffs,
+                attackerBonus, defenderBonus, await _logistics.WoundedCapacityAsync(attackerVillage, attackerGarrison, cancellationToken),
+                await _armyBuffs.ForArmyAsync(attackerVillage.PlayerId, attackerHeroes, cancellationToken), defenceBuffs,
                 await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 
             var result = outcome.Battle;

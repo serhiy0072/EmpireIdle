@@ -24,8 +24,9 @@ namespace EmpireIdle.Domain.Services
         /// не має. Зі складу й банку береться лише понад захищений запас,
         /// і не більше, ніж армія здатна винести.
         /// </summary>
+        /// <param name="protectedBonus">Технології сховищ власника села — піднімають недоторканий запас.</param>
         public Dictionary<string, int> Plunder(Village village, int carryCapacity,
-            ProductionBoost boost, double locationMultiplier, DateTime utcNow)
+            ProductionBoost boost, double locationMultiplier, DateTime utcNow, double protectedBonus = 0)
         {
             var loot = new Dictionary<string, int>();
             var remaining = Math.Max(0, carryCapacity);
@@ -62,7 +63,7 @@ namespace EmpireIdle.Domain.Services
                 if (remaining == 0)
                     break;
 
-                var available = resource.Amount - _capacities.ProtectedReserveFor(village, resource.ResourceType);
+                var available = resource.Amount - _capacities.ProtectedReserveFor(village, resource.ResourceType, protectedBonus);
 
                 if (available <= 0)
                     continue;
@@ -85,7 +86,7 @@ namespace EmpireIdle.Domain.Services
         /// зі складу — понад захищений запас. Чиста функція: село не змінює.
         /// </summary>
         public Dictionary<string, long> Lootable(Village village, ProductionBoost boost, double locationMultiplier,
-            DateTime utcNow)
+            DateTime utcNow, double protectedBonus = 0)
         {
             // long: склад без стелі (GDD §4.1), а тут без обмеження вантажопідйомністю
             var loot = new Dictionary<string, long>();
@@ -104,7 +105,7 @@ namespace EmpireIdle.Domain.Services
 
             foreach (var resource in village.Resources)
             {
-                var available = resource.Amount - _capacities.ProtectedReserveFor(village, resource.ResourceType);
+                var available = resource.Amount - _capacities.ProtectedReserveFor(village, resource.ResourceType, protectedBonus);
 
                 if (available > 0)
                     loot[resource.ResourceType] = loot.GetValueOrDefault(resource.ResourceType) + available;

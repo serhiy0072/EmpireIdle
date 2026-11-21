@@ -25,6 +25,24 @@ public class BeastTamingTests
     public void ChanceFor_ShouldStopAtTheCap()
         => Assert.Equal(0.4, Chance(Catalog(), penLevel: 30), precision: 10);
 
+    /// <summary>Звіроловство +20% множить шанс звіринця: 25% → 30%, а не +20 пунктів.</summary>
+    [Fact]
+    public void ChanceFor_ShouldMultiplyTheChance_ByTheBeastcraftTechnology()
+    {
+        var catalog = Catalog();
+
+        Assert.Equal(0.30, new BeastTaming(catalog).ChanceFor(catalog.Beasts[TestKeys.Beast], 5, technologyBonus: 0.2), precision: 10);
+    }
+
+    /// <summary>Стеля лишається над технологіями: подвоєна база не росте.</summary>
+    [Fact]
+    public void ChanceFor_ShouldKeepTheCap_WithTechnologies()
+    {
+        var catalog = Catalog();
+
+        Assert.Equal(0.4, new BeastTaming(catalog).ChanceFor(catalog.Beasts[TestKeys.Beast], 30, technologyBonus: 0.5), precision: 10);
+    }
+
     [Fact]
     public void ChanceFor_ShouldNeverExceedCertainty()
         => Assert.Equal(1.0, Chance(Catalog(perPenLevel: 0.5, capMultiplier: 10), penLevel: 30), precision: 10);

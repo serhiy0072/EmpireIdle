@@ -59,6 +59,7 @@ namespace EmpireIdle.Domain.Services
             ValidateMonsters(config);
             ValidateTierGates(config);
             ValidateTechnologies(config);
+            ValidateShields(config);
         }
 
         /// <summary>Стати, що мають сенс лише для клану: особисте дерево їх не дає.</summary>
@@ -109,42 +110,147 @@ namespace EmpireIdle.Domain.Services
 
             ValidateTechnologyTree(config, "Clan", clan.Tabs, clan.Tiers, clan.Nodes, clan: true);
 
-            foreach (var (resource, cost) in clan.Offering.AttemptCostPerTownHall)
+            foreach (var (resource, rate) in clan.Offering.ResourceRates)
             {
-                if (config.Resources.All(r => r.Key != resource) || cost <= 0)
+                if (config.Resources.All(r => r.Key != resource) || rate <= 0)
                     throw new InvalidOperationException(
-                        $"Technologies.Clan.Offering costs '{resource}', which must be a resource with a positive price.");
+                        $"Technologies.Clan.Offering.ResourceRates prices {resource}, which must be a resource with a positive rate.");
             }
 
-            foreach (var node in clan.Nodes)
-            {
-                if (node.OfferResources.Count == 0
-                    || node.OfferResources.Any(r => !clan.Offering.AttemptCostPerTownHall.ContainsKey(r)))
-                    throw new InvalidOperationException(
-                        $"Technologies.Clan node '{node.Key}' must accept offerings in resources priced by Offering.AttemptCostPerTownHall.");
-            }
+            // Вузол без ціненого ресурсу не приймав би підношень ресурсом зовсім
+            foreach (var node in clan.Nodes.Where(n => n.Resource is null || !clan.Offering.ResourceRates.ContainsKey(n.Resource)))
+                throw new InvalidOperationException(
+                    $"Technologies.Clan node {node.Key} needs a Resource priced in Offering.ResourceRates.");
+
+            if (clan.Tiers.Any(t => t.AttemptCostMultiplier <= 0))
+                throw new InvalidOperationException("Technologies.Clan.Tiers need a positive AttemptCostMultiplier.");
 
             if (clan.Coins.Multipliers.Count == 0)
                 throw new InvalidOperationException("Technologies.Clan.Coins.Multipliers is empty — an offering would roll no coins.");
+
+            ValidateClanDailyRewards(config, clan.DailyContributionRewards);
 
             var shop = clan.Shop;
 
             if (shop.DailySlots < 0 || shop.DailySlots > shop.DailyPool.Count)
                 throw new InvalidOperationException("Technologies.Clan.Shop.DailySlots must be within 0..the size of DailyPool.");
 
-            foreach (var offer in shop.DailyPool.Concat(shop.Weekly))
+            if (shop.WeeklySlots < 0 || shop.WeeklySlots > shop.WeeklyPool.Count)
+                throw new InvalidOperationException("Technologies.Clan.Shop.WeeklySlots must be within 0..the size of WeeklyPool.");
+
+            foreach (var discount in shop.DailyDiscounts.Concat(shop.WeeklyDiscounts))
             {
-                var item = config.Items.FirstOrDefault(i => i.Key == offer.ItemKey)
-                    ?? throw new InvalidOperationException($"Technologies.Clan.Shop sells unknown item '{offer.ItemKey}'.");
-
-                // Предмет із ринку перетворив би монети на gems через продаж іншим гравцям
-                if (item.Tradeable)
+                if (discount.Percent is < 0 or >= 100 || discount.Weight <= 0)
                     throw new InvalidOperationException(
-                        $"Technologies.Clan.Shop sells '{offer.ItemKey}', which is tradeable — coins would leak into gems through the market.");
+                        $"Technologies.Clan.Shop discount {discount.Percent}% needs a percent within 0..99 and a positive weight.");
+            }
 
-                if (offer.Price <= 0 || offer.Limit < 1)
+            ValidateFreeWeekly(config, shop);
+
+            foreach (var pool in new[] { shop.DailyPool, shop.WeeklyPool })
+            {
+                RequireUniqueKeys(pool.Select(o => o.ItemKey), "Technologies.Clan.Shop pool");
+
+                foreach (var offer in pool)
+                {
+                    if (config.Items.All(i => i.Key != offer.ItemKey))
+                        throw new InvalidOperationException($"Technologies.Clan.Shop sells unknown item '{offer.ItemKey}'.");
+
+                    // Предмет, що веде на ринок, перетворив би монети на gems через продаж іншим гравцям
+                    if (LeadsToMarket(config, offer.ItemKey, new HashSet<string>()))
+                        throw new InvalidOperationException(
+                            $"Technologies.Clan.Shop sells '{offer.ItemKey}', which is tradeable or opens into something tradeable — coins would leak into gems through the market.");
+
+                    if (offer.Price <= 0 || offer.Limit < 1 || offer.Weight <= 0 || offer.MaxDiscount is < 0 or >= 100)
+                        throw new InvalidOperationException(
+                            $"Technologies.Clan.Shop offer '{offer.ItemKey}' needs a positive price and weight, a limit of at least 1 and a max discount within 0..99.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Чи предмет продається на ринку сам або розкривається в те, що продається: спорядження торгується завжди,
+        /// скриня й ключ — через свою таблицю, а золото — це валюта ринку.
+        /// </summary>
+        private static bool LeadsToMarket(GameConfig config, string itemKey, HashSet<string> visited)
+        {
+            if (!visited.Add(itemKey) || config.Items.FirstOrDefault(i => i.Key == itemKey) is not { } item)
+                return false;
+
+            if (item.Tradeable || item.Slot is not null || item.Resources.Any(r => r.Resource == MarketCurrency))
+                return true;
+
+            var tableKey = item.Type == "chestkey"
+                ? config.KeyChests.FirstOrDefault(c => c.KeyItemKey == itemKey)?.LootboxKey
+                : itemKey;
+
+            var table = config.Lootboxes.FirstOrDefault(b => b.Key == tableKey);
+
+            return table is not null && table.Entries.Any(entry => entry.Type?.ToLowerInvariant() switch
+            {
+                "equipment" or "artifact" => true,
+                "resource" => entry.Key == MarketCurrency,
+                "item" or "lootbox" => entry.Key is not null && LeadsToMarket(config, entry.Key, visited),
+                _ => false
+            });
+        }
+
+        /// <summary>
+        /// Безкоштовна тижнева вітрина. Кланові телепорти без прапорця RequiresClan видавались би гравцеві,
+        /// який не може їх використати, а предмет, що веде на ринок, давав би золото задарма.
+        /// </summary>
+        private static void ValidateFreeWeekly(GameConfig config, ClanShopConfig shop)
+        {
+            RequireUniqueKeys(shop.FreeWeekly.Select(o => o.ItemKey), "Technologies.Clan.Shop.FreeWeekly");
+
+            foreach (var free in shop.FreeWeekly)
+            {
+                var item = config.Items.FirstOrDefault(i => i.Key == free.ItemKey)
+                    ?? throw new InvalidOperationException($"Technologies.Clan.Shop.FreeWeekly gives unknown item '{free.ItemKey}'.");
+
+                if (free.Limit < 1)
+                    throw new InvalidOperationException($"Technologies.Clan.Shop.FreeWeekly '{free.ItemKey}' needs a limit of at least 1.");
+
+                if (LeadsToMarket(config, free.ItemKey, new HashSet<string>()))
                     throw new InvalidOperationException(
-                        $"Technologies.Clan.Shop offer '{offer.ItemKey}' needs a positive price and a limit of at least 1.");
+                        $"Technologies.Clan.Shop.FreeWeekly gives '{free.ItemKey}', which is tradeable or opens into something tradeable.");
+
+                if (item.Type == "teleport" && item.TeleportScope is TeleportScope.ClanTerritory or TeleportScope.ClanLeader && !free.RequiresClan)
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.Shop.FreeWeekly '{free.ItemKey}' is a clan teleport and must set RequiresClan.");
+            }
+        }
+
+        /// <summary>Щит без строку згорів би, нічого не давши.</summary>
+        private static void ValidateShields(GameConfig config)
+        {
+            foreach (var shield in config.Items.Where(i => i.Type == "shield" && i.DurationHours <= 0))
+                throw new InvalidOperationException($"Shield '{shield.Key}' has no DurationHours.");
+        }
+
+        /// <summary>Ресурс, яким платять на ринку.</summary>
+        private const string MarketCurrency = "gold";
+
+        /// <summary>Пороги строго зростають і дають справжні нагороди: порожній поріг гравець побачив би як обман.</summary>
+        private static void ValidateClanDailyRewards(GameConfig config, List<ClanDailyRewardConfig> thresholds)
+        {
+            var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
+            var items = config.Items.ToDictionary(i => i.Key);
+            var heroKeys = config.Heroes.Select(h => h.Key).ToHashSet();
+            var previous = 0;
+
+            foreach (var threshold in thresholds)
+            {
+                if (threshold.Points <= previous)
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.DailyContributionRewards must grow from a positive number of points, but {threshold.Points} follows {previous}.");
+
+                if (threshold.Rewards.Count == 0
+                    || threshold.Rewards.Any(r => r.Amount <= 0 || IsRewardBroken(r, resourceKeys, items, heroKeys)))
+                    throw new InvalidOperationException(
+                        $"Technologies.Clan.DailyContributionRewards at {threshold.Points} points needs rewards with known keys and positive amounts.");
+
+                previous = threshold.Points;
             }
         }
 
@@ -205,6 +311,34 @@ namespace EmpireIdle.Domain.Services
             {
                 if (nodes.All(n => n.Tab != tab || n.Row != 1))
                     throw new InvalidOperationException($"Technologies.{section} tab '{tab}' has no node in row 1 to start from.");
+            }
+
+            if (clan)
+                ValidateClanLayers(section, tiers, nodes);
+        }
+
+        /// <summary>
+        /// Кланове дерево відкривається шарами (рішення 12.11): шар — ряд вкладки, і наступний відкривається, коли
+        /// кожен вузол попереднього має рівень. Тож передумови вузла — рівно весь попередній ряд його вкладки,
+        /// ряди йдуть без пропусків, а гейтів ратуші й світу в кланових тірів немає.
+        /// </summary>
+        private static void ValidateClanLayers(string section, List<TechnologyTierConfig> tiers, List<TechnologyNodeConfig> nodes)
+        {
+            if (tiers.Any(t => t.MainBuildingLevel > 0 || t.WorldLevel > 1))
+                throw new InvalidOperationException(
+                    $"Technologies.{section}.Tiers must not be gated by town hall or world level: the previous layer opens a tier.");
+
+            foreach (var node in nodes)
+            {
+                var previousLayer = nodes.Where(n => n.Tab == node.Tab && n.Row == node.Row - 1).Select(n => n.Key).ToHashSet();
+
+                if (node.Row > 1 && previousLayer.Count == 0)
+                    throw new InvalidOperationException(
+                        $"Technologies.{section} node '{node.Key}' is in row {node.Row}, but its tab has no row {node.Row - 1}.");
+
+                if (!previousLayer.SetEquals(node.Requires))
+                    throw new InvalidOperationException(
+                        $"Technologies.{section} node '{node.Key}' must require exactly the whole previous layer of its tab.");
             }
         }
 

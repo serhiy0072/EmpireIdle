@@ -10,6 +10,15 @@ namespace EmpireIdle.Domain.Services.Config
         public PersonalTechnologiesConfig Personal { get; set; } = new();
 
         public ClanTechnologiesConfig Clan { get; set; } = new();
+
+        /// <summary>
+        /// Найбільша частка, на яку технології (особисті й кланові разом) зменшують з'їдене селом м'ясо:
+        /// без стелі пізні тіри довели б Їдальню до нуля, і провізія втратила б сенс.
+        /// </summary>
+        public double MaxMealUpkeepCut { get; set; } = 0.5;
+
+        /// <summary>Вага рівня в силі гравця за шкалою вузла: бойові важать більше за економічні. Немає в словнику — 1.</summary>
+        public Dictionary<TechnologyScaling, double> PowerWeights { get; set; } = new();
     }
 
     /// <summary>
@@ -88,12 +97,12 @@ namespace EmpireIdle.Domain.Services.Config
 
         public int Levels { get; set; }
 
+        /// <summary>Кланові: ресурс, яким підносять у цей вузол (рішення 12.11, у кожного вузла свій).</summary>
+        public string? Resource { get; set; }
+
         public TechnologyScaling Scaling { get; set; }
 
         public List<TechnologyEffectConfig> Effects { get; set; } = new();
-
-        /// <summary>Лише кланові: якими ресурсами можна підносити на цей вузол.</summary>
-        public List<string> OfferResources { get; set; } = new();
     }
 
     /// <summary>Тір дерева: гейти відкриття, множники ціни й шкали ефектів.</summary>
@@ -115,6 +124,12 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Кланові: множник очок підношень тіру.</summary>
         public double PointsMultiplier { get; set; } = 1;
+
+        /// <summary>Кланові: множник ціни спроби ресурсом на цьому тірі.</summary>
+        public double AttemptCostMultiplier { get; set; } = 1;
+
+        /// <summary>Сила за один рівень вузла на цьому тірі, до ваги шкали.</summary>
+        public double PowerPerLevel { get; set; }
 
         /// <summary>Множник бонусу вузлів за шкалою; шкали немає в словнику — множник 1.</summary>
         public Dictionary<TechnologyScaling, double> Scales { get; set; } = new();
@@ -180,7 +195,18 @@ namespace EmpireIdle.Domain.Services.Config
 
         public ClanCoinsConfig Coins { get; set; } = new();
 
+        /// <summary>Пороги денного внеску за зростанням очок (рішення 03.11: за порогами, а не за місцем).</summary>
+        public List<ClanDailyRewardConfig> DailyContributionRewards { get; set; } = new();
+
         public ClanShopConfig Shop { get; set; } = new();
+    }
+
+    /// <summary>Гравець набрав за добу UTC стільки очок підношень — отримує нагороду.</summary>
+    public class ClanDailyRewardConfig
+    {
+        public int Points { get; set; }
+
+        public List<RewardConfig> Rewards { get; set; } = new();
     }
 
     /// <summary>Підношення: спроби ресурсами з поступовим відновленням і окремі підношення за gems.</summary>
@@ -193,17 +219,41 @@ namespace EmpireIdle.Domain.Services.Config
 
         public int PointsPerAttempt { get; set; } = 10;
 
-        /// <summary>Ресурс → ціна однієї спроби за кожен рівень ратуші гравця.</summary>
-        public Dictionary<string, int> AttemptCostPerTownHall { get; set; } = new();
+        /// <summary>
+        /// Ціна однієї спроби на тірі 1 у ресурсі з курсом 1 (рішення 12.11: ратуша на ціну не впливає).
+        /// Ціна вузла: AttemptCost × тір.AttemptCostMultiplier × ResourceRates[ресурс вузла], з округленням.
+        /// </summary>
+        public int AttemptCost { get; set; } = 5000;
+
+        /// <summary>Ресурс → курс до базової ціни за рідкістю: м'ясо й дерево 1, залізо 0,25.</summary>
+        public Dictionary<string, double> ResourceRates { get; set; } = new();
+
+        /// <summary>Ціна спроби округлюється до кратного цього числа.</summary>
+        public int CostRounding { get; set; } = 50;
 
         public int GemPoints { get; set; } = 50;
 
-        /// <summary>Ціна n-го gems-підношення за добу UTC: min(GemPriceStep × n, GemPriceCap).</summary>
-        public int GemPriceStep { get; set; } = 20;
+        /// <summary>
+        /// Надбавка до особистих нагород за внесок у вузол із міткою керівництва: монет і очок денних порогів
+        /// (рішення 12.11, +50%). Поступ технології від мітки не змінюється.
+        /// </summary>
+        public double MarkedBonus { get; set; } = 0.5;
 
-        public int GemPriceCap { get; set; } = 400;
+        /// <summary>
+        /// Ціна n-го gems-підношення за добу UTC росте партіями: перша партія по GemPriceBase,
+        /// кожна наступна в GemPriceGrowth разів дорожча (рішення 03.11: п'ять по 10, п'ять по 20, п'ять по 40…).
+        /// </summary>
+        public int GemPriceBase { get; set; } = 10;
+
+        public int GemPriceBatch { get; set; } = 5;
+
+        public int GemPriceGrowth { get; set; } = 2;
 
         public int GemDailyLimit { get; set; } = 50;
+
+        /// <summary>Ціна останнього дозволеного підношення за добу — найбільша; від неї межа конфіга.</summary>
+        public double GemPriceAtLimit
+            => GemPriceBase * Math.Pow(GemPriceGrowth, (Math.Max(GemDailyLimit, 1) - 1) / Math.Max(GemPriceBatch, 1));
     }
 
     /// <summary>Кланові монети за підношення: база × множник, який кидає сервер.</summary>
@@ -221,14 +271,45 @@ namespace EmpireIdle.Domain.Services.Config
         public double Weight { get; set; }
     }
 
-    /// <summary>Клановий магазин: щоденна вітрина з пулу (однакова для всіх за датою) і фіксована тижнева.</summary>
+    /// <summary>
+    /// Клановий магазин (рішення 03.11): щоденна й тижнева вітрини з пулів, однакові для всіх за датою.
+    /// На кожен слот окремо кидається знижка.
+    /// </summary>
     public class ClanShopConfig
     {
-        public int DailySlots { get; set; } = 6;
+        public int DailySlots { get; set; } = 15;
+
+        public int WeeklySlots { get; set; } = 15;
 
         public List<ClanShopItemConfig> DailyPool { get; set; } = new();
 
-        public List<ClanShopItemConfig> Weekly { get; set; } = new();
+        public List<ClanShopItemConfig> WeeklyPool { get; set; } = new();
+
+        public List<ClanShopDiscountConfig> DailyDiscounts { get; set; } = new();
+
+        public List<ClanShopDiscountConfig> WeeklyDiscounts { get; set; } = new();
+
+        /// <summary>Безкоштовна тижнева вітрина (рішення 05.11): сталий набір, доступний і без клану.</summary>
+        public List<ClanFreeItemConfig> FreeWeekly { get; set; } = new();
+    }
+
+    public class ClanFreeItemConfig
+    {
+        public string ItemKey { get; set; } = null!;
+
+        /// <summary>Скільки можна забрати за тиждень.</summary>
+        public int Limit { get; set; }
+
+        /// <summary>Лише для учасника клану: клановий телепорт без клану використати ніде.</summary>
+        public bool RequiresClan { get; set; }
+    }
+
+    public class ClanShopDiscountConfig
+    {
+        /// <summary>Знижка у відсотках; 0 — повна ціна.</summary>
+        public int Percent { get; set; }
+
+        public double Weight { get; set; }
     }
 
     public class ClanShopItemConfig
@@ -239,5 +320,11 @@ namespace EmpireIdle.Domain.Services.Config
 
         /// <summary>Скільки разів можна купити за період вітрини.</summary>
         public int Limit { get; set; }
+
+        /// <summary>Вага випадання на вітрину.</summary>
+        public double Weight { get; set; } = 1;
+
+        /// <summary>Найбільша знижка цього предмета: вищу випалу знижку обрізає.</summary>
+        public int MaxDiscount { get; set; } = 90;
     }
 }

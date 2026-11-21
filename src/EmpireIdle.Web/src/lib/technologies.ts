@@ -13,6 +13,11 @@ export function technologyName(key: string): string {
   return key in uk.node ? t(`technologies:node.${key as NodeKey}`) : key;
 }
 
+/** Назва вкладки дерева; невідомий ключ повертається як є. */
+export function technologyTabName(key: string): string {
+  return key in uk.tab ? t(`technologies:tab.${key as keyof typeof uk.tab}`) : key;
+}
+
 /** Імена TechnologyStat у порядку enum на сервері: на дроті — число. */
 const STATS: readonly StatKey[] = [
   "Attack",
@@ -41,6 +46,25 @@ const STATS: readonly StatKey[] = [
   "StructureCost",
   "LootCashback",
 ];
+
+/** Сумарний бонус технологій зі ResearchView.bonuses. */
+export interface TechnologyBonus {
+  stat: TechnologyStat;
+  target?: string | null;
+  value: number;
+}
+
+/**
+ * Бонус стату для цілі — дзеркалить TechnologyBonuses.Of на сервері: «для всіх» плюс «саме для неї»;
+ * без цілі — лише «для всіх».
+ */
+export function bonusOf(bonuses: readonly TechnologyBonus[], stat: StatKey, target?: string): number {
+  const index = STATS.indexOf(stat);
+
+  return bonuses
+    .filter((bonus) => bonus.stat === index && (bonus.target == null || bonus.target === target))
+    .reduce((sum, bonus) => sum + bonus.value, 0);
+}
 
 /** Стати, що додають штуки, а не частку: «+5», а не «+5%». */
 const FLAT: ReadonlySet<StatKey> = new Set(["ConvoySize", "HelpShareCap", "OfferingAttempts"]);

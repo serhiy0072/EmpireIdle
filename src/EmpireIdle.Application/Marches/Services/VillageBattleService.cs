@@ -1,10 +1,13 @@
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using EmpireIdle.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -32,12 +35,13 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly BattleAftermath _aftermath;
         private readonly VillageStatus _status;
         private readonly PlunderCalculator _plunder;
-        private readonly HeroCombatModifiers _heroModifiers;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly HeroCombatants _combatants;
         private readonly GarrisonDefenders _defenders;
         private readonly CityFallService _cityFall;
         private readonly TerritoryBonus _territoryBonus;
         private readonly HostilityRules _hostility;
+        private readonly PlayerTechnologies _technologies;
         private readonly ILogger<VillageBattleService> _logger;
 
         public VillageBattleService(
@@ -54,12 +58,13 @@ namespace EmpireIdle.Application.Marches.Services
             BattleAftermath aftermath,
             VillageStatus status,
             PlunderCalculator plunder,
-            HeroCombatModifiers heroModifiers,
+            ArmyBuffs armyBuffs,
             HeroCombatants combatants,
             GarrisonDefenders defenders,
             CityFallService cityFall,
             TerritoryBonus territoryBonus,
             HostilityRules hostility,
+            PlayerTechnologies technologies,
             ILogger<VillageBattleService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -75,12 +80,13 @@ namespace EmpireIdle.Application.Marches.Services
             _aftermath = aftermath;
             _status = status;
             _plunder = plunder;
-            _heroModifiers = heroModifiers;
+            _armyBuffs = armyBuffs;
             _combatants = combatants;
             _defenders = defenders;
             _cityFall = cityFall;
             _territoryBonus = territoryBonus;
             _hostility = hostility;
+            _technologies = technologies;
             _logger = logger;
         }
 
@@ -137,22 +143,16 @@ namespace EmpireIdle.Application.Marches.Services
             var stationed = await _heroRepository.GetByGarrisonAsync(targetGarrison.Id, cancellationToken);
             var defenders = await _defenders.ForAsync(targetVillage.PlayerId, cancellationToken);
 
-            var stationedGear = await _combatants.GearAsync(stationed.Concat(defenders), cancellationToken);
-
-            // Кожен захисник веде юнітів свого класу — як герої маршу, а не одним бонусом на всю оборону
-            var defenceBuffs = new DefenceBuffs(
-                _heroModifiers.ForMarch(defenders, stationedGear),
-                // Союзник прийшов із кількома героями — кожен підсилює власні конвої (GDD §6.1)
-                stationed
-                    .Where(h => h.PlayerId != targetVillage.PlayerId)
-                    .GroupBy(h => h.PlayerId)
-                    .ToDictionary(g => g.Key, g => _heroModifiers.ForMarch(g, stationedGear)));
+            // Кожен захисник веде юнітів свого класу — як герої маршу, а не одним бонусом на всю оборону;
+            // кожен союзник б'ється під власними героями й технологіями
+            var defenceBuffs = await _armyBuffs.ForDefenceAsync(
+                targetVillage.PlayerId, defenders, stationed, defence, cancellationToken);
 
             // Героїв маршу читаємо тут, до RecordAttackerAsync: саме там їх ранить
             // поразка, і вміння мусять бути зняті, поки вони ще в строю
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
-            var attackerBuff = _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken));
+            var attackerBuff = await _armyBuffs.ForArmyAsync(attackerVillage.PlayerId, attackerHeroes, cancellationToken);
 
             // Кланова територія підсилює обидві сторони, кожну — своя
             var attackerBonus = await _effectResolver.GetMultiplierAsync(
@@ -167,7 +167,7 @@ namespace EmpireIdle.Application.Marches.Services
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіти обох сторін
             var seed = _random.Next(int.MaxValue);
 
-            var attackerWoundedCapacity = _logistics.CalculateWoundedCapacity(attackerVillage, attackerGarrison);
+            var attackerWoundedCapacity = await _logistics.WoundedCapacityAsync(attackerVillage, attackerGarrison, cancellationToken);
 
             // Бійці — герої маршу й захисники господаря; герої союзників лише підсилюють свої конвої
             var outcome = _resolver.Resolve(attackerArmy, defence, terrain, seed,
@@ -229,7 +229,11 @@ namespace EmpireIdle.Application.Marches.Services
             var serverLevel = await _serverRepository.GetLevelAsync(target.ServerId, cancellationToken);
             var locationMultiplier = _geometry.ProductionMultiplierAt(target.X, target.Y, serverLevel);
 
-            var loot = _plunder.Plunder(target, capacity, boost, locationMultiplier, utcNow);
+            // Недоторканий запас теж захисника: його технології сховищ
+            var protectedBonus = (await _technologies.ForPlayerAsync(target.PlayerId, cancellationToken))
+                .Of(TechnologyStat.ProtectedStorage);
+
+            var loot = _plunder.Plunder(target, capacity, boost, locationMultiplier, utcNow, protectedBonus);
 
             if (loot.Count == 0)
                 return;

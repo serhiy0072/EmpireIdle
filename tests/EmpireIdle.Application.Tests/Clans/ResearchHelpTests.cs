@@ -49,7 +49,7 @@ public class ResearchHelpTests
         _help.GetByIdAsync(request.Id, Arg.Any<CancellationToken>()).Returns(request);
 
         var handler = new GiveClanHelpCommandHandler(_clans, _help, _villages, _garrisons, _research, _unitOfWork,
-            new GameCatalog(config), new FakeTimeProvider(Now), NullLogger<GiveClanHelpCommandHandler>.Instance);
+            TestTechnologies.ClanBonuses(new GameCatalog(config)), new GameCatalog(config), new FakeTimeProvider(Now), NullLogger<GiveClanHelpCommandHandler>.Instance);
 
         await handler.Handle(new GiveClanHelpCommand(HelperId, request.Id), CancellationToken.None);
 
@@ -57,6 +57,49 @@ public class ResearchHelpTests
         Assert.Equal(TimeSpan.FromHours(10) - TimeSpan.FromMinutes(3), research.Remaining(Now));
         Assert.Equal(1, request.HelpCount);
     }
+
+    /// <summary>Два рівні по +2 в.п. піднімають кап будівництва з 40% до 44%: 22 допомоги по 2%. Дослідження живуть за своїм лімітом.</summary>
+    [Fact]
+    public async Task HelpList_ShouldShowTheCapRaisedByTheClansTechnology()
+    {
+        var config = new GameConfigBuilder()
+            .WithTechnologies(t => t.Clan.Nodes.Single(n => n.Key == "v_attack_all").Effects
+                .Add(new TechnologyEffectConfig { Stat = TechnologyStat.HelpShareCap, PerLevel = 0.02 }))
+            .Build();
+        config.Clan = new ClanConfig { MaxHelpShare = 0.4, HelpSharePerPlayer = 0.02, MaxHelpShareWithTechnologies = 0.6 };
+        var catalog = new GameCatalog(config);
+        var clanId = Guid.NewGuid();
+
+        var clanResearch = Substitute.For<IClanResearchRepository>();
+        clanResearch.GetLevelsByClanAsync(clanId, Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyDictionary<string, int>?)new Dictionary<string, int> { ["1:v_attack_all"] = 2 });
+
+        var request = new ClanHelpRequest(Guid.NewGuid(), 1, clanId, OwnerId, ClanHelpTarget.Construction, Guid.NewGuid(),
+            TimeSpan.FromHours(1), Now.AddHours(1), Now);
+        _clans.GetClanIdByMemberAsync(HelperId, Arg.Any<CancellationToken>()).Returns(clanId);
+        _help.GetActiveByClanAsync(clanId, Now, Arg.Any<CancellationToken>()).Returns(new List<ClanHelpRequest> { request });
+
+        var players = Substitute.For<IPlayerRepository>();
+        players.GetNamesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, string> { [OwnerId] = "owner" });
+        _research.GetActiveKeysAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, string>());
+
+        var handler = new GetClanHelpQueryHandler(_clans, _help, players, _research,
+            TestTechnologies.ClanBonuses(catalog, clanResearch), catalog, new FakeTimeProvider(Now));
+
+        var items = await handler.Handle(new GetClanHelpQuery(HelperId), CancellationToken.None);
+
+        Assert.Equal(22, Assert.Single(items).MaxHelpers);
+    }
+
+    [Theory]
+    [InlineData(0, 20)]
+    [InlineData(0.04, 22)]
+    [InlineData(0.20, 30)]
+    [InlineData(5, 30)]
+    public void MaxHelpers_ShouldGrowWithTheTechnology_UpToTheCeiling(double bonus, int helpers)
+        => Assert.Equal(helpers, new ClanConfig { MaxHelpShare = 0.4, HelpSharePerPlayer = 0.02, MaxHelpShareWithTechnologies = 0.6 }.MaxHelpersWith(bonus));
 
     [Fact]
     public async Task HelpList_ShouldNameTheResearchedTechnology_AndLeaveOtherTargetsGeneric()
@@ -81,7 +124,8 @@ public class ResearchHelpTests
                 Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(new[] { research.Id })), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, string> { [research.Id] = research.ActiveKey! });
 
-        var handler = new GetClanHelpQueryHandler(_clans, _help, players, _research, new GameCatalog(config), new FakeTimeProvider(Now));
+        var handler = new GetClanHelpQueryHandler(_clans, _help, players, _research,
+            TestTechnologies.ClanBonuses(new GameCatalog(config)), new GameCatalog(config), new FakeTimeProvider(Now));
 
         var items = await handler.Handle(new GetClanHelpQuery(HelperId), CancellationToken.None);
 

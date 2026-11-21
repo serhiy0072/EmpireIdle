@@ -9,6 +9,9 @@ namespace EmpireIdle.Domain.Services.Config
         /// <summary>Найбільша частка таймера, яку може зрізати клан — інакше продаж прискорень помирає.</summary>
         public double MaxHelpShare { get; set; } = 0.4;
 
+        /// <summary>Стеля разом із технологіями клану: допомога дешевшає, але донат не стає зайвим.</summary>
+        public double MaxHelpShareWithTechnologies { get; set; } = 0.6;
+
         /// <summary>Яку частку повного таймера зрізає одна допомога.</summary>
         public double HelpSharePerPlayer { get; set; } = 0.02;
 
@@ -31,6 +34,11 @@ namespace EmpireIdle.Domain.Services.Config
         public ClanTerritoryConfig Territory { get; set; } = new();
 
         /// <summary>Скільки допомог приймає один запит: кап скорочення ділиться на внесок.</summary>
-        public int MaxHelpers => (int)Math.Round(MaxHelpShare / HelpSharePerPlayer);
+        public int MaxHelpers => MaxHelpersWith(0);
+
+        /// <summary>Те саме з технологією клану, що піднімає кап, але не вище за стелю.</summary>
+        public int MaxHelpersWith(double technologyBonus)
+            => (int)Math.Round(Math.Min(MaxHelpShare + Math.Max(technologyBonus, 0), Math.Max(MaxHelpShare, MaxHelpShareWithTechnologies))
+                               / HelpSharePerPlayer);
     }
 }

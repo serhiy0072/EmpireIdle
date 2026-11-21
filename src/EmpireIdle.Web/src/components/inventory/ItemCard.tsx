@@ -14,7 +14,10 @@ interface Props {
   onUse: (request: UseItemRequest) => void;
 }
 
-const TYPES = ["resources", "boost", "teleport", "evolution", "feed", "scoutveil", "energy", "heroxp", "chestkey"] as const;
+const TYPES = ["resources", "boost", "teleport", "evolution", "feed", "scoutveil", "energy", "heroxp", "chestkey", "shield"] as const;
+
+/** Типи, що вживаються кнопкою прямо з рюкзака; щит одразу піднімає або подовжує щит села. */
+const USABLE: readonly string[] = ["resources", "boost", "scoutveil", "energy", "heroxp", "shield"];
 
 function typeLabel(type: string): string {
   return (TYPES as readonly string[]).includes(type) ? t(`items:type.${type as (typeof TYPES)[number]}`) : type;
@@ -35,7 +38,7 @@ export default function ItemCard({ playerId, item, busy, onUse }: Props) {
   const teleportScope = item.type === "teleport" ? catalog.item(item.itemKey)?.teleportScope : undefined;
   const gamePicksCell = teleportScope === "Random" || teleportScope === "ClanLeader";
 
-  const usable = item.type === "resources" || item.type === "boost" || item.type === "scoutveil" || item.type === "energy" || item.type === "heroxp";
+  const usable = USABLE.includes(item.type);
   // «Усі» — весь стек: понад стелю сервера useUseItem шле кількома запитами
   const limit = item.count;
   const safeCount = Math.min(limit, Math.max(1, count));

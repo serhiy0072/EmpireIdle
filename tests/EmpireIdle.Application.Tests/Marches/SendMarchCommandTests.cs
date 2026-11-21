@@ -122,11 +122,10 @@ public class SendMarchCommandTests
 
         var capacities = new VillageCapacities(catalog);
         var status = new VillageStatus(catalog);
-        var heroModifiers = new HeroCombatModifiers(catalog);
 
         var targets = new MarchTargetResolver(
-            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), heroModifiers, TestCombatants.WithoutGear(catalog), TestCombatants.Defenders(_heroes, catalog), catalog, status,
-            _structures, _clans, new ClanTerritoryRules(catalog), _marches, Effects(catalog));
+            _monsters, _villages, _garrisons, _heroes, new MonsterArmyBuilder(catalog), TestCombatants.Buffs(catalog), TestCombatants.Defenders(_heroes, catalog), catalog, status,
+            _structures, _clans, TestTechnologies.TerritoryBonus(catalog, _clans, _structures), _marches, Effects(catalog));
 
         var reinforcementRules = new ReinforcementRules(_clans, _garrisons, catalog, status, capacities);
 
@@ -138,9 +137,11 @@ public class SendMarchCommandTests
             new HeroProgression(config.HeroSettings),
             new HeroConvoys(config.HeroSettings),
             catalog,
-            new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog),
+            new BeastTamer(_pens, _monsters, Substitute.For<IRandomSource>(), new BeastTaming(catalog), capacities, status, catalog,
+                TestTechnologies.For(catalog)),
             Effects(catalog),
             _vip,
+            TestTechnologies.For(catalog),
             NullLogger<SendMarchCommandHandler>.Instance);
     }
 

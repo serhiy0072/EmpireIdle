@@ -75,7 +75,7 @@
   },
   "power": {
     "loading": "Сила рахується…",
-    "breakdown": "Армія {{army}} · герої {{heroes}} · спорядження {{gear}}"
+    "breakdown": "Армія {{army}} · герої {{heroes}} · спорядження {{gear}} · технології {{technologies}} · клан {{clan}}"
   },
   "beasts": {
     "effect": {

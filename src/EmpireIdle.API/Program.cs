@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application;
+using EmpireIdle.Application;
 using EmpireIdle.API.Hubs;
 using EmpireIdle.API.Jobs;
 using EmpireIdle.API.Middleware;
@@ -15,6 +15,7 @@ using EmpireIdle.Domain.Services;
 using EmpireIdle.Domain.Technologies;
 using EmpireIdle.Infrastructure;
 using EmpireIdle.Infrastructure.Auth;
+using EmpireIdle.API.Configuration;
 using Hangfire;
 using Hangfire.PostgreSql;
 using MediatR;
@@ -35,31 +36,31 @@ var builder = WebApplication.CreateBuilder(args);
 //  тож гаряче перезавантаження лише створювало б ілюзію й зайві FileSystemWatcher-и.
 
 builder.Configuration
-    .AddJsonFile("game-config.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/resources.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/buildings.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/units.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/monsters.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/map.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/combat.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/monetization.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/shop.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/items.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/quests.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/rating.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/clan.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/heroes.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/dungeons.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/battle.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/tower.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/market.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/chat.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/login-rewards.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/beasts.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/provisions.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/lootboxes.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/technologies.json", optional: false, reloadOnChange: false)
-    .AddJsonFile("Config/locales.en.json", optional: false, reloadOnChange: false);
+    .AddIndexedJsonFile("game-config.json")
+    .AddIndexedJsonFile("Config/resources.json")
+    .AddIndexedJsonFile("Config/buildings.json")
+    .AddIndexedJsonFile("Config/units.json")
+    .AddIndexedJsonFile("Config/monsters.json")
+    .AddIndexedJsonFile("Config/map.json")
+    .AddIndexedJsonFile("Config/combat.json")
+    .AddIndexedJsonFile("Config/monetization.json")
+    .AddIndexedJsonFile("Config/shop.json")
+    .AddIndexedJsonFile("Config/items.json")
+    .AddIndexedJsonFile("Config/quests.json")
+    .AddIndexedJsonFile("Config/rating.json")
+    .AddIndexedJsonFile("Config/clan.json")
+    .AddIndexedJsonFile("Config/heroes.json")
+    .AddIndexedJsonFile("Config/dungeons.json")
+    .AddIndexedJsonFile("Config/battle.json")
+    .AddIndexedJsonFile("Config/tower.json")
+    .AddIndexedJsonFile("Config/market.json")
+    .AddIndexedJsonFile("Config/chat.json")
+    .AddIndexedJsonFile("Config/login-rewards.json")
+    .AddIndexedJsonFile("Config/beasts.json")
+    .AddIndexedJsonFile("Config/provisions.json")
+    .AddIndexedJsonFile("Config/lootboxes.json")
+    .AddIndexedJsonFile("Config/technologies.json")
+    .AddIndexedJsonFile("Config/locales.en.json");
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
 // у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
@@ -101,16 +102,21 @@ builder.Services.AddOptions<GameConfig>()
         && c.Monetization.VipThresholds.Zip(c.Monetization.VipThresholds.Skip(1)).All(pair => pair.First < pair.Second),
         "GameConfig.Monetization.VipThresholds must be positive and strictly growing — otherwise a VIP level is skipped or free.")
     .Validate(c => c.Monetization.VipLevelsPerExtraMarch >= 1, "GameConfig.Monetization.VipLevelsPerExtraMarch must be at least 1.")
+    .Validate(c => c.Technologies.MaxMealUpkeepCut is >= 0 and < 1,
+        "GameConfig.Technologies.MaxMealUpkeepCut must be in [0, 1): the village always eats something.")
     .Validate(c => c.Technologies.Personal is { BaseMinutes: > 0, RowTimeGrowth: >= 1, LevelTimeGrowth: >= 1, CostPerMinutePerTownHall: > 0, CostRounding: >= 1 },
         "GameConfig.Technologies.Personal needs a positive base time and cost, growth of at least 1 and a rounding of at least 1.")
     .Validate(c => c.Technologies.Personal.MaxHelps >= 0 && c.Technologies.Personal.HelpShare >= 0
         && c.Technologies.Personal.MaxHelps * c.Technologies.Personal.HelpShare < 1,
         "GameConfig.Technologies.Personal help must not be negative and all helps together must leave some research time.")
+    .Validate(c => c.Technologies.PowerWeights.Values.All(weight => weight >= 0)
+        && c.Technologies.Personal.Tiers.Concat(c.Technologies.Clan.Tiers).All(tier => tier.PowerPerLevel >= 0),
+        "GameConfig.Technologies power weights and PowerPerLevel must not be negative: a learned level cannot weaken a player.")
     .Validate(c => c.Technologies.Clan is { BasePoints: > 0, RowGrowth: >= 1, LevelGrowth: >= 1, PointsRounding: >= 1 },
         "GameConfig.Technologies.Clan needs positive base points, growth of at least 1 and a rounding of at least 1.")
-    .Validate(c => c.Technologies.Clan.Offering is { MaxAttempts: >= 1, AttemptRechargeSeconds: >= 1, PointsPerAttempt: >= 1, GemPoints: >= 1, GemPriceStep: >= 1, GemDailyLimit: >= 0 }
-        && c.Technologies.Clan.Offering.GemPriceCap >= c.Technologies.Clan.Offering.GemPriceStep,
-        "GameConfig.Technologies.Clan.Offering needs positive attempts, recharge, points and gem prices, with the gem price cap not below its step.")
+    .Validate(c => c.Technologies.Clan.Offering is { MaxAttempts: >= 1, AttemptRechargeSeconds: >= 1, AttemptCost: >= 1, CostRounding: >= 1, MarkedBonus: >= 0, PointsPerAttempt: >= 1, GemPoints: >= 1, GemPriceBase: >= 1, GemPriceBatch: >= 1, GemPriceGrowth: >= 1, GemDailyLimit: >= 0 }
+        && c.Technologies.Clan.Offering.GemPriceAtLimit <= int.MaxValue,
+        "GameConfig.Technologies.Clan.Offering needs positive attempts, recharge, attempt cost and rounding, a non-negative mark bonus, points and gem prices, and the last offering of a day must have a representable price.")
     .Validate(c => c.Technologies.Clan.Coins.BaseAmount >= 1
         && c.Technologies.Clan.Coins.Multipliers.All(m => m.Multiplier >= 1 && m.Weight > 0),
         "GameConfig.Technologies.Clan.Coins needs a positive base and multipliers of at least ×1 with positive weights.")
@@ -122,6 +128,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Map.Geometry.RingMultipliers.Count > 0 && c.Map.Geometry.RingMultipliers.All(m => m > 0),
         "GameConfig.Map.Geometry.RingMultipliers must be non-empty and positive — every cell takes its production multiplier from a ring.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
+    .Validate(c => c.Clan.Territory.MaxTechnologyCostCut is >= 0 and < 1,
+        "GameConfig.Clan.Territory.MaxTechnologyCostCut must be within 0..1 — a structure must keep some price.")
     .Validate(c => c.Clan.Territory.Radius > 0, "GameConfig.Clan.Territory.Radius must be positive — a structure would cover nothing.")
     .Validate(c => c.Clan.Territory.MaxStructures > 0 && c.Clan.Territory.StartingSlots >= 0,
         "GameConfig.Clan.Territory needs a positive MaxStructures and non-negative StartingSlots.")
@@ -237,6 +245,8 @@ builder.Services.AddOptions<GameConfig>()
             && c.Combat.CityFall.DefenceLossPerDamage is >= 0 and <= 1
             && c.Combat.CityFall.RepairCostShare >= 0,
         "GameConfig.Combat.CityFall needs DefeatsToEvict ≥ 1, positive RepairHours, non-negative counts and costs, and multipliers within [0; 1].")
+    .Validate(c => c.Clan.MaxHelpShareWithTechnologies >= c.Clan.MaxHelpShare && c.Clan.MaxHelpShareWithTechnologies < 1,
+        "GameConfig.Clan.MaxHelpShareWithTechnologies must be at least MaxHelpShare and below 1 — help must never erase a whole timer.")
     .Validate(c => c.Clan.HelpSharePerPlayer > 0 && c.Clan.MaxHelpShare is > 0 and <= 1 && c.Clan.MaxHelpShare >= c.Clan.HelpSharePerPlayer,
         "GameConfig.Clan needs 0 < HelpSharePerPlayer ≤ MaxHelpShare ≤ 1 — otherwise help is broken or cuts more than the whole timer.")
     .Validate(c => c.Clan.HelpRequestLifetimeHours > 0 && c.Clan.RequestLifetimeHours > 0 && c.Clan.RejectedCooldownHours >= 0 && c.Clan.LeaderInactivityDays > 0,
@@ -260,6 +270,7 @@ builder.Services.AddOptions<GameConfig>()
         "GameConfig.Rating activity points cannot be negative.")
     .Validate(c => c.Map.Terrains.All(t => t.MoveCost > 0), "GameConfig.Map.Terrains MoveCost must be positive — a march over it would take no time.")
     .Validate(c => c.Map.TravelSpeedMultiplier > 0, "GameConfig.Map.TravelSpeedMultiplier must be above zero.")
+    .Validate(c => c.Beasts.TameTravelSpeedMultiplier > 0, "GameConfig.Beasts.TameTravelSpeedMultiplier must be above zero.")
     .Validate(c => c.Map.ImpassableMoveMultiplier >= 1, "GameConfig.Map.ImpassableMoveMultiplier must be at least 1 — an impassable cell is never faster than a passable one.")
     .Validate(c => c.Retention is { BattleReportDays: > 0, ScoutReportDays: > 0, FinishedDungeonRunDays: > 0, ClosedMarketListingDays: > 0, ResolvedClanRequestDays: > 0, ExpiredEffectHours: > 0 },
         "GameConfig.Retention days must all be positive — a zero would delete history the moment it is written.")
@@ -304,6 +315,7 @@ builder.Services.AddSingleton(sp => new SpeedUpCalculator(gameConfig.Monetizatio
 builder.Services.AddSingleton(sp => new VipProgression(gameConfig.Monetization));
 builder.Services.AddSingleton(sp => new PersonalTechnologies(gameConfig.Technologies.Personal));
 builder.Services.AddSingleton(sp => new ClanTechnologies(gameConfig.Technologies.Clan));
+builder.Services.AddSingleton(sp => new ClanShop(gameConfig.Technologies.Clan.Shop));
 builder.Services.AddSingleton(sp => new CombatCalculator(gameConfig.Combat, sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterArmyBuilder(sp.GetRequiredService<GameCatalog>()));
 builder.Services.AddSingleton(sp => new MonsterSpawner(sp.GetRequiredService<TerrainGenerator>(), gameConfig.Map, sp.GetRequiredService<GameCatalog>(), sp.GetRequiredService<WorldGeometry>(), sp.GetRequiredService<IRandomSource>()));

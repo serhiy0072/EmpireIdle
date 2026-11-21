@@ -1,8 +1,10 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 
 namespace EmpireIdle.Application.Clans.Queries
@@ -17,6 +19,7 @@ namespace EmpireIdle.Application.Clans.Queries
         private readonly IClanHelpRepository _helpRepository;
         private readonly IPlayerRepository _playerRepository;
         private readonly IPlayerResearchRepository _researchRepository;
+        private readonly ClanBonuses _bonuses;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
 
@@ -25,6 +28,7 @@ namespace EmpireIdle.Application.Clans.Queries
             IClanHelpRepository helpRepository,
             IPlayerRepository playerRepository,
             IPlayerResearchRepository researchRepository,
+            ClanBonuses bonuses,
             GameCatalog catalog,
             TimeProvider timeProvider)
         {
@@ -32,6 +36,7 @@ namespace EmpireIdle.Application.Clans.Queries
             _helpRepository = helpRepository;
             _playerRepository = playerRepository;
             _researchRepository = researchRepository;
+            _bonuses = bonuses;
             _catalog = catalog;
             _timeProvider = timeProvider;
         }
@@ -51,10 +56,12 @@ namespace EmpireIdle.Application.Clans.Queries
             if (requests.Count == 0)
                 return [];
 
+            var helpCap = (await _bonuses.ForClanAsync(clanId.Value, cancellationToken)).Of(TechnologyStat.HelpShareCap);
+
             // У досліджень свій ліміт допомог (рішення 28.10.2026)
             int MaxHelpers(ClanHelpTarget target) => target == ClanHelpTarget.Research
                 ? _catalog.Config.Technologies.Personal.MaxHelps
-                : _catalog.Config.Clan.MaxHelpers;
+                : _catalog.Config.Clan.MaxHelpersWith(helpCap);
 
             var names = await _playerRepository.GetNamesAsync(
                 requests.Select(r => r.PlayerId).Distinct().ToList(), cancellationToken);

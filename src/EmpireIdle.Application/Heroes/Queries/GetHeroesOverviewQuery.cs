@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Heroes.Contracts;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Wallets.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Services;
@@ -29,6 +30,7 @@ namespace EmpireIdle.Application.Heroes.Queries
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly PlayerVip _vip;
+        private readonly PlayerTechnologies _technologies;
 
         public GetHeroesOverviewQueryHandler(
             IHeroRepository heroRepository,
@@ -44,9 +46,11 @@ namespace EmpireIdle.Application.Heroes.Queries
             VillageStatus status,
             GameCatalog catalog,
             TimeProvider timeProvider,
-            PlayerVip vip)
+            PlayerVip vip,
+            PlayerTechnologies technologies)
         {
             _vip = vip;
+            _technologies = technologies;
             _heroRepository = heroRepository;
             _inventory = inventory;
             _heroStats = heroStats;
@@ -65,6 +69,9 @@ namespace EmpireIdle.Application.Heroes.Queries
         public async Task<HeroesOverview> Handle(GetHeroesOverviewQuery request, CancellationToken cancellationToken)
         {
             var heroes = await _heroRepository.GetByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
+
+            // Місткість героя — з технологіями гравця: саме стільки SendMarch і пропустить
+            var technologies = await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken);
 
             var shards = await _heroRepository.GetAllShardsAsync(request.PlayerId, cancellationToken);
             var shardCounts = shards.ToDictionary(s => s.HeroKey, s => s.Count);
@@ -104,7 +111,7 @@ namespace EmpireIdle.Application.Heroes.Queries
                         .ToDictionary(s => s.Key, s => _skills.LevelOf(h, s)),
                     _skills.LevelCap(h),
                     _convoys.UnitOf(_catalog.FindHero(h.HeroKey)),
-                    _convoys.Capacity(h),
+                    _convoys.Capacity(h, HeroConvoys.ExtraConvoySize(technologies, _convoys.UnitOf(_catalog.FindHero(h.HeroKey)))),
                     _convoys.ConvoysAt(h.EffectiveLevel),
                     Power(h, equipped[h.Id].ToList()),
                     h.WeaponLevel,

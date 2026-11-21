@@ -98,7 +98,7 @@ export function useCreateClan(playerId: string) {
   return useClanCommand<{ name: string; tag: string }>(
     playerId,
     (input) => ({ path: `/api/clans/${playerId}`, body: input }),
-    ["clan", "clanRequests"],
+    ["clan", "clanRequests", "clanTechnologies"],
   );
 }
 
@@ -108,7 +108,7 @@ export function useJoinClan(playerId: string) {
     playerId,
     (clanId) => ({ path: `/api/clans/${playerId}/join/${clanId}` }),
     // Клан відкриває бонус території й кланові квести
-    ["clan", "clanRequests", "territory", "quests"],
+    ["clan", "clanRequests", "territory", "quests", "clanTechnologies"],
   );
 }
 
@@ -121,6 +121,8 @@ export function useLeaveClan(playerId: string) {
     "garrison",
     "heroes",
     "territory",
+    "clanTechnologies",
+    "power",
   ]);
 }
 
@@ -196,7 +198,7 @@ export function useResolveRequest(playerId: string) {
   return useClanCommand<{ requestId: string; approve: boolean }>(
     playerId,
     (input) => ({ path: `/api/clans/${playerId}/requests/${input.requestId}/resolve`, body: { approve: input.approve } }),
-    ["clan", "clanRequests", "clanHelp"],
+    ["clan", "clanRequests", "clanHelp", "clanTechnologies"],
   );
 }
 
@@ -221,7 +223,7 @@ export const JOIN_POLICIES: { value: ClanJoinPolicy; name: string }[] = [
   { value: 2, name: "InviteOnly" },
 ];
 
-const PERMISSIONS = ["Recruit", "Kick", "AssignRoles", "ManageRoles", "EditProfile", "BuildStructures", "Disband"] as const;
+const PERMISSIONS = ["Recruit", "Kick", "AssignRoles", "ManageRoles", "EditProfile", "BuildStructures", "Disband", "ManageTechnologies"] as const;
 
 export function permissionLabel(permission: string): string {
   return (PERMISSIONS as readonly string[]).includes(permission)

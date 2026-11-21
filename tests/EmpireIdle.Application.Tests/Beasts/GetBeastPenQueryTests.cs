@@ -18,9 +18,9 @@ public class GetBeastPenQueryTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly GameCatalog _catalog = new GameConfigBuilder().WithBeasts().BuildCatalog();
 
-    private GetBeastPenQueryHandler Handler()
+    private GetBeastPenQueryHandler Handler(Application.Research.Services.PlayerTechnologies? technologies = null)
         => new(_pens, _villages, new BeastTaming(_catalog), new BeastProgression(_catalog),
-            new VillageCapacities(_catalog), new VillageStatus(_catalog), _catalog);
+            new VillageCapacities(_catalog), new VillageStatus(_catalog), _catalog, technologies ?? TestTechnologies.For(_catalog));
 
     private void GivenVillageWithPen()
     {
@@ -45,6 +45,20 @@ public class GetBeastPenQueryTests
         Assert.Equal((TestKeys.Beast, TestKeys.BeastMonster, 0, 10),
             (taming.BeastKey, taming.MonsterKey, taming.Misses, taming.PityWins));
         Assert.Equal(0.21, taming.Chance, precision: 10);
+    }
+
+    /// <summary>Екран обіцяє той самий шанс, що кине приручення: звіроловство +50% — 21% → 31.5%.</summary>
+    [Fact]
+    public async Task Handle_ShouldShowTheChance_WithTheBeastcraftTechnology()
+    {
+        GivenVillageWithPen();
+        var research = Substitute.For<IPlayerResearchRepository>();
+        research.Researched(PlayerId, "attack_infantry", 1);
+
+        var view = await Handler(TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.TameChance, 0.5), research))
+            .Handle(new GetBeastPenQuery(PlayerId), CancellationToken.None);
+
+        Assert.Equal(0.315, view.Taming.Single().Chance, precision: 10);
     }
 
     [Fact]

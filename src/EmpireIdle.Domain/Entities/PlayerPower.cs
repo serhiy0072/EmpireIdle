@@ -25,6 +25,12 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Сила спорядження. Нуль до фази героїв.</summary>
         public double EquipmentPower { get; private set; }
 
+        /// <summary>Сила особистих технологій.</summary>
+        public double TechnologyPower { get; private set; }
+
+        /// <summary>Сила технологій поточного клану: зникає при виході, «з кланом гравець сильніший» (рішення 05.11).</summary>
+        public double ClanTechnologyPower { get; private set; }
+
         /// <summary>Сума компонентів — саме за нею сортують лідерборд.</summary>
         public double TotalPower { get; private set; }
 
@@ -47,12 +53,14 @@ namespace EmpireIdle.Domain.Entities
         /// пропущена подія коштує затримки до наступної, а не назавжди
         /// хибного числа.
         /// </summary>
-        public void Set(double army, double hero, double equipment, DateTime utcNow)
+        public void Set(double army, double hero, double equipment, double technology, double clanTechnology, DateTime utcNow)
         {
             ArmyPower = army;
             HeroPower = hero;
             EquipmentPower = equipment;
-            TotalPower = army + hero + equipment;
+            TechnologyPower = technology;
+            ClanTechnologyPower = clanTechnology;
+            TotalPower = army + hero + equipment + technology + clanTechnology;
             UpdatedAt = utcNow;
         }
     }

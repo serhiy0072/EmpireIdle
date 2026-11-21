@@ -25,6 +25,7 @@ public class VillageCommandTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
     /// <summary>
@@ -85,6 +86,7 @@ public class VillageCommandTests
     private UpgradeBuildingCommandHandler UpgradeHandler() => new(
         _villages, _unitOfWork, _servers, TestEffects.Resolver(_effects),
         new FakeTimeProvider(Now), Catalog(), Geometry(),
+        TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.ConstructionSpeed, 0.25), _research),
         NullLogger<UpgradeBuildingCommandHandler>.Instance);
 
     /// <param name="townhallLevel">
@@ -217,6 +219,23 @@ public class VillageCommandTests
 
         Assert.Equal([new CollectedResourceView("food", 600)], result.Collected);
         Assert.Equal(100_600, village.Resources.Single(r => r.ResourceType == "food").Amount);
+    }
+
+    /// <summary>Технологія швидкості будівництва +25% скорочує апгрейд до база / 1.25.</summary>
+    [Fact]
+    public async Task Upgrade_ShouldBuildFaster_WithTheConstructionSpeedTechnology()
+    {
+        var plain = GivenVillage(food: 10_000, accruedMinutes: 0);
+        var plainFarm = plain.Buildings.Single(b => b.Type == "farm");
+        await UpgradeHandler().Handle(new UpgradeBuildingCommand(PlayerId, plainFarm.Id), CancellationToken.None);
+        var plainDuration = plainFarm.ConstructionCompletesAt!.Value - Now;
+
+        _research.Researched(PlayerId, "attack_infantry", 1);
+        var fast = GivenVillage(food: 10_000, accruedMinutes: 0);
+        var fastFarm = fast.Buildings.Single(b => b.Type == "farm");
+        await UpgradeHandler().Handle(new UpgradeBuildingCommand(PlayerId, fastFarm.Id), CancellationToken.None);
+
+        Assert.Equal(Math.Round(plainDuration.TotalSeconds / 1.25, MidpointRounding.AwayFromZero), (fastFarm.ConstructionCompletesAt!.Value - Now).TotalSeconds);
     }
 
     /// <summary>Апгрейд списує вартість і ставить будівлю в стан будівництва.</summary>

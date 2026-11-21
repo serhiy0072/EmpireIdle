@@ -26,6 +26,7 @@ public class PayProvisionsCommandTests
     private readonly IServerRepository _servers = Substitute.For<IServerRepository>();
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
 
     public PayProvisionsCommandTests()
         => _servers.GetLevelAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(1);
@@ -69,6 +70,7 @@ public class PayProvisionsCommandTests
     private PayProvisionsCommandHandler Handler(GameCatalog catalog, DateTime at) => new(_villages, _pens, _servers,
         TestEffects.Resolver(_effects, _pens, catalog), new VillageCapacities(catalog), new VillageStatus(catalog),
         new WorldGeometry(catalog.Config.Map), _unitOfWork, catalog, new FakeTimeProvider(at),
+        TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.MealUpkeep, 0.25), _research),
         NullLogger<PayProvisionsCommandHandler>.Instance);
 
     /// <summary>Село з ратушею, звіринцем 1 рівня й одним вовком 1 рівня: звірі їдять 210 за годину.</summary>
@@ -180,6 +182,34 @@ public class PayProvisionsCommandTests
             await Handler(catalog, Now.AddMinutes(run * 10)).Handle(new PayProvisionsCommand(village.Id), CancellationToken.None);
 
         Assert.Equal(770, Food(village));
+    }
+
+    /// <summary>Технологія провізії −25%: Їдальня з'їдає 15 замість 20, звірі — свої 210.</summary>
+    [Fact]
+    public async Task Handle_ShouldFeedTheMessHallLess_WithTheProvisioningTechnology()
+    {
+        var catalog = Catalog(messHall: true);
+        var village = GivenVillage(catalog, food: 1000);
+        _research.Researched(PlayerId, "attack_infantry", 1);
+        await Handler(catalog, Now).Handle(new PayProvisionsCommand(village.Id), CancellationToken.None);
+
+        await Handler(catalog, Now.AddHours(1)).Handle(new PayProvisionsCommand(village.Id), CancellationToken.None);
+
+        Assert.Equal(1000 - 210 - 15, Food(village));
+    }
+
+    /// <summary>Три рівні по −25% упираються в стелю −50%: Їдальня все одно їсть 10.</summary>
+    [Fact]
+    public async Task Handle_ShouldCapTheProvisioningCut()
+    {
+        var catalog = Catalog(messHall: true);
+        var village = GivenVillage(catalog, food: 1000);
+        _research.Researched(PlayerId, "attack_infantry", 3);
+        await Handler(catalog, Now).Handle(new PayProvisionsCommand(village.Id), CancellationToken.None);
+
+        await Handler(catalog, Now.AddHours(1)).Handle(new PayProvisionsCommand(village.Id), CancellationToken.None);
+
+        Assert.Equal(1000 - 210 - 10, Food(village));
     }
 
     /// <summary>Села вже немає — джоб іде далі без помилки.</summary>

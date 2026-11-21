@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Clans.Services;
+using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Application.Beasts.Services;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Heroes.Services;
@@ -33,12 +35,13 @@ namespace EmpireIdle.Application.Marches.Services
         private readonly EffectResolver _effectResolver;
         private readonly MarchLogistics _logistics;
         private readonly BattleAftermath _aftermath;
-        private readonly HeroCombatModifiers _heroModifiers;
+        private readonly ArmyBuffs _armyBuffs;
         private readonly HeroCombatants _combatants;
         private readonly GameCatalog _catalog;
         private readonly TerritoryBonus _territoryBonus;
         private readonly ClanTerritoryRules _territory;
         private readonly IClanRepository _clanRepository;
+        private readonly ClanBonuses _clanBonuses;
         private readonly BeastTamer _tamer;
         private readonly MonsterExperienceReward _experience;
         private readonly ILogger<MonsterBattleService> _logger;
@@ -55,16 +58,18 @@ namespace EmpireIdle.Application.Marches.Services
             EffectResolver effectResolver,
             MarchLogistics logistics,
             BattleAftermath aftermath,
-            HeroCombatModifiers heroModifiers,
+            ArmyBuffs armyBuffs,
             HeroCombatants combatants,
             GameCatalog catalog,
             TerritoryBonus territoryBonus,
             ClanTerritoryRules territory,
             IClanRepository clanRepository,
+            ClanBonuses clanBonuses,
             BeastTamer tamer,
             MonsterExperienceReward experience,
             ILogger<MonsterBattleService> logger)
         {
+            _clanBonuses = clanBonuses;
             _monsterRepository = monsterRepository;
             _mapRepository = mapRepository;
             _garrisonRepository = garrisonRepository;
@@ -76,7 +81,7 @@ namespace EmpireIdle.Application.Marches.Services
             _effectResolver = effectResolver;
             _logistics = logistics;
             _aftermath = aftermath;
-            _heroModifiers = heroModifiers;
+            _armyBuffs = armyBuffs;
             _combatants = combatants;
             _catalog = catalog;
             _territoryBonus = territoryBonus;
@@ -120,13 +125,13 @@ namespace EmpireIdle.Application.Marches.Services
             // Сід фіксуємо до бою: він іде і в розрахунок, і у звіт
             var seed = _random.Next(int.MaxValue);
 
-            var woundedCapacity = _logistics.CalculateWoundedCapacity(village, garrison);
+            var woundedCapacity = await _logistics.WoundedCapacityAsync(village, garrison, cancellationToken);
 
             var attackerHeroes = await _heroRepository.GetByMarchAsync(march.Id, cancellationToken);
 
             // Монстр ні стін, ні героїв не має, тому бік захисту йде без бонусів
             var outcome = _resolver.Resolve(attackerArmy, DefenceStacks.FromArmy(defenderArmy), terrain, seed,
-                attackerBonus, defenderBonus: 1.0, woundedCapacity, _heroModifiers.ForMarch(attackerHeroes, await _combatants.GearAsync(attackerHeroes, cancellationToken)),
+                attackerBonus, defenderBonus: 1.0, woundedCapacity, await _armyBuffs.ForArmyAsync(village.PlayerId, attackerHeroes, cancellationToken),
                 attackerHeroes: await _combatants.ForAsync(attackerHeroes, attacking: true, cancellationToken));
 
             var result = outcome.Battle;
@@ -205,7 +210,12 @@ namespace EmpireIdle.Application.Marches.Services
             {
                 var clan = await _clanRepository.GetByMemberAsync(playerId, cancellationToken);
 
-                clan?.EarnPoints(_territory.CashbackFor(carried), playerId, utcNow);
+                if (clan is not null)
+                {
+                    var technology = (await _clanBonuses.ForClanAsync(clan.Id, cancellationToken)).Of(TechnologyStat.LootCashback);
+
+                    clan.EarnPoints(_territory.CashbackFor(carried, technology), playerId, utcNow);
+                }
             }
 
             return carried.Select(c => new ResourceCost { Resource = c.Key, Amount = c.Value }).ToList();

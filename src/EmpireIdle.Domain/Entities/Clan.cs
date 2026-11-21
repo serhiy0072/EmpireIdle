@@ -1,4 +1,5 @@
 using EmpireIdle.Domain.Enums;
+using EmpireIdle.Domain.Events;
 using EmpireIdle.Domain.Exceptions;
 
 namespace EmpireIdle.Domain.Entities
@@ -79,20 +80,21 @@ namespace EmpireIdle.Domain.Entities
             new(Guid.NewGuid(), clanId, "Leader", 100,
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
                 | ClanPermission.ManageRoles | ClanPermission.EditProfile
-                | ClanPermission.BuildStructures | ClanPermission.Disband,
+                | ClanPermission.BuildStructures | ClanPermission.Disband | ClanPermission.ManageTechnologies,
                 isLeaderRole: true, key: "leader"),
 
             new(Guid.NewGuid(), clanId, "Deputy", 85,
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
                 | ClanPermission.ManageRoles | ClanPermission.EditProfile
-                | ClanPermission.BuildStructures, key: "deputy"),
+                | ClanPermission.BuildStructures | ClanPermission.ManageTechnologies, key: "deputy"),
 
             new(Guid.NewGuid(), clanId, "General", 60,
                 ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
-                | ClanPermission.BuildStructures, key: "general"),
+                | ClanPermission.BuildStructures | ClanPermission.ManageTechnologies, key: "general"),
 
             new(Guid.NewGuid(), clanId, "Officer", 40,
-                ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles, key: "officer"),
+                ClanPermission.Recruit | ClanPermission.Kick | ClanPermission.AssignRoles
+                | ClanPermission.ManageTechnologies, key: "officer"),
 
             new(Guid.NewGuid(), clanId, "Veteran", 20, ClanPermission.None, key: "veteran"),
 
@@ -138,6 +140,7 @@ namespace EmpireIdle.Domain.Entities
             var role = _roles.Single(r => r.IsDefaultRole);
             _members.Add(new ClanMember(Guid.NewGuid(), Id, playerId, role.Id, utcNow));
 
+            RaiseDomainEvent(new ClanMembershipChanged(playerId, Id, utcNow));
             Touch(utcNow);
         }
 
@@ -160,6 +163,8 @@ namespace EmpireIdle.Domain.Entities
             }
 
             _members.Remove(member);
+
+            RaiseDomainEvent(new ClanMembershipChanged(playerId, Id, utcNow));
             Touch(utcNow);
         }
 
@@ -188,6 +193,8 @@ namespace EmpireIdle.Domain.Entities
                     $"'{actor.Name}' cannot kick a '{targetRole.Name}'.", actor.Name, actor.Key ?? "");
 
             _members.Remove(target);
+
+            RaiseDomainEvent(new ClanMembershipChanged(targetId, Id, utcNow));
             Touch(utcNow);
         }
 

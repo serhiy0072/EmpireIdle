@@ -53,6 +53,24 @@ public class TechnologyTreeTests
             Personal.Tree.Availability(finished, 2, "attack_infantry", 10, 2));
     }
 
+    /// <summary>
+    /// Кланове дерево (рішення 12.11): другий тір вкладки відкриває рівень кожного вузла останнього шару першого,
+    /// а не повне вивчення, і рівень світу не потрібен.
+    /// </summary>
+    [Fact]
+    public void ClanAvailability_ShouldOpenTheNextTier_OnceEveryNodeOfTheLastLayerHasALevel()
+    {
+        var firstLayerOnly = Levels((1, "v_attack_all", 3));
+        var lastLayerStarted = Levels((1, "v_attack_all", 1), (1, "c_coins", 1));
+
+        Assert.Equal(TechnologyAvailability.PreviousTierIncomplete,
+            Clan.Tree.Availability(firstLayerOnly, 2, "v_attack_all", int.MaxValue, int.MaxValue));
+        Assert.Equal(TechnologyAvailability.Available,
+            Clan.Tree.Availability(lastLayerStarted, 2, "v_attack_all", int.MaxValue, int.MaxValue));
+        Assert.True(Clan.Tree.TabOpen(lastLayerStarted, 2, "valor"));
+        Assert.False(Personal.Tree.TabOpen(Levels((1, "attack_infantry", 3), (1, "command_infantry", 1)), 2, "battle"));
+    }
+
     [Fact]
     public void Availability_ShouldReportAMaxedNode()
         => Assert.Equal(TechnologyAvailability.Maxed,
@@ -110,18 +128,56 @@ public class TechnologyTreeTests
     public void ClanLevel_ShouldCostPointsByTheFormula()
         => Assert.Equal(6100, Clan.Points(2, Clan.Tree.Node("c_coins")!, 3));
 
-    [Fact]
-    public void AttemptCost_ShouldGrowWithTheTownHall_AndRefuseUnpricedResources()
+    /// <summary>
+    /// Ціна спроби: база × множник тіру × курс ресурсу вузла (рішення 12.11). У тестовому конфігу база 100,
+    /// золото 1, дерево 0,5, множник тіру дорівнює тіру.
+    /// </summary>
+    [Theory]
+    [InlineData(1, "v_attack_all", TestKeys.Gold, 100)]
+    [InlineData(2, "v_attack_all", TestKeys.Gold, 200)]
+    [InlineData(1, "c_coins", TestKeys.Wood, 50)]
+    [InlineData(2, "c_coins", TestKeys.Wood, 100)]
+    public void AttemptCost_ShouldUseTheNodesResource_AndGrowWithTheTier(int tier, string node, string resource, int amount)
     {
-        Assert.Equal(500, Clan.AttemptCost(TestKeys.Gold, 10));
-        Assert.Null(Clan.AttemptCost(TestKeys.Iron, 10));
+        var cost = Clan.AttemptCost(tier, Clan.Tree.Node(node)!);
+
+        Assert.NotNull(cost);
+        Assert.Equal(resource, cost.Resource);
+        Assert.Equal(amount, cost.Amount);
+    }
+
+    [Fact]
+    public void AttemptCost_ShouldBeNull_ForANodeWithoutAPricedResource()
+    {
+        var config = new GameConfigBuilder().WithTechnologies(t => t.Clan.Nodes[0].Resource = TestKeys.Iron).Build();
+        var clan = new ClanTechnologies(config.Technologies.Clan);
+
+        Assert.Null(clan.AttemptCost(1, clan.Tree.Node("v_attack_all")!));
+    }
+
+    /// <summary>Половина кроку округлення йде вгору, а не до парного: 1125 → 1150, а не 1100.</summary>
+    [Fact]
+    public void AttemptCost_ShouldRoundHalfAwayFromZero()
+    {
+        var config = new GameConfigBuilder().WithTechnologies(t =>
+        {
+            t.Clan.Offering.AttemptCost = 4500;
+            t.Clan.Offering.CostRounding = 50;
+            t.Clan.Offering.ResourceRates[TestKeys.Gold] = 0.25;
+        }).Build();
+        var clan = new ClanTechnologies(config.Technologies.Clan);
+
+        Assert.Equal(1150, clan.AttemptCost(1, clan.Tree.Node("v_attack_all")!)!.Amount);
     }
 
     [Theory]
-    [InlineData(1, 20)]
-    [InlineData(3, 60)]
-    [InlineData(25, 400)]
-    public void GemOfferingPrice_ShouldGrowPerOfferingUpToTheCap(int nth, int price)
+    [InlineData(1, 10)]
+    [InlineData(5, 10)]
+    [InlineData(6, 20)]
+    [InlineData(10, 20)]
+    [InlineData(11, 40)]
+    [InlineData(50, 5120)]
+    public void GemOfferingPrice_ShouldDoubleEveryFiveOfferings(int nth, int price)
         => Assert.Equal(price, Clan.GemOfferingPrice(nth));
 
     /// <summary>Ваги 90 і 10: кидок 0,95 падає у ×10; бонус монет клану +50% множиться поверх.</summary>

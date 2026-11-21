@@ -19,7 +19,10 @@
     "trainAny": "Train troops",
     "train": "Train: {{unit}}",
     "monsters": "Defeat monsters",
-    "gems": "Spend gems"
+    "gems": "Spend gems",
+    "researchAny": "Research a technology level",
+    "research": "Research a technology level: {{tab}}",
+    "clanOffering": "Make a clan offering"
   },
   "reward": {
     "hero": "Hero: {{hero}}",
@@ -102,7 +105,8 @@
       "ManageRoles": "role management",
       "EditProfile": "profile",
       "BuildStructures": "structures",
-      "Disband": "disbanding"
+      "Disband": "disbanding",
+      "ManageTechnologies": "technologies"
     }
   },
   "browser": {
@@ -205,6 +209,8 @@
     "tabHelp": "Help",
     "tabMembers": "Members · {{count}}/{{capacity}}",
     "tabTerritory": "Territory",
+    "tabTechnologies": "Technologies",
+    "tabShop": "Shop",
     "tabRecruitCount": "Recruiting · {{count}}",
     "tabRecruit": "Recruiting",
     "tabSettings": "Settings",
@@ -214,6 +220,7 @@
     "recall": "Recall reinforcements",
     "leaderLeaves": "Leadership passes to the member with the highest role",
     "confirmLeave": "Sure? Press again",
+    "leaveLosesPower": "Leaving takes the clan technology bonuses with it — your power drops by {{power}}.",
     "disband": "Disband the clan",
     "leave": "Leave the clan",
     "recalled": "Marches recalled: {{count}}"

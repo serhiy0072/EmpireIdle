@@ -116,7 +116,8 @@ public class StormTowerFloorCommandTests
         var effects = TestEffects.Resolver(Substitute.For<IActiveEffectRepository>(), catalog: catalog);
 
         var squads = new BattleSquadFactory(_heroes, _inventory, _villages, _garrisons, catalog, new HeroStats(progression, catalog),
-            new HeroSkills(_config.HeroSettings), new HeroCombatModifiers(catalog), effects);
+            new HeroSkills(_config.HeroSettings), new HeroCombatModifiers(catalog), effects,
+            TestTechnologies.For(catalog));
 
         return new TowerBattle(_villages, squads, new TowerFloors(catalog), new RealtimeBattleEngine(_config.RealtimeBattle), catalog);
     }

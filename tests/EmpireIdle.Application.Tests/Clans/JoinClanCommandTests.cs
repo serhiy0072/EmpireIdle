@@ -41,6 +41,7 @@ public class JoinClanCommandTests
         _clans, _requests, _players, _unitOfWork,
         new GameCatalog(Config()),
         new FakeTimeProvider(Now),
+        TestTechnologies.Settlement(new GameCatalog(Config()), Substitute.For<IVillageRepository>()),
         NullLogger<JoinClanCommandHandler>.Instance);
 
     private static Player NewPlayer() => new(PlayerId, "tester", "tester@test.local", "user-1", Now);

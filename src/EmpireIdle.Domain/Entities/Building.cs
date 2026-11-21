@@ -138,7 +138,8 @@ namespace EmpireIdle.Domain.Entities
                 totalMinutes + boost.BonusMinutes(LastAccruedAt, utcNow)
                 + (damaged - 1) * (damagedMinutes + boost.BonusMinutes(LastAccruedAt, damageEnd));
 
-            var ratePerMinute = Level.Value * config.BaseProductionPerMinute * locationMultiplier * HungerProductionMultiplier;
+            var ratePerMinute = Level.Value * config.BaseProductionPerMinute * locationMultiplier * HungerProductionMultiplier
+                * boost.TechnologyMultiplier(config.ProducesResource);
             var produced = ratePerMinute * effectiveMinutes;
 
             // Обрізаємо до стелі ще в double: за довгу відсутність виробіток перевищує int,

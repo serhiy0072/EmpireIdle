@@ -1,7 +1,9 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -24,6 +26,7 @@ namespace EmpireIdle.Application.Villages.Commands
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly WorldGeometry _geometry;
+        private readonly PlayerTechnologies _technologies;
         private readonly ILogger<UpgradeBuildingCommandHandler> _logger;
 
         public UpgradeBuildingCommandHandler(
@@ -34,8 +37,10 @@ namespace EmpireIdle.Application.Villages.Commands
             TimeProvider timeProvider,
             GameCatalog catalog,
             WorldGeometry geometry,
+            PlayerTechnologies technologies,
             ILogger<UpgradeBuildingCommandHandler> logger)
         {
+            _technologies = technologies;
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
             _serverRepository = serverRepository;
@@ -59,9 +64,11 @@ namespace EmpireIdle.Application.Villages.Commands
             var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
             var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
 
+            var technologies = await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken);
+
             village.BeginBuildingUpgrade(request.BuildingId, _catalog.Buildings, now, boost,
                 _catalog.MainBuildingKey, serverLevel, _catalog.Config.BuildingLevelsPerTier, _catalog.Config.MaxBuildingLevel,
-                locationMultiplier);
+                locationMultiplier, technologies.Of(TechnologyStat.ConstructionSpeed));
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

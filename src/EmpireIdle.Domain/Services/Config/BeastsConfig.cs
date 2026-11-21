@@ -20,6 +20,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public int PityWins { get; set; }
 
+        /// <summary>
+        /// У скільки разів марш на приручення швидший за звичайний (рішення 29.10.2026): діє поверх
+        /// загального темпу світу, туди й назад.
+        /// </summary>
+        public double TameTravelSpeedMultiplier { get; set; } = 1.0;
+
         /// <summary>Найвищий ранг звіра; дублікат понад нього — звичайна здобич.</summary>
         public int MaxRank { get; set; } = 1;
 

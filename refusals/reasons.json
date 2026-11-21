@@ -122,6 +122,25 @@
   ],
   "clan.roleProtected": [],
   "clan.targetInClan": [],
+  "clantech.gemLimit": [
+    "limit"
+  ],
+  "clantech.gemPriceChanged": [
+    "price"
+  ],
+  "clantech.noAttempts": [],
+  "clantech.noCoins": [
+    "need",
+    "have"
+  ],
+  "clantech.shopItemGone": [],
+  "clantech.shopLimit": [
+    "limit",
+    "bought"
+  ],
+  "clantech.shopPriceChanged": [
+    "price"
+  ],
   "common.buildingLevelRequired": [
     "building",
     "level"

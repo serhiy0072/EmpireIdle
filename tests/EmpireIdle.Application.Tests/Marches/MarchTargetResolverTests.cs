@@ -37,14 +37,13 @@ public class MarchTargetResolverTests
             Substitute.For<IGarrisonRepository>(),
             heroes,
             new MonsterArmyBuilder(catalog),
-            new HeroCombatModifiers(catalog),
-            TestCombatants.WithoutGear(catalog),
+            TestCombatants.Buffs(catalog),
             TestCombatants.Defenders(heroes, catalog),
             catalog,
             new VillageStatus(catalog),
             Substitute.For<IClanStructureRepository>(),
             Substitute.For<IClanRepository>(),
-            new ClanTerritoryRules(catalog),
+            TestTechnologies.TerritoryBonus(catalog),
             Substitute.For<IMarchRepository>(),
             TestEffects.Resolver(effects ?? Substitute.For<IActiveEffectRepository>()));
     }

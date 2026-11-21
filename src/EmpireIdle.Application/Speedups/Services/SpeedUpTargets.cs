@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
@@ -22,10 +23,13 @@ namespace EmpireIdle.Application.Speedups.Services
         private readonly IMarchRepository _marchRepository;
         private readonly IPlayerResearchRepository _researchRepository;
         private readonly GameCatalog _catalog;
+        private readonly ResearchSettlement _settlement;
 
         public SpeedUpTargets(IVillageRepository villageRepository, IGarrisonRepository garrisonRepository,
-            IMarchRepository marchRepository, IPlayerResearchRepository researchRepository, GameCatalog catalog)
+            IMarchRepository marchRepository, IPlayerResearchRepository researchRepository, GameCatalog catalog,
+            ResearchSettlement settlement)
         {
+            _settlement = settlement;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
@@ -33,7 +37,7 @@ namespace EmpireIdle.Application.Speedups.Services
             _catalog = catalog;
         }
 
-        public async Task<SpeedUpTarget> FindAsync(Guid playerId, SpeedUpTimer timer, Guid targetId,
+        public async Task<SpeedUpTarget> FindAsync(Guid playerId, SpeedUpTimer timer, Guid targetId, DateTime utcNow,
             CancellationToken cancellationToken)
         {
             if (timer == SpeedUpTimer.Research)
@@ -46,6 +50,9 @@ namespace EmpireIdle.Application.Speedups.Services
 
                 if (research.CompletesAt is not { } completesAt)
                     throw new RequirementNotMetException(RefusalReasons.ResearchNotActive, $"Player {playerId} is not researching.");
+
+                // Прискорення може завершити дослідження — виробіток фіксуємо до того, за старою ставкою
+                await _settlement.SettleAsync(research, utcNow, cancellationToken);
 
                 return new SpeedUpTarget(completesAt, (cut, now) =>
                 {

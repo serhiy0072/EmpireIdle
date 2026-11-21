@@ -3,6 +3,7 @@ using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Application.Wallets.Services;
 using EmpireIdle.Domain.Entities;
@@ -49,6 +50,7 @@ namespace EmpireIdle.Application.Marches.Commands
         private readonly BeastTamer _tamer;
         private readonly EffectResolver _effects;
         private readonly PlayerVip _vip;
+        private readonly PlayerTechnologies _technologies;
         private readonly ILogger<SendMarchCommandHandler> _logger;
 
         public SendMarchCommandHandler(
@@ -69,9 +71,11 @@ namespace EmpireIdle.Application.Marches.Commands
             BeastTamer tamer,
             EffectResolver effects,
             PlayerVip vip,
+            PlayerTechnologies technologies,
             ILogger<SendMarchCommandHandler> logger)
         {
             _vip = vip;
+            _technologies = technologies;
             _villageRepository = villageRepository;
             _garrisonRepository = garrisonRepository;
             _marchRepository = marchRepository;
@@ -144,8 +148,10 @@ namespace EmpireIdle.Application.Marches.Commands
                     $"Cannot send more than {capacity} marches at once.", capacity);
             }
 
-            // До трьох героїв різних ролей; кожен веде лише юнітів своєї ролі й не більше за свої конвої (GDD §6.1)
-            _convoys.EnsureCanLead(leaders, request.Units);
+            // До трьох героїв різних ролей; кожен веде лише юнітів своєї ролі й не більше за свої конвої (GDD §6.1),
+            // а технології гравця збільшують кожен конвой
+            _convoys.EnsureCanLead(leaders, request.Units,
+                await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken));
 
             // Ціль читається один раз: далі її перевіряють і щит, і підкріплення
             var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, now, cancellationToken);
@@ -193,10 +199,11 @@ namespace EmpireIdle.Application.Marches.Commands
             // Колона йде за найповільнішим учасником, і герої тут нарівні
             // з юнітами: підкріплення з самих героїв інакше плелося б
             // базовою швидкістю замість власної.
-            // Пасивка звіра й небойові вміння героїв пришвидшують марш; множник фіксується
-            // на марші й діє на зворотній дорозі
+            // Пасивка звіра, небойові вміння героїв і мета походу пришвидшують марш; множник
+            // фіксується на марші й діє на зворотній дорозі
             var speed = await _effects.GetMultiplierAsync(request.PlayerId, EffectTarget.MarchSpeed, now, cancellationToken)
-                * _progression.MarchSpeedMultiplier(leaders);
+                * _progression.MarchSpeedMultiplier(leaders)
+                * _calculator.IntentSpeedMultiplier(request.Intent);
 
             var duration = _calculator.CalculateDuration(
                 _serverContext.ServerId, village.X, village.Y, target.X, target.Y, request.Units,

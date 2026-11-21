@@ -1,8 +1,10 @@
+using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +14,7 @@ namespace EmpireIdle.Application.Clans.Commands
     /// Допомогти союзнику з таймером.
     ///
     /// Кожна допомога ріже фіксовану частку повного часу, а кап зупиняє
-    /// на сорока відсотках. Клан робить донат дешевшим, не непотрібним:
+    /// на сорока відсотках (технологія клану піднімає його до стелі). Клан робить донат дешевшим, не непотрібним:
     /// якби він міг обнулити таймер, продаж прискорень помер би того ж дня.
     /// </summary>
     public record GiveClanHelpCommand(Guid PlayerId, Guid RequestId)
@@ -26,6 +28,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IGarrisonRepository _garrisonRepository;
         private readonly IPlayerResearchRepository _researchRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ClanBonuses _bonuses;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<GiveClanHelpCommandHandler> _logger;
@@ -37,6 +40,7 @@ namespace EmpireIdle.Application.Clans.Commands
             IGarrisonRepository garrisonRepository,
             IPlayerResearchRepository researchRepository,
             IUnitOfWork unitOfWork,
+            ClanBonuses bonuses,
             GameCatalog catalog,
             TimeProvider timeProvider,
             ILogger<GiveClanHelpCommandHandler> logger)
@@ -47,6 +51,7 @@ namespace EmpireIdle.Application.Clans.Commands
             _garrisonRepository = garrisonRepository;
             _researchRepository = researchRepository;
             _unitOfWork = unitOfWork;
+            _bonuses = bonuses;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -73,11 +78,12 @@ namespace EmpireIdle.Application.Clans.Commands
 
             var clanConfig = _catalog.Config.Clan;
             var research = _catalog.Config.Technologies.Personal;
+            var helpCap = (await _bonuses.ForClanAsync(clan.Id, cancellationToken)).Of(TechnologyStat.HelpShareCap);
 
             // Дослідження мають свій ліміт і частку (рішення 28.10.2026): 50 допомог по 0,5% проти 20 по 2%
             var (maxHelpers, share) = helpRequest.TargetType == ClanHelpTarget.Research
                 ? (research.MaxHelps, research.HelpShare)
-                : (clanConfig.MaxHelpers, clanConfig.HelpSharePerPlayer);
+                : (clanConfig.MaxHelpersWith(helpCap), clanConfig.HelpSharePerPlayer);
 
             // Агрегат перевіряє повтор, кап і строк — і повертає, скільки зрізати
             var reduction = helpRequest.AcceptHelp(request.PlayerId, share, maxHelpers, now);

@@ -3,6 +3,7 @@ using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Technologies;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -33,6 +34,11 @@ namespace EmpireIdle.Application.Power.Commands
         private readonly IPlayerPowerRepository _powerRepository;
         private readonly IHeroRepository _heroRepository;
         private readonly IInventoryRepository _inventoryRepository;
+        private readonly IPlayerResearchRepository _playerResearch;
+        private readonly IClanRepository _clans;
+        private readonly IClanResearchRepository _clanResearch;
+        private readonly PersonalTechnologies _personalTechnologies;
+        private readonly ClanTechnologies _clanTechnologies;
         private readonly IUnitOfWork _unitOfWork;
         private readonly CombatCalculator _combat;
         private readonly TimeProvider _timeProvider;
@@ -47,6 +53,11 @@ namespace EmpireIdle.Application.Power.Commands
             IPlayerPowerRepository powerRepository,
             IHeroRepository heroRepository,
             IInventoryRepository inventoryRepository,
+            IPlayerResearchRepository playerResearch,
+            IClanRepository clans,
+            IClanResearchRepository clanResearch,
+            PersonalTechnologies personalTechnologies,
+            ClanTechnologies clanTechnologies,
             IUnitOfWork unitOfWork,
             CombatCalculator combat,
             TimeProvider timeProvider,
@@ -60,6 +71,11 @@ namespace EmpireIdle.Application.Power.Commands
             _powerRepository = powerRepository;
             _heroRepository = heroRepository;
             _inventoryRepository = inventoryRepository;
+            _playerResearch = playerResearch;
+            _clans = clans;
+            _clanResearch = clanResearch;
+            _personalTechnologies = personalTechnologies;
+            _clanTechnologies = clanTechnologies;
             _unitOfWork = unitOfWork;
             _combat = combat;
             _timeProvider = timeProvider;
@@ -151,7 +167,17 @@ namespace EmpireIdle.Application.Power.Commands
                 await _powerRepository.AddAsync(power, cancellationToken);
             }
 
-            power.Set(armyPower, heroPower, equipmentPower, now);
+            var weights = _catalog.Config.Technologies.PowerWeights;
+
+            var research = await _playerResearch.GetByPlayerAsync(village.PlayerId, cancellationToken);
+            var technologyPower = research is null ? 0 : _personalTechnologies.Tree.Power(research.Levels, weights);
+
+            // Кланова частина — лише поки гравець у клані: без клану вона зникає разом із бонусами
+            var clanId = await _clans.GetClanIdByMemberAsync(village.PlayerId, cancellationToken);
+            var clanResearch = clanId is { } id ? await _clanResearch.GetByClanAsync(id, cancellationToken) : null;
+            var clanTechnologyPower = clanResearch is null ? 0 : _clanTechnologies.Tree.Power(clanResearch.Levels, weights);
+
+            power.Set(armyPower, heroPower, equipmentPower, technologyPower, clanTechnologyPower, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

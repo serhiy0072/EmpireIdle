@@ -75,7 +75,7 @@
   },
   "power": {
     "loading": "Calculating power…",
-    "breakdown": "Army {{army}} · heroes {{heroes}} · gear {{gear}}"
+    "breakdown": "Army {{army}} · heroes {{heroes}} · gear {{gear}} · technologies {{technologies}} · clan {{clan}}"
   },
   "beasts": {
     "effect": {

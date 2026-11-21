@@ -21,6 +21,16 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Скільки очок вкладу коштує закласти споруду.</summary>
         public long StructureCost => _config.StructureCostPoints;
 
+        /// <summary>Ціна споруди зі знижкою технології клану, не більшою за стелю.</summary>
+        public long StructureCostWith(double cut)
+            => (long)Math.Round(_config.StructureCostPoints * (1 - Math.Clamp(cut, 0, _config.MaxTechnologyCostCut)));
+
+        /// <summary>Тривалість будівництва з технологією клану: швидкість ділить час і до нуля не доходить.</summary>
+        public TimeSpan BuildDurationWith(double speed) => BuildDuration / (1 + Math.Max(speed, 0));
+
+        /// <summary>Місткість гарнізону споруди з технологією клану.</summary>
+        public int GarrisonCapacityWith(double bonus) => (int)Math.Round(_config.GarrisonCapacity * (1 + Math.Max(bonus, 0)));
+
         /// <summary>Скільки будується споруда без допомоги маршів.</summary>
         public TimeSpan BuildDuration => TimeSpan.FromMinutes(_config.BuildMinutes);
 
@@ -51,10 +61,12 @@ namespace EmpireIdle.Domain.Services
             => _config.Enabled && structures.Any(s => s.IsActiveAt(utcNow) && s.Covers(x, y, _config.Radius));
 
         /// <summary>Множник атаки для військ клану в радіусі; поза ним — 1.</summary>
-        public double AttackMultiplier(bool covered) => covered ? 1 + _config.AttackBonus : 1;
+        /// <param name="technology">Бонус технології клану: додається до бонусу території, а не множиться на нього.</param>
+        public double AttackMultiplier(bool covered, double technology = 0) => covered ? 1 + _config.AttackBonus + technology : 1;
 
         /// <summary>Множник оборони для військ клану в радіусі; поза ним — 1.</summary>
-        public double DefenceMultiplier(bool covered) => covered ? 1 + _config.DefenceBonus : 1;
+        /// <param name="technology">Бонус технології клану: додається до бонусу території, а не множиться на нього.</param>
+        public double DefenceMultiplier(bool covered, double technology = 0) => covered ? 1 + _config.DefenceBonus + technology : 1;
 
         /// <summary>
         /// Частка повного будівництва, яку дає марш: пропорційна його силі,
@@ -63,7 +75,8 @@ namespace EmpireIdle.Domain.Services
         public double BuildShareFor(double marchPower) => Math.Max(0, marchPower) * _config.BuildSharePerPower;
 
         /// <summary>Очки вкладу за перемогу над монстром: частка здобичі, нагорода гравця не зменшується.</summary>
-        public long CashbackFor(IReadOnlyDictionary<string, int> loot)
-            => (long)Math.Floor(loot.Values.Where(v => v > 0).Sum(v => (long)v) * _config.MonsterLootCashbackShare);
+        /// <param name="technology">Частка, яку додає технологія клану.</param>
+        public long CashbackFor(IReadOnlyDictionary<string, int> loot, double technology = 0)
+            => (long)Math.Floor(loot.Values.Where(v => v > 0).Sum(v => (long)v) * (_config.MonsterLootCashbackShare + Math.Max(technology, 0)));
     }
 }

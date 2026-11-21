@@ -6,9 +6,23 @@ namespace EmpireIdle.Domain.ValueObjects
     ///
     /// Вікон кілька, бо бусти складаються додаванням (GDD §5.10): буст крамниці ×2 і
     /// звір +15% дають ×2.15, а не ×2.3. Кожне вікно несе лише свою надбавку.
+    ///
+    /// Технології виробітку (рішення 28.10.2026) — не вікно, а постійний множник ресурсу:
+    /// ставка × (1 + технології), а бусти крамниці й звірів множать уже її. Зміна рівня технології
+    /// матеріалізує виробіток села, тож у межах періоду множник сталий.
     /// </summary>
     public sealed record ProductionBoost(IReadOnlyList<BoostWindow> Windows)
     {
+        /// <summary>Технології виробітку «для всіх» ресурсів (0.1 — +10%).</summary>
+        public double TechnologyForAll { get; init; }
+
+        /// <summary>Технології виробітку окремих ресурсів — додаються до «для всіх».</summary>
+        public IReadOnlyDictionary<string, double> TechnologyByResource { get; init; } = new Dictionary<string, double>();
+
+        /// <summary>Множник ставки ресурсу від технологій; невиробнича будівля — 1.</summary>
+        public double TechnologyMultiplier(string? resource)
+            => resource is null ? 1 : 1 + TechnologyForAll + TechnologyByResource.GetValueOrDefault(resource);
+
         /// <summary>Бустів немає.</summary>
         public static readonly ProductionBoost None = new([]);
 
@@ -19,7 +33,7 @@ namespace EmpireIdle.Domain.ValueObjects
         }
 
         /// <summary>Те саме з ще одним вікном.</summary>
-        public ProductionBoost With(BoostWindow window) => new([.. Windows, window]);
+        public ProductionBoost With(BoostWindow window) => this with { Windows = [.. Windows, window] };
 
         /// <summary>
         /// Надбавка за інтервал [from, to) у «хвилинах виробітку»: сума надбавок вікон,

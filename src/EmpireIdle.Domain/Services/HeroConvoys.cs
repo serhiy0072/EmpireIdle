@@ -1,6 +1,7 @@
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.Technologies;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Services
@@ -31,16 +32,28 @@ namespace EmpireIdle.Domain.Services
                 .DefaultIfEmpty(0)
                 .Max();
 
-        /// <summary>Скільки юнітів герой може повести: рівень — з табором, як і для статів.</summary>
-        public int Capacity(Hero hero) => ConvoysAt(hero.EffectiveLevel) * _config.ConvoySize;
+        /// <summary>
+        /// Скільки юнітів герой може повести: рівень — з табором, як і для статів. Технології (рішення 28.10.2026)
+        /// не додають конвоїв, а збільшують кожен: + extraPerConvoy юнітів у конвой.
+        /// </summary>
+        public int Capacity(Hero hero, int extraPerConvoy = 0)
+            => ConvoysAt(hero.EffectiveLevel) * (_config.ConvoySize + extraPerConvoy);
+
+        /// <summary>
+        /// На скільки юнітів технології збільшують конвой цього типу: «для всіх» плюс бонус типу;
+        /// без типу — лише «для всіх». Без технологій — нуль.
+        /// </summary>
+        public static int ExtraConvoySize(TechnologyBonuses? technologies, string? unitType)
+            => technologies is null ? 0 : (int)Math.Round(technologies.Of(TechnologyStat.ConvoySize, unitType));
 
         /// <summary>
         /// Чи можуть ці герої повести саме цих юнітів (GDD §6.1, рішення 08.10.2026): героїв різних ролей,
         /// кожен тип юнітів — під героєм своєї ролі й не більше за його конвої.
         /// Без ролей у конфігу перевіряється лише сума проти всіх конвоїв, без кривої — нічого.
         /// </summary>
+        /// <param name="technologies">Технології власника маршу — збільшують кожен конвой; null — без них.</param>
         public void EnsureCanLead(IReadOnlyCollection<(Hero Hero, HeroConfig? Config)> leaders,
-            IReadOnlyDictionary<UnitStackKey, int> units)
+            IReadOnlyDictionary<UnitStackKey, int> units, TechnologyBonuses? technologies = null)
         {
             if (leaders.Count > _config.MaxHeroesPerMarch)
                 throw new RequirementNotMetException(RefusalReasons.MarchTooManyHeroes,
@@ -52,7 +65,7 @@ namespace EmpireIdle.Domain.Services
             if (_config.RoleUnits.Count == 0)
             {
                 var total = sent.Values.Sum();
-                var capacity = leaders.Sum(l => Capacity(l.Hero));
+                var capacity = leaders.Sum(l => Capacity(l.Hero, ExtraConvoySize(technologies, null)));
 
                 if (limited && total > capacity)
                     throw new RequirementNotMetException(RefusalReasons.MarchOverCapacity,
@@ -79,7 +92,7 @@ namespace EmpireIdle.Domain.Services
                 if (!limited)
                     continue;
 
-                var capacity = Capacity(leader.Hero);
+                var capacity = Capacity(leader.Hero, ExtraConvoySize(technologies, unit));
 
                 if (count > capacity)
                     throw new RequirementNotMetException(RefusalReasons.MarchOverCapacity,

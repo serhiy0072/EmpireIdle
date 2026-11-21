@@ -5,6 +5,8 @@ using EmpireIdle.Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
+using EmpireIdle.Application.Research.Services;
+
 namespace EmpireIdle.Application.Clans.Commands
 {
     /// <summary>
@@ -26,6 +28,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly TimeProvider _timeProvider;
         private readonly ReinforcementReturner _returner;
+        private readonly ResearchSettlement _settlement;
         private readonly ILogger<KickMemberCommandHandler> _logger;
 
         public KickMemberCommandHandler(
@@ -36,8 +39,10 @@ namespace EmpireIdle.Application.Clans.Commands
             IUnitOfWork unitOfWork,
             TimeProvider timeProvider,
             ReinforcementReturner returner,
+            ResearchSettlement settlement,
             ILogger<KickMemberCommandHandler> logger)
         {
+            _settlement = settlement;
             _clanRepository = clanRepository;
             _playerRepository = playerRepository;
             _villageRepository = villageRepository;
@@ -64,6 +69,9 @@ namespace EmpireIdle.Application.Clans.Commands
             // Право й ранг перевіряє агрегат: він знає ролі, а хендлер ні
             clan.Kick(request.PlayerId, target.Id, now);
             target.LeaveClan();
+
+            // Вироблене досі лишається за ставкою з кланом: бонус зникає лише від виключення
+            await _settlement.SettleVillageAsync(target.Id, now, cancellationToken);
 
             // Колишні соклановці не зрізають його таймери
             await _helpRepository.RemoveByPlayerAsync(clan.Id, target.Id, cancellationToken);

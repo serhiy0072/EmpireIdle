@@ -49,6 +49,10 @@ export const queryKeys = {
   clanProfile: (clanId: string) => ["clans", "profile", clanId] as const,
   /** Територія клану гравця: очки, слоти, споруди, квести клану. */
   territory: (playerId: string) => ["territory", playerId] as const,
+  /** Кланові технології гравця: дерево клану, мої спроби, монети й денні пороги. */
+  clanTechnologies: (playerId: string) => ["clanTechnologies", playerId] as const,
+  /** Клановий магазин гравця: вітрини, мої покупки й монети; безкоштовна вітрина працює й поза кланом. */
+  clanShop: (playerId: string) => ["clanShop", playerId] as const,
   /** Ділянка мапи не належить гравцю: ключ — від центру й радіуса. */
   mapArea: (x: number, y: number, radius: number) => ["map", "area", x, y, radius] as const,
   mapCell: (x: number, y: number) => ["map", "cell", x, y] as const,

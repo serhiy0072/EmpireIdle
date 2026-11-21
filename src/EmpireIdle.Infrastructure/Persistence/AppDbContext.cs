@@ -70,6 +70,9 @@ namespace EmpireIdle.Infrastructure.Persistence
         public DbSet<DungeonClear> DungeonClears => Set<DungeonClear>();
         public DbSet<TowerProgress> TowerProgress => Set<TowerProgress>();
         public DbSet<PlayerResearch> PlayerResearch => Set<PlayerResearch>();
+        public DbSet<ClanResearch> ClanResearch => Set<ClanResearch>();
+        public DbSet<ClanOfferingLedger> ClanOfferingLedgers => Set<ClanOfferingLedger>();
+        public DbSet<ClanContribution> ClanContributions => Set<ClanContribution>();
         public DbSet<MarketListing> MarketListings => Set<MarketListing>();
         public DbSet<MarketPriceSnapshot> MarketPriceSnapshots => Set<MarketPriceSnapshot>();
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
@@ -112,6 +115,9 @@ namespace EmpireIdle.Infrastructure.Persistence
             modelBuilder.Entity<TrainingCamp>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<TowerProgress>().HasQueryFilter(p => p.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<PlayerResearch>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ClanResearch>().HasQueryFilter(r => r.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ClanOfferingLedger>().HasQueryFilter(l => l.ServerId == _serverContext.ServerId);
+            modelBuilder.Entity<ClanContribution>().HasQueryFilter(c => c.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<HeroShardProgress>().HasQueryFilter(s => s.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<EquipmentItem>().HasQueryFilter(e => e.ServerId == _serverContext.ServerId);
             modelBuilder.Entity<MarketListing>().HasQueryFilter(l => l.ServerId == _serverContext.ServerId);

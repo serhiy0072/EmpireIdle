@@ -173,7 +173,7 @@ namespace EmpireIdle.Application.Marches.Services
                 .GroupBy(l => new UnitStackKey(l.UnitType, l.Level))
                 .ToDictionary(g => g.Key, g => g.Sum(l => l.Lost));
 
-            var capacity = _logistics.CalculateWoundedCapacity(defenderVillage, defenderGarrison);
+            var capacity = await _logistics.WoundedCapacityAsync(defenderVillage, defenderGarrison, cancellationToken);
             var split = _casualties.Split(hostLost, capacity, WoundedSeed(seed));
 
             defenderGarrison.AdmitWounded(split.Wounded, utcNow);
@@ -332,7 +332,7 @@ namespace EmpireIdle.Application.Marches.Services
             camp.ApplyLosses(campLost, utcNow);
 
             var homeGarrison = await _garrisonRepository.GetByIdAsync(camp.GarrisonId, cancellationToken);
-            var capacity = _logistics.CalculateWoundedCapacity(campHome, homeGarrison);
+            var capacity = await _logistics.WoundedCapacityAsync(campHome, homeGarrison, cancellationToken);
             var split = _casualties.Split(campLost, capacity, WoundedSeed(seed));
 
             homeGarrison?.AdmitWounded(split.Wounded, utcNow);
@@ -389,7 +389,7 @@ namespace EmpireIdle.Application.Marches.Services
                 return null;
             }
 
-            var capacity = _logistics.CalculateWoundedCapacity(ownerVillage, ownerGarrison);
+            var capacity = await _logistics.WoundedCapacityAsync(ownerVillage, ownerGarrison, cancellationToken);
             var split = _casualties.Split(lost, capacity, WoundedSeed(seed));
 
             ownerGarrison.AdmitWounded(split.Wounded, utcNow);

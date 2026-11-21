@@ -1,7 +1,9 @@
 using EmpireIdle.Application.Beasts.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 
 namespace EmpireIdle.Application.Beasts.Queries
@@ -18,10 +20,13 @@ namespace EmpireIdle.Application.Beasts.Queries
         private readonly VillageCapacities _capacities;
         private readonly VillageStatus _status;
         private readonly GameCatalog _catalog;
+        private readonly PlayerTechnologies _technologies;
 
         public GetBeastPenQueryHandler(IBeastPenRepository pens, IVillageRepository villages, BeastTaming taming,
-            BeastProgression progression, VillageCapacities capacities, VillageStatus status, GameCatalog catalog)
+            BeastProgression progression, VillageCapacities capacities, VillageStatus status, GameCatalog catalog,
+            PlayerTechnologies technologies)
         {
+            _technologies = technologies;
             _pens = pens;
             _villages = villages;
             _taming = taming;
@@ -39,6 +44,7 @@ namespace EmpireIdle.Application.Beasts.Queries
             var pen = await _pens.GetByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
             var penLevel = _capacities.BeastPenLevel(village, _status);
             var pityWins = _catalog.Config.Beasts.PityWins;
+            var tameBonus = (await _technologies.ForPlayerAsync(request.PlayerId, cancellationToken)).Of(TechnologyStat.TameChance);
 
             return new BeastPenView(
                 _capacities.BeastSlots(village, _status),
@@ -49,7 +55,7 @@ namespace EmpireIdle.Application.Beasts.Queries
                     .ToList() ?? [],
                 _catalog.Config.Beasts.Types
                     .Select(beast => new BeastTamingView(beast.Key, beast.MonsterKey,
-                        _taming.ChanceFor(beast, penLevel), pen?.MissesFor(beast.Key) ?? 0, pityWins))
+                        _taming.ChanceFor(beast, penLevel, tameBonus), pen?.MissesFor(beast.Key) ?? 0, pityWins))
                     .ToList(),
                 _catalog.Config.Beasts.FodderUpkeep.HourlyUpkeep(penLevel, pen?.Beasts.Select(b => b.Level) ?? []),
                 village.BeastsHungry);

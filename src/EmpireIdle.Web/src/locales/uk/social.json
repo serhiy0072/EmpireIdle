@@ -19,7 +19,10 @@
     "trainAny": "Навчити юнітів",
     "train": "Навчити: {{unit}}",
     "monsters": "Перемогти монстрів",
-    "gems": "Витратити самоцвітів"
+    "gems": "Витратити самоцвітів",
+    "researchAny": "Вивчити рівень технології",
+    "research": "Вивчити рівень технології: {{tab}}",
+    "clanOffering": "Зробити підношення клану"
   },
   "reward": {
     "hero": "Герой: {{hero}}",
@@ -102,7 +105,8 @@
       "ManageRoles": "керування ролями",
       "EditProfile": "профіль",
       "BuildStructures": "споруди",
-      "Disband": "розпуск"
+      "Disband": "розпуск",
+      "ManageTechnologies": "технології"
     }
   },
   "browser": {
@@ -205,6 +209,8 @@
     "tabHelp": "Допомога",
     "tabMembers": "Учасники · {{count}}/{{capacity}}",
     "tabTerritory": "Територія",
+    "tabTechnologies": "Технології",
+    "tabShop": "Магазин",
     "tabRecruitCount": "Набір · {{count}}",
     "tabRecruit": "Набір",
     "tabSettings": "Налаштування",
@@ -214,6 +220,7 @@
     "recall": "Відкликати підкріплення",
     "leaderLeaves": "Лідерство перейде учаснику з найвищою роллю",
     "confirmLeave": "Точно? Натисніть ще раз",
+    "leaveLosesPower": "Разом із кланом зникнуть бонуси його технологій — сила впаде на {{power}}.",
     "disband": "Розпустити клан",
     "leave": "Покинути клан",
     "recalled": "Відкликано маршів: {{count}}"

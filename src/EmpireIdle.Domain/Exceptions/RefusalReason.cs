@@ -537,5 +537,28 @@
 
         /// <summary>Прискорювати чи просити допомоги нема чого: Лабораторія вільна.</summary>
         public static readonly RefusalReason ResearchNotActive = new("research.notActive");
+
+        // ---------- Кланові технології ----------
+
+        /// <summary>Шкала спроб порожня: наступна відновиться з часом.</summary>
+        public static readonly RefusalReason ClanTechNoAttempts = new("clantech.noAttempts");
+
+        /// <summary>Вичерпано денний ліміт gems-підношень.</summary>
+        public static readonly RefusalReason ClanTechGemLimit = new("clantech.gemLimit", "limit");
+
+        /// <summary>Ціна наступного gems-підношення вже інша, ніж бачив гравець; price — нова ціна.</summary>
+        public static readonly RefusalReason ClanTechGemPriceChanged = new("clantech.gemPriceChanged", "price");
+
+        /// <summary>Не вистачає кланових монет.</summary>
+        public static readonly RefusalReason ClanTechNoCoins = new("clantech.noCoins", "need", "have");
+
+        /// <summary>Вичерпано ліміт цього предмета на період вітрини.</summary>
+        public static readonly RefusalReason ClanTechShopLimit = new("clantech.shopLimit", "limit", "bought");
+
+        /// <summary>Предмета вже немає на вітрині: період змінився, поки гравець дивився на стару.</summary>
+        public static readonly RefusalReason ClanTechShopItemGone = new("clantech.shopItemGone");
+
+        /// <summary>Ціна предмета вже інша, ніж бачив гравець; price — нова ціна.</summary>
+        public static readonly RefusalReason ClanTechShopPriceChanged = new("clantech.shopPriceChanged", "price");
     }
 }

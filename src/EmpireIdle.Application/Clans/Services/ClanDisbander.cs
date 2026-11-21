@@ -19,6 +19,8 @@ namespace EmpireIdle.Application.Clans.Services
         private readonly IClanRequestRepository _requestRepository;
         private readonly IClanHelpRepository _helpRepository;
         private readonly IClanQuestRepository _questRepository;
+        private readonly IClanResearchRepository _researchRepository;
+        private readonly IClanOfferingRepository _offeringRepository;
         private readonly ClanStructureRemover _structureRemover;
         private readonly ILogger<ClanDisbander> _logger;
 
@@ -28,9 +30,13 @@ namespace EmpireIdle.Application.Clans.Services
             IClanRequestRepository requestRepository,
             IClanHelpRepository helpRepository,
             IClanQuestRepository questRepository,
+            IClanResearchRepository researchRepository,
+            IClanOfferingRepository offeringRepository,
             ClanStructureRemover structureRemover,
             ILogger<ClanDisbander> logger)
         {
+            _researchRepository = researchRepository;
+            _offeringRepository = offeringRepository;
             _clanRepository = clanRepository;
             _structureRepository = structureRepository;
             _requestRepository = requestRepository;
@@ -49,6 +55,8 @@ namespace EmpireIdle.Application.Clans.Services
             var requests = await _requestRepository.RemoveByClanAsync(clan.Id, cancellationToken);
             var helps = await _helpRepository.RemoveByClanAsync(clan.Id, cancellationToken);
             var quests = await _questRepository.RemoveByClanAsync(clan.Id, cancellationToken);
+            await _researchRepository.RemoveByClanAsync(clan.Id, cancellationToken);
+            await _offeringRepository.RemoveContributionsByClanAsync(clan.Id, cancellationToken);
 
             _clanRepository.Remove(clan);
 

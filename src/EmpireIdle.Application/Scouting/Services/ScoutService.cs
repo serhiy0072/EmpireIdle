@@ -1,11 +1,13 @@
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Marches.Services;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using Microsoft.Extensions.Logging;
 
 namespace EmpireIdle.Application.Scouting.Services
@@ -30,6 +32,7 @@ namespace EmpireIdle.Application.Scouting.Services
         private readonly WorldGeometry _geometry;
         private readonly MarchCalculator _calculator;
         private readonly GameCatalog _catalog;
+        private readonly PlayerTechnologies _technologies;
         private readonly ILogger<ScoutService> _logger;
 
         public ScoutService(
@@ -46,6 +49,7 @@ namespace EmpireIdle.Application.Scouting.Services
             WorldGeometry geometry,
             MarchCalculator calculator,
             GameCatalog catalog,
+            PlayerTechnologies technologies,
             ILogger<ScoutService> logger)
         {
             _garrisonRepository = garrisonRepository;
@@ -61,6 +65,7 @@ namespace EmpireIdle.Application.Scouting.Services
             _geometry = geometry;
             _calculator = calculator;
             _catalog = catalog;
+            _technologies = technologies;
             _logger = logger;
         }
 
@@ -115,8 +120,10 @@ namespace EmpireIdle.Application.Scouting.Services
             // Буст і множник кільця — цілі: буфери, які ми рахуємо, вироблені її селом
             var boost = await _effectResolver.GetProductionBoostAsync(village.PlayerId, utcNow, cancellationToken);
             var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
+            var protectedBonus = (await _technologies.ForPlayerAsync(village.PlayerId, cancellationToken))
+                .Of(TechnologyStat.ProtectedStorage);
             var lootable = _plunder.Lootable(village, boost,
-                _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel), utcNow);
+                _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel), utcNow, protectedBonus);
 
             return ScoutReport.Success(Guid.NewGuid(), march.ServerId, scouter.PlayerId, march, village.Name,
                 DefencePower(target, terrain), lootable, utcNow);

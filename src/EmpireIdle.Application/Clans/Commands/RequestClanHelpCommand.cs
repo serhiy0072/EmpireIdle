@@ -1,9 +1,11 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
+using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -27,6 +29,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private readonly IServerContext _serverContext;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
+        private readonly PlayerTechnologies _technologies;
         private readonly ILogger<RequestClanHelpCommandHandler> _logger;
 
         public RequestClanHelpCommandHandler(
@@ -39,8 +42,10 @@ namespace EmpireIdle.Application.Clans.Commands
             IServerContext serverContext,
             GameCatalog catalog,
             TimeProvider timeProvider,
+            PlayerTechnologies technologies,
             ILogger<RequestClanHelpCommandHandler> logger)
         {
+            _technologies = technologies;
             _clanRepository = clanRepository;
             _helpRepository = helpRepository;
             _villageRepository = villageRepository;
@@ -99,6 +104,13 @@ namespace EmpireIdle.Application.Clans.Commands
         /// братись від повного часу, інакше двадцять допомог не складуть
         /// обіцяних сорока відсотків.
         /// </summary>
+        /// <summary>
+        /// Технологія швидкості гравця зараз. Якщо між стартом і запитом він вивчив новий рівень,
+        /// частка однієї допомоги трохи менша, ніж була б на старті, — гравцю це не на шкоду.
+        /// </summary>
+        private async Task<double> SpeedAsync(Guid playerId, TechnologyStat stat, CancellationToken cancellationToken)
+            => (await _technologies.ForPlayerAsync(playerId, cancellationToken)).Of(stat);
+
         private async Task<(TimeSpan FullDuration, DateTime CompletesAt)> ResolveTimerAsync(
             RequestClanHelpCommand request, DateTime now, CancellationToken cancellationToken)
         {
@@ -115,8 +127,9 @@ namespace EmpireIdle.Application.Clans.Commands
                         throw new InvalidStateException(RefusalReasons.ClanHelpNotNeeded, "That building is not under construction.");
 
                     // Рівень уже піднімуть при завершенні, тому тривалість — від поточного,
-                    // тією самою формулою, що й при старті апгрейду
-                    return (TimerDurations.Construction(_catalog.Building(building.Type), building.Level.Value),
+                    // тією самою формулою й тими самими технологіями, що й при старті апгрейду
+                    return (TimerDurations.Construction(_catalog.Building(building.Type), building.Level.Value,
+                            await SpeedAsync(request.PlayerId, TechnologyStat.ConstructionSpeed, cancellationToken)),
                         building.ConstructionCompletesAt!.Value);
 
                 case ClanHelpTarget.Training:
@@ -126,7 +139,9 @@ namespace EmpireIdle.Application.Clans.Commands
                     var order = garrison.TrainingOrders.FirstOrDefault(o => o.Id == request.TargetId)
                         ?? throw new EntityNotFoundException("Training order", request.TargetId);
 
-                    return (TimerDurations.Training(_catalog.Unit(order.UnitType), order.Level, order.Count), order.CompletesAt);
+                    return (TimerDurations.Training(_catalog.Unit(order.UnitType), order.Level, order.Count,
+                            await SpeedAsync(request.PlayerId, TechnologyStat.TrainingSpeed, cancellationToken)),
+                        order.CompletesAt);
 
                 case ClanHelpTarget.Research:
                     // Ціль — запис досліджень гравця; повна тривалість — та, що була на старті дослідження

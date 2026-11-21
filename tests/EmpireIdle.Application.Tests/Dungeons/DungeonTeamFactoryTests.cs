@@ -17,9 +17,10 @@ public class DungeonTeamFactoryTests
 {
     private static readonly Guid PlayerId = Guid.NewGuid();
 
-    private readonly GameConfig _config = new GameConfigBuilder().WithUnits().WithDungeons().Build();
+    private readonly GameConfig _config = new GameConfigBuilder().WithUnits().WithDungeons().WithTechnologies().Build();
     private readonly IHeroRepository _heroes = Substitute.For<IHeroRepository>().ForwardHeroLookups();
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
 
     public DungeonTeamFactoryTests()
     {
@@ -45,7 +46,26 @@ public class DungeonTeamFactoryTests
         var progression = new HeroProgression(_config.HeroSettings);
 
         return new DungeonTeamFactory(_heroes, _inventory, catalog, new HeroStats(progression, catalog), progression,
-            new HeroSkills(_config.HeroSettings));
+            new HeroSkills(_config.HeroSettings), TestTechnologies.For(catalog, _research));
+    }
+
+    /// <summary>
+    /// Бойові технології діють і в данжі (рішення 03.11.2026): герой-воїн бере атаку піхоти (+2%),
+    /// а технологія чужого типу юнітів йому нічого не дає.
+    /// </summary>
+    [Fact]
+    public async Task BuildAsync_ShouldStrengthenTheHero_WithTheTechnologiesOfItsRoleUnits()
+    {
+        _config.HeroSettings.RoleUnits = new() { ["warrior"] = TestKeys.Infantry, ["knight"] = TestKeys.Cavalry, ["archer"] = TestKeys.Archer, ["mage"] = TestKeys.Archer };
+        var hero = HeroOnDuty(level: 1);
+        var plain = (await Factory().BuildAsync(PlayerId, [hero.Id], CancellationToken.None))[0];
+
+        _research.Researched(PlayerId, "attack_infantry", 2);
+        var researched = (await Factory().BuildAsync(PlayerId, [hero.Id], CancellationToken.None))[0];
+
+        Assert.Equal("warrior", researched.HeroClass);
+        Assert.Equal(plain.Attack * 1.02, researched.Attack, 6);
+        Assert.Equal(plain.Defense, researched.Defense, 6);
     }
 
     private Hero HeroOnDuty(int level)

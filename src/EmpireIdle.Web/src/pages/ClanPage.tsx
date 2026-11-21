@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import ClanBrowser from "../components/clan/ClanBrowser";
 import ClanHelpPanel from "../components/clan/ClanHelpPanel";
 import ClanMembers from "../components/clan/ClanMembers";
 import ClanRequestsPanel from "../components/clan/ClanRequestsPanel";
 import ClanSettings from "../components/clan/ClanSettings";
+import ClanShopPanel from "../components/clan/ClanShopPanel";
+import ClanTechnologiesPanel from "../components/clan/ClanTechnologiesPanel";
 import ClanTerritoryPanel from "../components/clan/ClanTerritoryPanel";
 import ErrorBanner from "../components/ErrorBanner";
 import { useNow } from "../hooks/useNow";
@@ -28,13 +31,22 @@ import {
   useUpdateClanSettings,
 } from "../lib/queries/clans";
 import { clanRoleName } from "../lib/clanRoles";
+import { useClanTechnologies } from "../lib/queries/clanTechnologies";
 import { useGarrison } from "../lib/queries/garrison";
+import { compactPower, usePower } from "../lib/queries/rating";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
 import TabHotkeys from "../components/shell/TabHotkeys";
 import { t } from "i18next";
 
-type Tab = "help" | "members" | "territory" | "requests" | "settings";
+type Tab = "help" | "members" | "territory" | "technologies" | "shop" | "requests" | "settings";
+
+const TABS: readonly string[] = ["help", "members", "territory", "technologies", "shop", "requests", "settings"];
+
+/** Вкладка — частина адреси (/clan/technologies): на неї веде посилання, а підказки впізнають екран. */
+function tabOf(route: string | undefined): Tab {
+  return route !== undefined && TABS.includes(route) ? (route as Tab) : "help";
+}
 
 export default function ClanPage() {
   const session = useSession();
@@ -52,6 +64,8 @@ export default function ClanPage() {
   const village = useVillage(playerId);
   const garrison = useGarrison(playerId);
   const territory = useClanTerritory(playerId, inClan);
+  const technologies = useClanTechnologies(playerId, inClan);
+  const power = usePower(playerId);
 
   const create = useCreateClan(playerId);
   const join = useJoinClan(playerId);
@@ -66,7 +80,9 @@ export default function ClanPage() {
   const invite = useInvitePlayer(playerId);
   const resolve = useResolveRequest(playerId);
 
-  const [tab, setTab] = useState<Tab>("help");
+  const navigate = useNavigate();
+  const tab = tabOf(useParams().tab);
+  const setTab = (next: Tab) => void navigate(next === "help" ? "/clan" : `/clan/${next}`, { replace: true });
   const [copied, setCopied] = useState(false);
   // Вихід і тим паче розпуск не скасувати — другий клік, як у передачі лідерства
   const [confirmLeave, setConfirmLeave] = useState(false);
@@ -93,14 +109,38 @@ export default function ClanPage() {
     });
   };
 
+  // Поза кланом магазин відкривається окремим екраном замість каталогу кланів
+  if (clan.data === null && tab === "shop") {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="text-xl font-medium text-slate-800">{t("technologies:shop.title")}</h1>
+          <button type="button" onClick={() => setTab("help")} className="text-sm text-sky-700 hover:underline">
+            {t("technologies:shop.back")}
+          </button>
+        </div>
+        <ClanShopPanel playerId={playerId} now={now} />
+      </div>
+    );
+  }
+
   if (clan.data === null) {
     return (
       <div className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="text-xl font-medium text-slate-800">{t("social:page.title")}</h1>
-          <button type="button" onClick={copyId} className="font-mono text-xs text-slate-500 hover:text-slate-800">
-            {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
-          </button>
+          <div className="flex items-baseline gap-3">
+            <button
+              type="button"
+              onClick={() => setTab("shop")}
+              className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-800 hover:bg-amber-100"
+            >
+              🪙 {t("technologies:shop.title")}
+            </button>
+            <button type="button" onClick={copyId} className="font-mono text-xs text-slate-500 hover:text-slate-800">
+              {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
+            </button>
+          </div>
         </div>
         <ErrorBanner error={failure} />
         <ClanBrowser
@@ -129,6 +169,8 @@ export default function ClanPage() {
     { key: "help", label: pendingHelp > 0 ? t("social:page.tabHelpCount", { count: pendingHelp }) : t("social:page.tabHelp"), visible: true },
     { key: "members", label: t("social:page.tabMembers", { count: clan.data.memberCount, capacity: clan.data.capacity }), visible: true },
     { key: "territory", label: t("social:page.tabTerritory"), visible: true },
+    { key: "technologies", label: t("social:page.tabTechnologies"), visible: true },
+    { key: "shop", label: t("social:page.tabShop"), visible: true },
     {
       key: "requests",
       label: (applications.data?.length ?? 0) > 0 ? t("social:page.tabRecruitCount", { count: applications.data?.length }) : t("social:page.tabRecruit"),
@@ -207,6 +249,22 @@ export default function ClanPage() {
           <ClanTerritoryPanel territory={territory.data} myPlayerId={playerId} />
         ))}
 
+      {tab === "technologies" &&
+        (technologies.isError ? (
+          <ErrorBanner error={technologies.error} />
+        ) : technologies.data == null ? (
+          <p className="text-sm text-slate-500">{t("social:page.loadingShort")}</p>
+        ) : (
+          <ClanTechnologiesPanel
+            playerId={playerId}
+            view={technologies.data}
+            now={now}
+            canMark={permissions.has("ManageTechnologies")}
+          />
+        ))}
+
+      {tab === "shop" && <ClanShopPanel playerId={playerId} now={now} />}
+
       {tab === "requests" && canRecruit && (
         <ClanRequestsPanel
           applications={applications.data ?? []}
@@ -270,6 +328,12 @@ export default function ClanPage() {
                     : t("social:page.leave")}
               </button>
             </div>
+            {/* Бонуси кланових технологій діють лише в клані: вихід забирає і їх, і силу, яку вони дають */}
+            {confirmLeave && (power.data?.clanTechnology ?? 0) > 0 && (
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                {t("social:page.leaveLosesPower", { power: compactPower(power.data?.clanTechnology ?? 0) })}
+              </p>
+            )}
             {typeof recall.data === "number" && (
               <p className="text-xs text-slate-500">{t("social:page.recalled", { count: recall.data })}</p>
             )}

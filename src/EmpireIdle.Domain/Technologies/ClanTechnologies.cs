@@ -14,7 +14,7 @@ namespace EmpireIdle.Domain.Technologies
         public ClanTechnologies(ClanTechnologiesConfig config)
         {
             _config = config;
-            Tree = new TechnologyTree(config.Tiers, config.Nodes);
+            Tree = new TechnologyTree(config.Tiers, config.Nodes, TierUnlockRule.LastLayerStarted);
         }
 
         public TechnologyTree Tree { get; }
@@ -39,17 +39,43 @@ namespace EmpireIdle.Domain.Technologies
         }
 
         /// <summary>
-        /// Ціна однієї спроби ресурсом: ціна за рівень ратуші × рівень ратуші. Ціна росте з гравцем,
-        /// а очки однакові — так внесок великого й малого села рівноцінний. null — ресурс не приймають.
+        /// Ціна однієї спроби у вузол на тірі (рішення 12.11): база × множник тіру × курс ресурсу вузла,
+        /// з округленням. Ратуша гравця на ціну не впливає. null — вузол не має ціненого ресурсу.
         /// </summary>
-        public int? AttemptCost(string resource, int mainBuildingLevel)
-            => _config.Offering.AttemptCostPerTownHall.TryGetValue(resource, out var perLevel)
-                ? perLevel * Math.Max(mainBuildingLevel, 1)
-                : null;
+        public ResourceCost? AttemptCost(int tier, TechnologyNodeConfig node)
+        {
+            var offering = _config.Offering;
 
-        /// <summary>Ціна n-го (від 1) gems-підношення за добу UTC: min(крок × n, стеля).</summary>
+            if (Tree.Tier(tier) is not { } tierConfig || node.Resource is not { } resource
+                || !offering.ResourceRates.TryGetValue(resource, out var rate))
+                return null;
+
+            var rounding = Math.Max(offering.CostRounding, 1);
+            var raw = offering.AttemptCost * tierConfig.AttemptCostMultiplier * rate;
+
+            return new ResourceCost
+            {
+                Resource = resource,
+                Amount = (int)Math.Max(rounding, Math.Round(raw / rounding, MidpointRounding.AwayFromZero) * rounding)
+            };
+        }
+
+        /// <summary>Стеля спроб гравця: базова плюс технологія клану.</summary>
+        public int MaxAttempts(IReadOnlyDictionary<string, int> levels)
+            => _config.Offering.MaxAttempts + (int)Tree.Bonuses(levels).Of(TechnologyStat.OfferingAttempts);
+
+        /// <summary>Ціна n-го (від 1) gems-підношення за добу UTC: база × ріст^(номер партії від нуля).</summary>
         public int GemOfferingPrice(int nth)
-            => Math.Min(_config.Offering.GemPriceStep * Math.Max(nth, 1), _config.Offering.GemPriceCap);
+        {
+            var offering = _config.Offering;
+            var batch = (Math.Max(nth, 1) - 1) / Math.Max(offering.GemPriceBatch, 1);
+
+            return (int)(offering.GemPriceBase * Math.Pow(offering.GemPriceGrowth, batch));
+        }
+
+        /// <summary>Пороги денного внеску, які перетинає зростання денної суми гравця з before до after.</summary>
+        public IEnumerable<ClanDailyRewardConfig> DailyRewardsCrossed(int before, int after)
+            => _config.DailyContributionRewards.Where(reward => before < reward.Points && reward.Points <= after);
 
         /// <summary>
         /// Монети за одне підношення: база × множник із таблиці ваг, потім × (1 + бонус монет клану).
