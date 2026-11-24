@@ -17,7 +17,7 @@ function RewardSlot({ caption, children }: { caption: string; children: ReactNod
   return (
     <div className="flex w-20 flex-col items-center gap-1 text-center">
       {children}
-      <span className="line-clamp-2 text-xs leading-tight text-slate-700">{caption}</span>
+      <span className="line-clamp-2 text-xs leading-tight text-slate-100">{caption}</span>
     </div>
   );
 }
@@ -27,7 +27,7 @@ export default function DungeonRewardCard({ reward }: { reward: Reward }) {
   const catalog = useCatalog();
 
   return (
-    <div className="overflow-hidden rounded-xl ring-1 ring-amber-300">
+    <div className="overflow-hidden rounded-xl ring-1 ring-amber-400/50">
       <div className="bg-gradient-to-r from-amber-400 to-orange-500 px-3 py-1.5 text-sm font-bold text-white [text-shadow:0_1px_2px_#0006]">
         🏆 {t("battle:reward.title")}
       </div>

@@ -268,7 +268,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         <button
           type="button"
           onClick={onFinished}
-          className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900"
+          className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
         >
           {t("battle:run.backToList")}
         </button>
@@ -346,7 +346,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
               type="button"
               onClick={() => void act(false, null, targetIndex)}
               disabled={turn.isPending || target === null || target.side !== "Enemies" || !reachable(target, false)}
-              className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
+              className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
             >
               {t("battle:run.attack")}
             </button>
