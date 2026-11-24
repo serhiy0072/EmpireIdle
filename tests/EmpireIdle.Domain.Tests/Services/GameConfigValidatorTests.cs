@@ -133,11 +133,6 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Економіка ----------
 
-        /// <summary>Крива нижче одиниці робить апгрейди дешевшими з рівнем.</summary>
-        [Fact]
-        public void Validate_ShouldRejectShrinkingUpgradeCost()
-            => Rejects(c => c.Buildings.First(b => b.Key == "farm").UpgradeCostGrowth = 0.9);
-
         [Fact]
         public void Validate_ShouldRejectUnknownStartingResource()
             => Rejects(c => c.StartingResources["gold"] = 100);

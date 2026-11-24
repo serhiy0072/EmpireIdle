@@ -274,7 +274,23 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Map.Terrains.All(t => t.MoveCost > 0), "GameConfig.Map.Terrains MoveCost must be positive — a march over it would take no time.")
     .Validate(c => c.Map.TravelSpeedMultiplier > 0, "GameConfig.Map.TravelSpeedMultiplier must be above zero.")
     .Validate(c => c.Beasts.TameTravelSpeedMultiplier > 0, "GameConfig.Beasts.TameTravelSpeedMultiplier must be above zero.")
-    .Validate(c => c.Map.ImpassableMoveMultiplier >= 1, "GameConfig.Map.ImpassableMoveMultiplier must be at least 1 — an impassable cell is never faster than a passable one.")
+    .Validate(c => c.MaxUnitLevel >= 1, "GameConfig.MaxUnitLevel must be at least 1 — no unit could be trained.")
+    .Validate(c => c.Map.Geometry.RingsAtFirstLevel is > 0 and <= 1,
+        "GameConfig.Map.Geometry.RingsAtFirstLevel must be within (0; 1] — it is the share of the full ring width on level 1.")
+    .Validate(c => c.Map.Evolution.DensityThreshold is > 0 and <= 1,
+        "GameConfig.Map.Evolution.DensityThreshold must be within (0; 1] — it is a share of the fog area.")
+    .Validate(c => c.Monsters.All(m => m.MinLevel >= 1 && m.MaxLevel >= m.MinLevel && m.UnitGrowth >= 1 && m.RewardGrowth >= 1),
+        "GameConfig.Monsters need 1 ≤ MinLevel ≤ MaxLevel and UnitGrowth/RewardGrowth of at least 1 — a stronger monster must not get weaker or poorer.")
+    .Validate(c => c.Dungeons.Dungeons.All(d => d.Waves.All(e => e.Wave >= 1)),
+        "GameConfig.Dungeons wave enemies need Wave of at least 1 — wave 1 is the first fight.")
+    .Validate(c => c.Heroes.All(h => h.StatGrowth.Values.All(g => g >= 0)),
+        "GameConfig.Heroes StatGrowth cannot be negative — a hero must not weaken with level.")
+    .Validate(c => c.Shop.GemPacks.All(p => !string.IsNullOrWhiteSpace(p.Key))
+            && c.Shop.GemPacks.Select(p => p.Key).Distinct().Count() == c.Shop.GemPacks.Count,
+        "GameConfig.Shop.GemPacks need unique non-empty keys — checkout finds a pack by its key.")
+    .Validate(c => c.Buildings.Where(b => b.Upgradable).All(b => b.UpgradeCostGrowth >= 1),
+        "GameConfig.Buildings: an upgradable building needs UpgradeCostGrowth of at least 1 — 0 makes upgrades free, below 1 cheaper with level.")
+    .Validate(c => c.Map.ImpassableMoveMultiplier >= 1,"GameConfig.Map.ImpassableMoveMultiplier must be at least 1 — an impassable cell is never faster than a passable one.")
     .Validate(c => c.Retention is { BattleReportDays: > 0, ScoutReportDays: > 0, FinishedDungeonRunDays: > 0, ClosedMarketListingDays: > 0, ResolvedClanRequestDays: > 0, ExpiredEffectHours: > 0 },
         "GameConfig.Retention days must all be positive — a zero would delete history the moment it is written.")
     .ValidateOnStart();

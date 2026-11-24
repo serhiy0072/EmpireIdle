@@ -283,9 +283,9 @@ namespace EmpireIdle.Domain.Services.Config
     /// </summary>
     public class ClanShopConfig
     {
-        public int DailySlots { get; set; } = 15;
+        public int DailySlots { get; set; }
 
-        public int WeeklySlots { get; set; } = 15;
+        public int WeeklySlots { get; set; }
 
         public List<ClanShopItemConfig> DailyPool { get; set; } = new();
 
