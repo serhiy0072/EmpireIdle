@@ -23,7 +23,7 @@ function BannerTile({ drop }: { drop: BannerDropResult }) {
         {item !== null ? (
           <ItemIcon itemKey={item.key} type={item.type} rarity={item.rarity} size={64} />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-3xl">
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/10 text-3xl">
             {drop.dropKey.startsWith("hero_") ? "🧩" : "🎁"}
           </div>
         )}

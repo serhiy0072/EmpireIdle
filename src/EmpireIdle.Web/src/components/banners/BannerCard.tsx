@@ -39,52 +39,52 @@ export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }
   const canPaySeries = balance >= unit * maxRolls;
 
   return (
-    <div className={`rounded-xl border bg-white p-4 ${isStandard ? "border-slate-300" : isHero ? "border-violet-200" : "border-amber-200"}`}>
+    <div className={`rounded-xl border bg-[#1d3b6f] p-4 ${isStandard ? "border-[#4a72b0]" : isHero ? "border-violet-400/50" : "border-amber-400/50"}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h2 className="font-medium text-slate-800">{banner.displayName}</h2>
-          <p className="text-xs text-slate-500">
+          <h2 className="font-medium text-white">{banner.displayName}</h2>
+          <p className="text-xs text-sky-100/70">
             {kindLabel(banner.kind)}
             {banner.endsAt !== null && banner.endsAt !== undefined && ` · ${t("items:banner.endsIn", { remaining: formatRemaining(banner.endsAt, now) })}`}
           </p>
         </div>
         <div className="flex gap-1 text-sm">
-          <span className="rounded-full bg-violet-100 px-3 py-1 text-violet-800">💎 {banner.priceGems}</span>
+          <span className="rounded-full bg-violet-500/25 px-3 py-1 text-violet-200">💎 {banner.priceGems}</span>
         </div>
       </div>
 
       {featured !== null && (
-        <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <div className="mt-3 rounded-lg bg-amber-500/15 px-3 py-2 text-sm text-amber-200">
           <Trans ns="items" i18nKey="banner.featured" values={{ name: featured.displayName }} components={{ b: <span className="font-medium" /> }} />
           {banner.featuredGuaranteed && ` — ${t("items:banner.featuredGuaranteed")}`}
         </div>
       )}
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
-          <div className="text-xs text-slate-500">{t("items:banner.rarePity")}</div>
-          <div className="font-medium text-slate-800">
-            {rareLeft} <span className="text-xs text-slate-500">/ {banner.rarePity}</span>
+        <div className="rounded-lg bg-white/5 px-3 py-2">
+          <div className="text-xs text-sky-100/70">{t("items:banner.rarePity")}</div>
+          <div className="font-medium text-white">
+            {rareLeft} <span className="text-xs text-sky-100/70">/ {banner.rarePity}</span>
           </div>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
-          <div className="text-xs text-slate-500">{t("items:banner.uniquePity")}</div>
-          <div className="font-medium text-slate-800">
-            {uniqueLeft} <span className="text-xs text-slate-500">/ {banner.uniquePity}</span>
+        <div className="rounded-lg bg-white/5 px-3 py-2">
+          <div className="text-xs text-sky-100/70">{t("items:banner.uniquePity")}</div>
+          <div className="font-medium text-white">
+            {uniqueLeft} <span className="text-xs text-sky-100/70">/ {banner.uniquePity}</span>
           </div>
         </div>
       </div>
 
       <details className="mt-3 text-sm">
-        <summary className="cursor-pointer text-slate-600">{t("items:banner.odds", { count: banner.drops.length })}</summary>
+        <summary className="cursor-pointer text-slate-200">{t("items:banner.odds", { count: banner.drops.length })}</summary>
         <ul className="mt-2 space-y-1">
           {banner.drops.map((drop) => (
             <li key={drop.key} className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-2">
                 <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(drop.rarity)}`}>{rarityLabel(drop.rarity)}</span>
-                <span className="text-slate-700">{drop.displayName}</span>
+                <span className="text-slate-100">{drop.displayName}</span>
               </span>
-              <span className="text-xs text-slate-500">{drop.chance.toFixed(3)}%</span>
+              <span className="text-xs text-sky-100/70">{drop.chance.toFixed(3)}%</span>
             </li>
           ))}
         </ul>
@@ -95,7 +95,7 @@ export default function BannerCard({ banner, gems, now, busy, maxRolls, onRoll }
           type="button"
           onClick={() => onRoll(1)}
           disabled={busy || !canPay}
-          className="rounded-lg border border-violet-300 px-3 py-2 text-sm font-medium text-violet-800 hover:bg-violet-50 disabled:opacity-50"
+          className="rounded-lg border border-violet-400/50 px-3 py-2 text-sm font-medium text-violet-200 hover:bg-violet-500/15 disabled:opacity-50"
         >
           {canPay ? `×1 · ${unit} ${icon}` : t("items:banner.notEnough", { icon })}
         </button>

@@ -10,6 +10,7 @@ import { MAX_ROLLS_PER_REQUEST, useBanners, useRollBanner } from "../lib/queries
 import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
 import { formatNumber } from "../lib/format";
+import { GameScreen } from "../components/game/GameUi";
 import { t } from "i18next";
 
 /** Скільки випадів тримаємо в історії сесії. */
@@ -19,7 +20,7 @@ const HISTORY_LIMIT = 50;
 const RARITY_ORDER: readonly Rarity[] = ["Common", "Rare", "Unique"];
 
 function tone(rarity: Rarity | null): string {
-  return rarity === "Unique" ? "border-amber-300 bg-amber-50" : rarity === "Rare" ? "border-sky-300 bg-sky-50" : "border-slate-200 bg-white";
+  return rarity === "Unique" ? "border-amber-400/50 bg-amber-500/15" : rarity === "Rare" ? "border-sky-400/50 bg-sky-500/15" : "border-[#335c9a] bg-[#1d3b6f]";
 }
 
 export default function BannersPage() {
@@ -66,70 +67,73 @@ export default function BannersPage() {
   const shownBanner = shown === null ? undefined : banners.data.find((banner) => banner.key === shown.bannerKey);
 
   return (
-    <div className="space-y-4">
-      <MarketTabs />
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">{t("items:banners.title")}</h1>
-        <p className="text-sm text-slate-500">
+    <GameScreen
+      title={t("items:banners.title")}
+      actions={
+        <p className="text-sm text-sky-100/70">
           💎 {formatNumber(gems)}
         </p>
-      </div>
+      }
+    >
+      <div className="space-y-4">
+        <MarketTabs />
 
-      <ErrorBanner error={roll.error} />
+        <ErrorBanner error={roll.error} />
 
-      {latest.length > 0 && (
-        <div role="status" className={`rounded-xl border px-4 py-3 ${tone(best)}`}>
-          <ul className="grid gap-1 sm:grid-cols-2">
-            {latest.map((drop, index) => (
-              <li key={index} className="flex flex-wrap items-center gap-2 text-sm">
-                <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(drop.rarity)}`}>{rarityLabel(drop.rarity)}</span>
-                <span className={drop.rarity !== "Common" ? "font-medium text-slate-800" : "text-slate-700"}>{drop.displayName}</span>
-                {drop.wasPity && <span className="text-xs text-slate-500">{t("items:banners.pity")}</span>}
-                {drop.lostFiftyFifty && <span className="text-xs text-slate-500">{t("items:banners.lostFiftyFifty")}</span>}
-              </li>
+        {latest.length > 0 && (
+          <div role="status" className={`rounded-xl border px-4 py-3 ${tone(best)}`}>
+            <ul className="grid gap-1 sm:grid-cols-2">
+              {latest.map((drop, index) => (
+                <li key={index} className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(drop.rarity)}`}>{rarityLabel(drop.rarity)}</span>
+                  <span className={drop.rarity !== "Common" ? "font-medium text-white" : "text-slate-100"}>{drop.displayName}</span>
+                  {drop.wasPity && <span className="text-xs text-sky-100/70">{t("items:banners.pity")}</span>}
+                  {drop.lostFiftyFifty && <span className="text-xs text-sky-100/70">{t("items:banners.lostFiftyFifty")}</span>}
+                </li>
+              ))}
+            </ul>
+            {history.length > 0 && (
+              <p className="mt-2 text-xs text-sky-100/70">
+                {t("items:banners.history", { items: history.slice(0, 10).map((entry) => entry.displayName).join(", ") })}
+                {history.length > 10 && "…"}
+              </p>
+            )}
+          </div>
+        )}
+
+        {banners.data.length === 0 ? (
+          <p className="text-sm text-sky-100/70">{t("items:banners.none")}</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Постійний банер — першим: він завжди є, події приходять і йдуть */}
+            {[...banners.data].sort((a, b) => Number(b.kind === "Standard") - Number(a.kind === "Standard")).map((banner) => (
+              <BannerCard
+                key={banner.key}
+                banner={banner}
+                gems={gems}
+                now={now}
+                busy={roll.isPending}
+                maxRolls={MAX_ROLLS_PER_REQUEST}
+                onRoll={(count) => rollBanner(banner.key, count)}
+              />
             ))}
-          </ul>
-          {history.length > 0 && (
-            <p className="mt-2 text-xs text-slate-500">
-              {t("items:banners.history", { items: history.slice(0, 10).map((entry) => entry.displayName).join(", ") })}
-              {history.length > 10 && "…"}
-            </p>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      {banners.data.length === 0 ? (
-        <p className="text-sm text-slate-500">{t("items:banners.none")}</p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Постійний банер — першим: він завжди є, події приходять і йдуть */}
-          {[...banners.data].sort((a, b) => Number(b.kind === "Standard") - Number(a.kind === "Standard")).map((banner) => (
-            <BannerCard
-              key={banner.key}
-              banner={banner}
-              gems={gems}
-              now={now}
-              busy={roll.isPending}
-              maxRolls={MAX_ROLLS_PER_REQUEST}
-              onRoll={(count) => rollBanner(banner.key, count)}
-            />
-          ))}
-        </div>
-      )}
-
-      {shown !== null && shownBanner !== undefined && (
-        <BannerDrops
-          drops={latest}
-          onClose={() => setShown(null)}
-          pending={roll.isPending}
-          error={roll.error}
-          again={{
-            label: t("items:banners.again", { count: shown.count, price: formatNumber(shownBanner.priceGems * shown.count) }),
-            onClick: () => rollBanner(shown.bannerKey, shown.count),
-            disabled: gems < shownBanner.priceGems * shown.count,
-          }}
-        />
-      )}
-    </div>
+        {shown !== null && shownBanner !== undefined && (
+          <BannerDrops
+            drops={latest}
+            onClose={() => setShown(null)}
+            pending={roll.isPending}
+            error={roll.error}
+            again={{
+              label: t("items:banners.again", { count: shown.count, price: formatNumber(shownBanner.priceGems * shown.count) }),
+              onClick: () => rollBanner(shown.bannerKey, shown.count),
+              disabled: gems < shownBanner.priceGems * shown.count,
+            }}
+          />
+        )}
+      </div>
+    </GameScreen>
   );
 }
