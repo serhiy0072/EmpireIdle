@@ -7,6 +7,7 @@ import type { QuestView, QuestWindow } from "../lib/apiTypes";
 import { nextDailyResetAt, QUEST_STATE, QUEST_WINDOW, useClaimAllQuests, useClaimQuest, useQuests, useServerQuests } from "../lib/queries/quests";
 import { formatRemaining } from "../lib/time";
 import { latestError } from "../lib/latestError";
+import { GameScreen } from "../components/game/GameUi";
 import { t } from "i18next";
 
 /** Порядок секцій: спершу те, що обнуляється, — щоденні горять. */
@@ -45,11 +46,11 @@ export default function QuestsPage() {
   const claimable = quests.data.filter((quest) => quest.state === QUEST_STATE.completed).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">{t("social:quests.title")}</h1>
+    <GameScreen
+      title={t("social:quests.title")}
+      actions={
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-sky-100/70">
             {claimable > 0 ? `${t("social:quests.claimable", { count: claimable })} · ` : ""}
             {t("social:quests.dailyReset", { remaining: formatRemaining(nextDailyResetAt(now), now) })}
           </p>
@@ -64,51 +65,53 @@ export default function QuestsPage() {
             </button>
           )}
         </div>
-      </div>
+      }
+    >
+      <div className="space-y-6">
+        <ErrorBanner error={latestError([claim, claimAll])} />
 
-      <ErrorBanner error={latestError([claim, claimAll])} />
+        {SECTIONS.map((section) => {
+          const items = quests.data.filter((quest) => quest.window === section.window).sort(byUrgency);
 
-      {SECTIONS.map((section) => {
-        const items = quests.data.filter((quest) => quest.window === section.window).sort(byUrgency);
+          if (items.length === 0) return null;
 
-        if (items.length === 0) return null;
+          return (
+            <section key={section.window} className="space-y-2">
+              <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t(`social:quests.section.${section.title}`)}</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {items.map((quest) => (
+                  <QuestCard
+                    key={quest.key}
+                    quest={quest}
+                    busy={claim.isPending || claimAll.isPending}
+                    onClaim={() => claim.mutate(quest.key)}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
 
-        return (
-          <section key={section.window} className="space-y-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t(`social:quests.section.${section.title}`)}</h2>
+        {quests.data.length === 0 && <p className="text-sm text-sky-100/70">{t("social:quests.none")}</p>}
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:quests.server")}</h2>
+
+          {serverQuests.isPending ? (
+            <p className="text-sm text-sky-100/70">{t("social:quests.serverLoading")}</p>
+          ) : serverQuests.isError ? (
+            <ErrorBanner error={serverQuests.error} />
+          ) : serverQuests.data.length === 0 ? (
+            <p className="text-sm text-sky-100/70">{t("social:quests.serverNone")}</p>
+          ) : (
             <div className="grid gap-3 sm:grid-cols-2">
-              {items.map((quest) => (
-                <QuestCard
-                  key={quest.key}
-                  quest={quest}
-                  busy={claim.isPending || claimAll.isPending}
-                  onClaim={() => claim.mutate(quest.key)}
-                />
+              {serverQuests.data.map((quest) => (
+                <ServerQuestCard key={quest.key} quest={quest} />
               ))}
             </div>
-          </section>
-        );
-      })}
-
-      {quests.data.length === 0 && <p className="text-sm text-slate-500">{t("social:quests.none")}</p>}
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:quests.server")}</h2>
-
-        {serverQuests.isPending ? (
-          <p className="text-sm text-slate-500">{t("social:quests.serverLoading")}</p>
-        ) : serverQuests.isError ? (
-          <ErrorBanner error={serverQuests.error} />
-        ) : serverQuests.data.length === 0 ? (
-          <p className="text-sm text-slate-500">{t("social:quests.serverNone")}</p>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {serverQuests.data.map((quest) => (
-              <ServerQuestCard key={quest.key} quest={quest} />
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
+          )}
+        </section>
+      </div>
+    </GameScreen>
   );
 }

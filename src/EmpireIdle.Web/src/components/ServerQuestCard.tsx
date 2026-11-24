@@ -23,22 +23,22 @@ export default function ServerQuestCard({ quest }: Props) {
   const finished = quest.state !== "InProgress";
 
   return (
-    <div className={`space-y-3 rounded-xl border border-slate-200 p-4 ${finished ? "bg-slate-50" : "bg-white"}`}>
+    <div className={`space-y-3 rounded-xl border border-[#335c9a] p-4 ${finished ? "bg-white/5" : "bg-[#1d3b6f]"}`}>
       <div className="flex items-baseline justify-between gap-2">
-        <h3 className="font-medium text-slate-800">{quest.displayName}</h3>
-        <span className="text-xs text-slate-500">{stateLabel(quest.state)}</span>
+        <h3 className="font-medium text-white">{quest.displayName}</h3>
+        <span className="text-xs text-sky-100/70">{stateLabel(quest.state)}</span>
       </div>
 
       <div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
           <div className={`h-full ${finished ? "bg-emerald-500" : "bg-sky-500"}`} style={{ width: `${ratio * 100}%` }} />
         </div>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-sky-100/70">
           {t("social:serverQuest.progress", { total: formatNumber(quest.total), target: formatNumber(quest.target) })}
         </p>
       </div>
 
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-slate-200">
         <Trans
           ns="social"
           i18nKey="serverQuest.contribution"

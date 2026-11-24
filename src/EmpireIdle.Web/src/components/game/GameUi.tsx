@@ -30,17 +30,23 @@ export interface GameTab<T extends string> {
   alert?: boolean;
 }
 
-/** Вкладки «картками», як у грі: активна світла й трохи вища. */
+/**
+ * Вкладки «картками», як у грі: активна світла й трохи вища.
+ * Стрілки перемикають вкладки; вкладена група (друга на сторінці) вимикає їх — інакше дві групи
+ * ловили б ту саму клавішу.
+ */
 export function GameTabs<T extends string>({
   tabs,
   value,
   onChange,
+  hotkeys = true,
 }: {
   tabs: GameTab<T>[];
   value: T;
   onChange: (next: T) => void;
+  hotkeys?: boolean;
 }) {
-  useTabHotkeys(tabs.map((tab) => tab.key), value, onChange);
+  useTabHotkeys(tabs.map((tab) => tab.key), value, onChange, hotkeys);
 
   return (
     <nav className="flex gap-1">
