@@ -23,6 +23,16 @@ export type CatalogArtifactSlot = components["schemas"]["CatalogArtifactSlot"];
 export type CatalogLootbox = components["schemas"]["CatalogLootbox"];
 export type CatalogArtifactRepair = components["schemas"]["CatalogArtifactRepair"];
 export type CatalogMasteryAttempt = components["schemas"]["CatalogMasteryAttempt"];
+export type CatalogLimits = components["schemas"]["CatalogLimits"];
+
+/** Поки каталог не приїхав: найобережніші значення, з якими жоден запит не перевищить стелю. */
+const DEFAULT_LIMITS: CatalogLimits = {
+  maxItemsPerUse: 1,
+  maxArtifactFood: 1,
+  maxKeyChestsPerOpen: 1,
+  towerSquadSize: 1,
+  newbieShieldTownHallLevel: 0,
+};
 
 export interface Catalog {
   /** false, поки довідник не приїхав: екрани показують ключі замість назв. */
@@ -81,6 +91,8 @@ export interface Catalog {
   healResourceCostShare: number;
   /** Скільки героїв веде один марш. */
   maxHeroesPerMarch: number;
+  /** Стелі запитів і пороги правил із сервера. */
+  limits: CatalogLimits;
   /** Артефактні слоти героя за типом (намисто, корона…) у порядку номерів. */
   artifactSlots: CatalogArtifactSlot[];
   /** Назва слота, у який вдягається артефакт; null — не артефакт. */
@@ -180,6 +192,7 @@ export function useCatalog(): Catalog {
       ],
       maxStars: data?.maxStars ?? 5,
       universalShardUpgrade: data?.universalShardUpgrade ?? {},
+      limits: data?.limits ?? DEFAULT_LIMITS,
       partsPerStar: data?.partsPerStar ?? 6,
       maxSkillLevel: data?.maxSkillLevel ?? 6,
       skillBookCosts: data?.skillBookCosts ?? [],

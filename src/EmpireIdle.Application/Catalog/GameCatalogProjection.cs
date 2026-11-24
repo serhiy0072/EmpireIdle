@@ -1,3 +1,6 @@
+using EmpireIdle.Application.Lootboxes.Commands;
+using EmpireIdle.Application.Inventory.Commands;
+using EmpireIdle.Application.Heroes.Commands;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
@@ -200,6 +203,8 @@ namespace EmpireIdle.Application.Catalog
                 catalog.MainBuildingKey,
                 language,
                 config.HeroSettings.UniversalShardUpgrade,
+                new CatalogLimits(UseItemCommand.MaxCount, FeedArtifactCommand.MaxFood, OpenKeyChestCommand.MaxCount,
+                    config.RealtimeBattle.SquadSize, config.Combat.NewbieShieldTownHallLevel),
                 Version: string.Empty);
 
             // Версія рахується з уже зібраної відповіді: змінився конфіг — змінився ETag

@@ -8,6 +8,7 @@ import { RewardLine, TowerFloorPanel, TowerLeaderboardPanel, TowerStrip } from "
 import { useSession } from "../hooks/useSession";
 import type { BattleReplay, ManualCast, TowerFloorView, TowerStormResult } from "../lib/apiTypes";
 import { loadAutoSkills } from "../lib/battleSettings";
+import { useCatalog } from "../lib/queries/catalog";
 import { useHeroes } from "../lib/queries/heroes";
 import { usePreviewTowerFloor, useStormTowerFloor, useTower, useTowerLeaderboard } from "../lib/queries/tower";
 import { loadSquad, saveSquad } from "../lib/squad";
@@ -27,9 +28,6 @@ interface Fight {
   /** Ручний бій: його ще зарахує штурм із наказами гравця. Авто вже зараховано — тут false. */
   manual: boolean;
 }
-
-/** Розмір загону — той самий, що RealtimeBattle.SquadSize на сервері; сервер однаково перевірить. */
-const SQUAD_SIZE = 5;
 
 /** Бафи, що діють, як «атака +25%, захист +10%»; нульовий баф не показується. */
 function buffLabel(attack: number, defense: number): string {
@@ -54,6 +52,7 @@ export default function TowerPage() {
   const tower = useTower(playerId);
   const leaderboard = useTowerLeaderboard(playerId, tab === "rating");
   const heroes = useHeroes(playerId);
+  const squadSize = useCatalog().limits.towerSquadSize;
   const storm = useStormTowerFloor(playerId);
   const preview = usePreviewTowerFloor(playerId);
 
@@ -61,7 +60,7 @@ export default function TowerPage() {
   const storageKey = `tower-squad:${playerId}`;
   const ready = useMemo(() => (heroes.data?.heroes ?? []).filter((hero) => hero.state !== "Wounded"), [heroes.data?.heroes]);
   const [chosen, setChosen] = useState<(string | null)[] | null>(null);
-  const lanes = chosen ?? loadSquad(storageKey, SQUAD_SIZE, ready);
+  const lanes = chosen ?? loadSquad(storageKey, squadSize, ready);
   const [fight, setFight] = useState<Fight | null>(null);
   const [result, setResult] = useState<TowerStormResult | null>(null);
   // Накази ручного бою від його початку — їх перераховує кожен перегляд і зараховує штурм

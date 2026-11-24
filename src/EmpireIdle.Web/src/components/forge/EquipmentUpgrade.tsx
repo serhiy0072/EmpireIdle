@@ -8,9 +8,6 @@ import { formatNumber } from "../../lib/format";
 import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 
-/** Скільки предметів сервер приймає за одне згодовування — FeedArtifactCommand.MaxFood. */
-const MAX_FOOD = 1_000;
-
 interface Props {
   playerId: string;
   selected: EquipmentResponse;
@@ -23,6 +20,7 @@ interface Props {
  */
 export function EquipmentFeed({ playerId, selected }: Props) {
   const catalog = useCatalog();
+  const maxFood = catalog.limits.maxArtifactFood;
   const inventory = useInventory(playerId);
   const feed = useFeedArtifact(playerId);
 
@@ -102,7 +100,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
 
       if (item !== null) {
         // Понад ліміт запиту предмети не докладаємо — далі лише гаєчки
-        if (nextFood.length >= MAX_FOOD) continue;
+        if (nextFood.length >= maxFood) continue;
         nextFood.push(item.id);
         missing -= value;
       } else if (wrench !== null) {
@@ -160,9 +158,9 @@ export function EquipmentFeed({ playerId, selected }: Props) {
               </div>
             )}
 
-            {foodIds.length >= MAX_FOOD && (
+            {foodIds.length >= maxFood && (
               <p className="text-xs text-amber-700">
-                {t("items:forge.maxFood", { count: formatNumber(MAX_FOOD) })}
+                {t("items:forge.maxFood", { count: formatNumber(maxFood) })}
               </p>
             )}
             <div className="max-h-48 space-y-1 overflow-y-auto">
@@ -172,7 +170,7 @@ export function EquipmentFeed({ playerId, selected }: Props) {
                     <input
                       type="checkbox"
                       checked={foodIds.includes(item.id)}
-                      disabled={busy || (foodIds.length >= MAX_FOOD && !foodIds.includes(item.id))}
+                      disabled={busy || (foodIds.length >= maxFood && !foodIds.includes(item.id))}
                       onChange={(event) =>
                         setFoodIds((previous) =>
                           event.target.checked ? [...previous, item.id] : previous.filter((id) => id !== item.id),

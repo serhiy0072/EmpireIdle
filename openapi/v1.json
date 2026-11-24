@@ -12087,6 +12087,39 @@
         },
         "additionalProperties": false
       },
+      "CatalogLimits": {
+        "required": [
+          "maxArtifactFood",
+          "maxItemsPerUse",
+          "maxKeyChestsPerOpen",
+          "newbieShieldTownHallLevel",
+          "towerSquadSize"
+        ],
+        "type": "object",
+        "properties": {
+          "maxItemsPerUse": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxArtifactFood": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxKeyChestsPerOpen": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "towerSquadSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newbieShieldTownHallLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogLootbox": {
         "required": [
           "entries",
@@ -12234,6 +12267,7 @@
           "heroes",
           "items",
           "language",
+          "limits",
           "lootboxes",
           "mainBuildingKey",
           "mapSize",
@@ -12447,6 +12481,9 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          "limits": {
+            "$ref": "#/components/schemas/CatalogLimits"
           },
           "version": {
             "type": "string"

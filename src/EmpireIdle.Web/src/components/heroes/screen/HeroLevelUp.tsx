@@ -91,7 +91,7 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
                 <GameButton
                   variant="secondary"
                   onClick={() =>
-                    drinkJar.mutate({ itemKey: item.itemKey, count: Math.min(item.count, 10_000), targetX: null, targetY: null })
+                    drinkJar.mutate({ itemKey: item.itemKey, count: Math.min(item.count, catalog.limits.maxItemsPerUse), targetX: null, targetY: null })
                   }
                   disabled={busy || drinkJar.isPending}
                 >

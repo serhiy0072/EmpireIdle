@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import { api, isApiError } from "../api";
 import type { ArtifactMasteryResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
 import type { components } from "../schema";
+import { useCatalog } from "./catalog";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -20,10 +21,7 @@ export function useInventory(playerId: string): UseQueryResult<InventoryResponse
 /** Скільки разів пробуємо телепорт, клітину якому обирає гра, якщо її щойно зайняв інший гравець. */
 const GAME_PICKED_CELL_ATTEMPTS = 3;
 
-/** Сервер приймає до стількох штук за запит (UseItemCommand.MaxCount). */
-const MAX_USE_PER_REQUEST = 10_000;
-
-/** Один запит «використати»: щонайбільше MAX_USE_PER_REQUEST штук. */
+/** Один запит «використати»: щонайбільше стільки штук, скільки приймає сервер (каталог, limits.maxItemsPerUse). */
 async function applyOnce(playerId: string, input: UseItemRequest): Promise<void> {
   // Клітину обирає гра (випадковий, до лідера): двох одночасних гравців на одну клітину розводить
   // індекс мапи — другий отримує 409, а повтор із новим ключем дістане наступну вільну (GDD §8.9).
@@ -42,12 +40,13 @@ async function applyOnce(playerId: string, input: UseItemRequest): Promise<void>
 /** Ящик наливає ресурси в село, буст з'являється в інвентарі, телепорт рухає село мапою. */
 export function useUseItem(playerId: string) {
   const queryClient = useQueryClient();
+  const maxPerRequest = useCatalog().limits.maxItemsPerUse;
 
   return useMutation({
     mutationFn: async (input: UseItemRequest) => {
       // «Усі» — весь стек (рішення 22.10.2026): понад стелю сервера — кількома запитами поспіль
-      for (let left = input.count; left > 0; left -= MAX_USE_PER_REQUEST) {
-        await applyOnce(playerId, { ...input, count: Math.min(left, MAX_USE_PER_REQUEST) });
+      for (let left = input.count; left > 0; left -= maxPerRequest) {
+        await applyOnce(playerId, { ...input, count: Math.min(left, maxPerRequest) });
       }
     },
     onSuccess: () => {
