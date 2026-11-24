@@ -109,51 +109,27 @@ Dev-база — зона Сергія: дозвіл на роботу з нею
 що прочитала будівлю до завершення апгрейду, могла записати таймер поверх і дати подвійний рівень —
 тест `Village_ShouldRejectAStaleConstructionCut_AfterTheUpgradeCompleted`.
 
-### 2.4. Guard-винятки й тексти — ЗРОБЛЕНО частково
-Захисні перевірки у `VillageResource`, `VillageUnit`, `ReinforcementUnit`, `PlayerItem`, `ActiveEffect`, `BuildingLevel`, `GemAmount`
-зведено до `ArgumentOutOfRangeException.ThrowIf…`; українські тексти винятків прибрано.
-Лишилось:
-- `ChatMessage:38-46`, `Announcement:28`, `MailLetter:66` кидають звичайний `ArgumentException`, який обробник помилок
-  перетворює на 400 `InvalidArgument`. За коментарями в коді це помилки викликача, тобто мали б бути 500.
-  **Не чіпати навмання:** те саме відображення потрібне для `UnitStackKey.Parse`, що розбирає ключ із запиту клієнта.
-  Правильний хід — дати `UnitStackKey.Parse` власний доменний виняток і лише тоді перевести решту на 500.
-- `serverId = 1` як значення за замовчуванням у конструкторах `Village.cs:85`, `Player.cs:47`: зробити параметр
-  обов'язковим. Зачепить багато тестів — робити скриптом, що дописує `serverId: 1` у виклики.
+### 2.4. Guard-винятки й тексти — ЗРОБЛЕНО
+Кривий запит клієнта (`UnitStackKey.Parse`, склад загону в `BattleSquadFactory`) кидає `MalformedRequestException` → 400
+`InvalidArgument`; будь-який інший `ArgumentException` тепер 500 (коміт `2c1de4ba`). `serverId` обов'язковий у `Village` і `Player`
+(`1c547915`).
 
-### 2.5. Валідація конфігу
-Правило з `CLAUDE.md`: межі окремого поля — у `Program.cs` (`.Validate`), узгодженість між секціями — у `GameConfigValidator`.
-- Межі полів, що лежать у валідаторі (рядки на момент рев'ю: 125, 164, 211, 602, 711–719, 800, 856–860, 1402–1407,
-  1509–1521, 1607–1611, 1720, 1736–1750, 1947, 2175–2179), перенести в `Program.cs`. Перехресні перевірки з
-  `Program.cs:189,205` — навпаки, у валідатор. Дублікати прибрати (смуги втрат `Program.cs:240-242` і валідатор `:1482-1487`;
-  `PriceGems` у `:2175` і `:2198`).
-- Числа балансу, які існують лише як значення за замовчуванням у C#, дописати в JSON: уся секція `Retention`,
-  `MaxBuildingLevel`, `AutoCollectSeconds`, `HeroSettings.GarrisonDefenders/MaxHeroesPerMarch/DefaultMarchSpeed`,
-  капи `Dungeons` (`MaxCritChance`, `MaxLifesteal`, `MaxDamageReduction`, `MaxBlockChance`, `BaseBlockPower`, `MaxBlockPower`,
-  `MaxWard`, `WardTurns`, `AutoHealBelowShare`), `RealtimeBattle.PoisonTickSeconds`, `Map.ImpassableMoveMultiplier`,
-  `Monetization.HealResourceCostShare`, `UnitConfig.LevelUpCostGrowth`, `BuildingConfig.EarlyTaxStrength/EarlyTaxDecay`,
-  `Shop.Currency`, `HeroConfig.NativeTier`. **Значення не міняти** — переносити те, що стоїть у C#.
-- Поля без валідації: `MaxUnitLevel`, `Map.Geometry.RingsAtFirstLevel`, `Map.Evolution.DensityThreshold`,
-  `Monster.MinLevel/MaxLevel/UnitGrowth/RewardGrowth`, `DungeonEnemyConfig.Wave`, `HeroConfig.StatGrowth`,
-  унікальність `Shop.GemPacks[].Key`, `Growth = 0` (дає безкоштовні апгрейди).
-- Валідація кланового магазину пропускається при порожніх `Nodes` (`GameConfigValidator.cs:108`) — прибрати пропуск.
-- Після перенесення правил у `Program.cs` число в `ArgumentOutOfRangeException` з домену більше не страхує конфіг:
-  перевірити, що кожне поле, яке потрапляє в `BuildingLevel`, `GemAmount` чи `PlayerItem`, має правило на старті.
-- **Як перевіряти:** `GameConfigFieldValidationTests` має таблицю негативних кейсів — на кожне нове правило додати рядок.
-  `ShippedConfigTests` гарантує, що справжні файли проходять. Нові числа — питання Режисера, не виконавця.
+### 2.5. Валідація конфігу — ЗРОБЛЕНО частково
+Зроблено: пропуск кланового магазину при порожніх `Nodes` знято, правила для полів без валідації й `UpgradeCostGrowth`
+у `Program.cs` (`6326ff0e`); числа балансу з C#-дефолтів дописано в JSON без зміни значень (`5fc4a845`); дублікати смуг
+втрат і ціни банера прибрано (`b6fe6e03`).
+Лишилось: перенести межі окремих полів, що досі живуть у `GameConfigValidator`, у `Program.cs` (номери рядків із рев'ю
+застаріли — шукати перевірки одного поля без звертання до інших секцій). На кожне перенесене правило — рядок у
+`GameConfigFieldValidationTests.BrokenFields`, а старий тест у `GameConfigValidatorTests` прибрати. C#-дефолти лишились
+як були — на них тримаються мінімальні фікстури тестів.
 
-### 2.6. Теки `Contracts/` проти `ReadModels/`
-Десять модулів (`Chat`, `Dungeons`, `Heroes`, `Inventory`, `LoginRewards`, `Lootboxes`, `Mail`, `Market`, `Payments`, `Rewards`)
-тримають типи відповіді в `Contracts/`. **Як:** спершу переглянути вміст: якщо там інтерфейси чи контексти
-(`IRewardGranter`, `RewardContext`) — це справді контракти, лишити. Перенести в `ReadModels/` лише записи, що йдуть клієнту.
-Перенесення — `git mv` плюс зміна `namespace` і `using`; робити скриптом за зразком уже зробленого
-(перенесення з файлів команд), по одному модулю на коміт. Назви схем OpenAPI не змінюються, тож клієнт не зачіпається —
-перевірити, що `OpenApiContractTests` проходить без перегенерації.
+### 2.6. Теки `Contracts/` проти `ReadModels/` — ЗРОБЛЕНО
+Сім модулів перенесено (`e8ddfe3e`), OpenAPI не змінився. `Inventory`/`Rewards` (контексти) і `Payments` (контракт
+платіжного порту) лишились у `Contracts/` свідомо.
 
-### 2.7. Мапа: контролер зшиває два запити
-`MapController.GetArea` викликає `GetMapAreaQuery` і `GetCampsInAreaQuery` та складає `MapAreaResponse`,
-`GetCell` розплющує вкладену модель. **Як:** звести в один запит, який повертає модель у формі нинішньої відповіді
-(`MinX…, Terrain, Occupants, Camps`), щоб контракт не змінився; контролер тоді віддає її напряму.
-`OccupantType` зробити enum-типом у моделі (на дроті лишиться той самий рядок).
+### 2.7. Мапа — ЗРОБЛЕНО
+`GetMapAreaQuery` повертає й табори, `MapCellView` пласка з `MapOccupantType`, контролер віддає моделі напряму, DTO мапи
+прибрано (`bc9f1379`). Назви схем змінились, на клієнті — лише псевдоніми в `apiTypes.ts`.
 
 ### 2.8. Списання gems: два способи знайти гаманець
 Частина обробників бере акаунт з `ICurrentPlayer.UserId`, частина — читає `Player` і бере `UserId`.
@@ -168,14 +144,13 @@ Dev-база — зона Сергія: дозвіл на роботу з нею
 Тести з фіксованими сідами пройшли без змін очікувань. Розподіл втрат у `CombatCalculator` і `DefenceLossAllocator`
 сюди не належить: там не вибір одного лота, а поділ числа пропорційно вагам.
 
-### 2.10. Клієнт: типи й enum
-- Типи API поза `lib/apiTypes.ts` у 8 файлах (локальні `components["schemas"][...]`) — звести в `apiTypes.ts`.
-- Мапи enum без `satisfies`: `CHAT_CHANNEL`, `MARKET_KIND`, `SPEED_UP_TIMER_IDS`, `STATUSES`, `POLICIES`.
-- `lib/queries/dungeons.ts` `RARITIES` малими літерами й `artifactRarityLabel` — перевірити, яким регістром
-  приходить `artifactRarity`, і звести до `rarityLabel`.
-- Серверні ліміти, зашиті в клієнті: `TowerPage:31` `SQUAD_SIZE`, `KeyChests:13` `KEY_BATCH`, `EquipmentUpgrade:11` `MAX_FOOD`,
-  `HeroLevelUp` (10 000 і `chest_supply`), `tutorial/steps.ts` (`NEWBIE_SHIELD_LEVEL = 3`, ключі предметів).
-  **Як:** додати поля в `CatalogResponse` (зразок — `UniversalShardUpgrade`, коміт `5dcb1a56`), перегенерувати контракт.
+### 2.10. Клієнт: типи й enum — ЗРОБЛЕНО частково
+Зроблено: канал чату, вид товару ринку й таймер прискорення їдуть назвою, мапи з `satisfies` (`9ecf64a8`); ліміти —
+у `CatalogResponse.Limits` (`42935ffd`). `artifactRarityLabel` лишився свідомо: дає прикметник («рідкісний артефакт»),
+а `rarityLabel` — назву рангу. `KEY_BATCH = 10` — вибір інтерфейсу, не ліміт сервера (той — 100, теж у `Limits`).
+Лишилось: локальні псевдоніми `components["schemas"][...]` у `lib/queries/*.ts` (beasts, catalog, chat, heroes, mail,
+market, player) і `lib/session.ts` перенести в `lib/apiTypes.ts` та поправити імпорти споживачів; `JAR_CHEST`
+(`HeroLevelUp`) і ключі в `tutorial/steps.ts` — вміст, не ліміти, лишити.
 
 ### 2.11. Тести
 Чисто стильові, робити останніми й лише скриптами:
@@ -189,7 +164,7 @@ Dev-база — зона Сергія: дозвіл на роботу з нею
 ### 2.12. Сміття
 - Теки `bin-review` у `src/EmpireIdle.API`, `src/EmpireIdle.Domain`, `tests/*` — видалити й додати в `.gitignore`,
   якщо їх там немає. Спершу `git status`: якщо теки не відстежуються, це просто видалення з диска — **спитати Сергія**.
-- `EmpireIdle.API.http` з `weatherforecast`, застарілі коментарі (`AuthController:12`, `GarrisonController:49`,
+- ЗРОБЛЕНО (`a14f03e7`): `EmpireIdle.API.http`, застарілі коментарі (`AuthController:12`, `GarrisonController:49`,
   `Program.cs:65-66`, згадки ринку героїв і облоги).
 - Невикористаний хук `useCancelRequest` (`lib/queries/clans.ts`) — не мертвий код, а відсутня кнопка
   «скасувати свою заявку в клан». Додати кнопку або прибрати хук — рішення Сергія.
