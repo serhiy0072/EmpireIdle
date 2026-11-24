@@ -177,33 +177,17 @@ market, player) і `lib/session.ts` перенести в `lib/apiTypes.ts` та
 
 ---
 
-## 3. Клієнт: 13 світлих сторінок на темний `GameScreen`
+## 3. Клієнт: 13 світлих сторінок на темний `GameScreen` — ЗРОБЛЕНО (без плейтесту)
 
-Сергій вирішив: усі 13 одним заходом, потім один плейтест. Канон — темний екран (рішення 08.10.2026, `components/game/GameUi.tsx`).
-Сторінки: `ClanPage`, `ArmyPage`, `HeroCodexPage`, `BeastPenPage`, `DungeonsPage`, `MailPage`, `MarketPage`, `ShopPage`,
-`BannersPage`, `QuestsPage`, `RatingPage`, `ArtifactSetsPage`, `ChatPage`.
-
-**Як:**
-1. Прочитати три вже темні сторінки як зразок: `LaboratoryPage`, `InventoryPage`, `HeroesPage`, і сам `GameUi.tsx`
-   (`GameScreen`, `GamePanel`, `GameTabs`, `GameButton`, `Tile`).
-2. **Спершу спільні компоненти, потім сторінки.** Без цього 13 сторінок розійдуться знову:
-   - `GameDialog` — зараз 8 саморобних діалогів (зразки: `ResearchNodeDialog`, `ClanTechnologyDialog`, `RewardsWindow`);
-     з `role="dialog"`, закриттям по Esc і кліку поза вікном.
-   - `ProgressBar` — близько 12 смуг вручну; захист від `NaN` (ділення на нуль у `CampPanels:330`, `ShardsPanel:57`, `BeastPanels:44`).
-   - `ConfirmButton` — підтвердження другим кліком (зразки: вигнання в `ClanMembers`, видалення в `ClanRoles`).
-   - Кнопки: близько 25 скопійованих рядків класів Tailwind → `GameButton` з варіантами.
-3. Вкладки: саморобні «пілюлі» (`ClanPage:197-212`, `ClanShopPanel`, `ChatPage:190`, `MarketPage:29,95`, `TrainingCampPanel:62`)
-   → `GameTabs`. Увага: `GameTabs` вішає гарячі клавіші вкладок; дві групи на одній сторінці конфліктуватимуть —
-   вкладеній групі потрібен режим без клавіш.
-4. Сторінка за сторінкою: обгорнути в `GameScreen`, замінити світлі класи (`bg-white`, `border-slate-200`, `text-slate-*`)
-   на темну палітру зразків, картки — на `GamePanel`. Логіку не чіпати: правка лише вигляду.
-5. Один коміт на сторінку, щоб знахідку плейтесту можна було відкотити окремо.
-6. Плейтест у браузері через агента `qa`: кожна з 13 сторінок на ширині телефона й десктопа, читабельність тексту,
-   контраст підказок і відмов (`ErrorBanner` світлий — перевірити на темному тлі), стани «порожньо» й «завантаження».
-
-Заодно на цих сторінках закрити дрібне з рев'ю: `MailPage:263-276` невідомий тип листа малюється як запрошення;
-`onMouseEnter → mutate` на кожне наведення на лист (`MailPage:49,84,124,169`); `MarketPage:41`, `ChatPage:173` змінна `t`
-перекриває i18n; ключі списків за індексом (`DungeonBattle:365`, `BannerDrops:48`, `BannersPage:78`).
+Спільні `GameDialog`, `ProgressBar` (+`lib/progress.ts`, без NaN), `ConfirmButton` у `GameUi.tsx`; `GameTabs` має `hotkeys={false}`
+для вкладеної групи (`40612b07`). Застосовано: смуги з діленням на нуль (`CampPanels`, `ShardsPanel`, `BeastPanels`), підтвердження в
+`ClanMembers`/`ClanRoles`, вікна `ResearchNodeDialog`/`ClanTechnologyDialog`. `RewardsWindow` і решта саморобних вікон — ще ні.
+Сторінки — по коміту на кожну (`63dd0e08`…`3ab807ee`): палітра замінена скриптом, ранні return «завантаження» лишились
+`text-slate-500` (тло застосунку світле). Вкладки Chat, Clan, Market — `GameTabs`. З дрібного: `MailPage` не малює невідомий лист
+запрошенням і позначає лист прочитаним раз за візит; `t` більше не перекривається в Market/Chat; лог бою данжу має стабільні ключі.
+Ключі за індексом у `BannersPage`/`BannerDrops` лишились свідомо: статичний список дропів одного крутка, дублікати можливі.
+Світлими лишились спільні з іншими екранами картки: `HospitalPanel` (Army), `LootboxCard`/`LootboxPanels` (Shop), `BeastListPopup`.
+**Не перевірено наживо** — потрібен плейтест `qa` (телефон і десктоп, контраст, порожні стани, `ErrorBanner` на темному тлі).
 
 ---
 
