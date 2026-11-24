@@ -16,7 +16,7 @@ namespace EmpireIdle.Domain.Exceptions
         {
             // Розбіжність — баг у місці кидка, а не відмова гравцю: клієнт підставив
             // би в текст порожнє місце замість рівня чи назви. InvalidOperationException, а не
-            // ArgumentException: та мапиться на 400 і сховала б баг серед помилок клієнта
+            // ArgumentException: виняток у конструкторі відмови має читатись як збій, а не як кривий аргумент
             if (values.Length != reason.ArgNames.Count)
                 throw new InvalidOperationException(
                     $"Refusal '{reason.Key}' expects {reason.ArgNames.Count} values, got {values.Length}.");

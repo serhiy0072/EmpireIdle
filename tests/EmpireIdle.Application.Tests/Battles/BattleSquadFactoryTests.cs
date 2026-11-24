@@ -201,8 +201,8 @@ public class BattleSquadFactoryTests
     {
         var bran = Hero();
 
-        await Assert.ThrowsAsync<ArgumentException>(() => Build([null]));
-        await Assert.ThrowsAsync<ArgumentException>(() => Build([bran.Id, bran.Id]));
-        await Assert.ThrowsAsync<ArgumentException>(() => Build([bran.Id, null, null, null, null, null]));
+        await Assert.ThrowsAsync<MalformedRequestException>(() => Build([null]));
+        await Assert.ThrowsAsync<MalformedRequestException>(() => Build([bran.Id, bran.Id]));
+        await Assert.ThrowsAsync<MalformedRequestException>(() => Build([bran.Id, null, null, null, null, null]));
     }
 }

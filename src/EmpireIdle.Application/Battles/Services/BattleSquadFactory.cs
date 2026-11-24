@@ -61,7 +61,7 @@ namespace EmpireIdle.Application.Battles.Services
 
             // До цього веде лише кривий клієнт: екран загону не дає ні порожнього, ні подвійного складу
             if (ids.Count == 0 || lanes.Count > battle.SquadSize || ids.Distinct().Count() != ids.Count)
-                throw new ArgumentException($"A squad needs 1–{battle.SquadSize} distinct heroes on at most {battle.SquadSize} lanes.");
+                throw new MalformedRequestException($"A squad needs 1–{battle.SquadSize} distinct heroes on at most {battle.SquadSize} lanes.");
 
             var heroes = (await _heroes.GetByIdsReadOnlyAsync(ids, cancellationToken)).ToDictionary(h => h.Id);
             var pool = await PoolAsync(playerId, cancellationToken);
