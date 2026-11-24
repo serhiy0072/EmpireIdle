@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useCatalog } from "../../lib/queries/catalog";
 import { useInventory } from "../../lib/queries/inventory";
-import { MARKET_KIND, useListOnMarket, useMarketQuote, type MarketGoods } from "../../lib/queries/market";
+import { useListOnMarket, useMarketQuote, type MarketGoods } from "../../lib/queries/market";
 import ErrorBanner from "../ErrorBanner";
 import { formatNumber } from "../../lib/format";
 import { t } from "i18next";
@@ -45,7 +45,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
         label: `${catalog.itemName(item.itemKey)}${item.level > 0 ? ` · ${t("items:artifact.level", { level: item.level })}` : ""}${
           item.equippedByHeroId != null ? ` ${t("items:sell.equipped")}` : ""
         }`,
-        goods: { kind: MARKET_KIND.Equipment, equipmentId: item.id, quantity: 1 },
+        goods: { kind: "Equipment" as const, equipmentId: item.id, quantity: 1 },
         equipped: item.equippedByHeroId != null,
       }));
 
@@ -54,7 +54,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
       .map((item) => ({
         id: `i:${item.itemKey}`,
         label: `${item.displayName} ${t("common:owned", { count: item.count })}`,
-        goods: { kind: MARKET_KIND.Item, itemKey: item.itemKey, quantity: 1 },
+        goods: { kind: "Item" as const, itemKey: item.itemKey, quantity: 1 },
         available: item.count,
       }));
 

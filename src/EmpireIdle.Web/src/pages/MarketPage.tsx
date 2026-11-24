@@ -6,7 +6,6 @@ import ListingCard from "../components/market/ListingCard";
 import SellPanel from "../components/market/SellPanel";
 import { useSession } from "../hooks/useSession";
 import {
-  MARKET_KIND,
   PAGE_SIZE,
   useBuyListing,
   useCancelListing,
@@ -23,8 +22,8 @@ const TABS: { key: Tab }[] = [{ key: "browse" }, { key: "mine" }, { key: "sell" 
 
 const KINDS: { kind: MarketKind | null; label: "all" | "equipment" | "items" }[] = [
   { kind: null, label: "all" },
-  { kind: MARKET_KIND.Equipment, label: "equipment" },
-  { kind: MARKET_KIND.Item, label: "items" },
+  { kind: "Equipment", label: "equipment" },
+  { kind: "Item", label: "items" },
 ];
 
 const pill = (active: boolean) =>

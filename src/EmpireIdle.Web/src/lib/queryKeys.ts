@@ -35,7 +35,7 @@ export const queryKeys = {
   mailUnread: (playerId: string) => ["mail", playerId, "unread"] as const,
   /** Ринок гравця — префікс: мутації ринку інвалідують разом і «мої лоти», і вітрину, і котирування. */
   market: (playerId: string) => ["market", playerId] as const,
-  marketBrowse: (playerId: string, kind: number | null, page: number) => ["market", playerId, "browse", kind, page] as const,
+  marketBrowse: (playerId: string, kind: string | null, page: number) => ["market", playerId, "browse", kind, page] as const,
   marketQuote: (playerId: string, goods: unknown) => ["market", playerId, "quote", goods] as const,
   banners: (playerId: string) => ["banners", playerId] as const,
   clan: (playerId: string) => ["clan", playerId] as const,

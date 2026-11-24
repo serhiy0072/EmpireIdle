@@ -227,14 +227,14 @@ export function useCancelRequest(playerId: string) {
   );
 }
 
-const POLICIES = ["Open", "ByApproval", "InviteOnly"] as const;
+/** Значення ClanJoinPolicy з контракту — у порядку, в якому їх показує вибір. */
+export const JOIN_POLICIES = ["Open", "ByApproval", "InviteOnly"] as const satisfies readonly ClanJoinPolicy[];
 
 export function joinPolicyLabel(policy: string): string {
-  return (POLICIES as readonly string[]).includes(policy) ? t(`social:clan.policy.${policy as (typeof POLICIES)[number]}`) : policy;
+  return (JOIN_POLICIES as readonly string[]).includes(policy)
+    ? t(`social:clan.policy.${policy as ClanJoinPolicy}`)
+    : policy;
 }
-
-/** Значення ClanJoinPolicy з контракту — у порядку, в якому їх показує вибір. */
-export const JOIN_POLICIES: readonly ClanJoinPolicy[] = ["Open", "ByApproval", "InviteOnly"];
 
 /** Дозволи клану в порядку, в якому їх показує редактор ролей; satisfies ловить новий дозвіл без підпису. */
 export const CLAN_PERMISSIONS = [

@@ -9,9 +9,8 @@ export type MarketPageView = components["schemas"]["MarketPageView"];
 export type MyMarketView = components["schemas"]["MyMarketView"];
 export type MarketQuoteView = components["schemas"]["MarketQuoteView"];
 
-/** Вид товару в запитах — числом, як у enum сервера; у view він приходить рядком. */
-export const MARKET_KIND = { Equipment: 1, Item: 3 } as const;
-export type MarketKind = (typeof MARKET_KIND)[keyof typeof MARKET_KIND];
+/** Вид товару — назвою, як enum сервера в контракті. */
+export type MarketKind = components["schemas"]["MarketListingKind"];
 
 /** Товар для котирування й виставлення: заповнюється поле свого виду. */
 export interface MarketGoods {

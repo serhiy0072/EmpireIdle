@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api, isApiError } from "../api";
 import type { ArtifactMasteryResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
+import type { components } from "../schema";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -163,18 +164,18 @@ export function useUnequipAll(playerId: string) {
   });
 }
 
-/** Таймер прискорення на сервері (SpeedUpTimer): число в запиті, назва — у межах каталогу. */
-export const SPEED_UP_TIMER_IDS = { Construction: 0, Training: 1, UnitLevelUp: 2, March: 3, Research: 4 } as const;
+/** Таймер прискорення на сервері — назвою, як enum SpeedUpTimer у контракті. */
+export type SpeedUpTimer = components["schemas"]["SpeedUpTimer"];
 
 /** Прискорити таймер предметами: хвилини складаються, надлишок понад залишок згорає. */
 export function useSpeedUpWithItems(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { timer: keyof typeof SPEED_UP_TIMER_IDS; targetId: string; items: Record<string, number> }) =>
+    mutationFn: (input: { timer: SpeedUpTimer; targetId: string; items: Record<string, number> }) =>
       api<void>(`/api/inventory/${playerId}/speedups`, {
         method: "POST",
-        body: { timer: SPEED_UP_TIMER_IDS[input.timer], targetId: input.targetId, items: input.items },
+        body: { timer: input.timer, targetId: input.targetId, items: input.items },
         idempotent: true,
       }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "garrison", "marches", "power", "research"]),
