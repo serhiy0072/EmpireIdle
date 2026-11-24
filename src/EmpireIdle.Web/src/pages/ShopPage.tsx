@@ -13,6 +13,7 @@ import { useWallet } from "../lib/queries/wallet";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
 import { formatMoment, formatNumber } from "../lib/format";
 import { latestError } from "../lib/latestError";
+import { GameScreen } from "../components/game/GameUi";
 import { t } from "i18next";
 
 const TYPES = ["evolution", "boost", "resources", "teleport", "scoutveil", "feed", "lootbox", "weaponchest", "chestkey"] as const;
@@ -40,20 +41,20 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
   const total = offer.priceGems * safeCount;
 
   return (
-    <div id={offer.itemKey} className="scroll-mt-4 rounded-xl border border-slate-200 bg-white p-3 target:ring-2 target:ring-violet-400">
+    <div id={offer.itemKey} className="scroll-mt-4 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3 target:ring-2 target:ring-violet-400">
       <div className="flex gap-3">
         <ItemIcon itemKey={offer.itemKey} type={offer.type} rarity={offer.rarity} size={48} />
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="truncate font-medium text-slate-800">{offer.displayName}</span>
-            <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-800">💎 {offer.priceGems}</span>
+            <span className="truncate font-medium text-white">{offer.displayName}</span>
+            <span className="rounded-full bg-violet-500/25 px-2 py-0.5 text-xs text-violet-200">💎 {offer.priceGems}</span>
           </div>
           <div className="mt-1 flex items-center gap-1 text-xs">
             <span className={`rounded px-2 py-0.5 ${rarityStyle(offer.rarity)}`}>{rarityLabel(offer.rarity)}</span>
-            <span className="text-slate-500">{typeLabel(offer.type)}</span>
+            <span className="text-sky-100/70">{typeLabel(offer.type)}</span>
             {/* Предмет апу тіру продається лише вікном (GDD §6.1) — кажемо, доки, щоб не прогавили */}
             {offer.onSaleUntil != null && (
-              <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">
+              <span className="rounded bg-amber-500/25 px-2 py-0.5 text-amber-200">
                 {t("items:shop.onSaleUntil", { until: formatMoment(offer.onSaleUntil) })}
               </span>
             )}
@@ -61,7 +62,7 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
         </div>
       </div>
 
-      {offer.description !== "" && <p className="mt-2 text-sm text-slate-600">{offer.description}</p>}
+      {offer.description !== "" && <p className="mt-2 text-sm text-slate-200">{offer.description}</p>}
 
       {offer.type === "lootbox" && <LootboxOdds itemKey={offer.itemKey} since={pitySince} />}
       {offer.type === "weaponchest" && <WeaponChestContents itemKey={offer.itemKey} />}
@@ -75,13 +76,13 @@ function Offer({ offer, gems, busy, pitySince, onBuy }: OfferProps) {
               max={offer.maxPerPurchase}
               value={safeCount}
               onChange={(event) => setCount(Number(event.target.value))}
-              className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+              className="w-16 rounded-lg border border-[#4a72b0] px-2 py-1 text-sm"
             />
             {/* Скільки дозволяє і пропозиція, і гаманець */}
             <button
               type="button"
               onClick={() => setCount(Math.max(1, Math.min(offer.maxPerPurchase, Math.floor(gems / offer.priceGems))))}
-              className="text-sm text-sky-700 hover:underline"
+              className="text-sm text-sky-200 hover:underline"
             >
               {t("items:shop.max")}
             </button>
@@ -137,104 +138,107 @@ export default function ShopPage() {
   const gems = wallet.data?.gemBalance ?? 0;
 
   return (
-    <div className="space-y-6">
-      <MarketTabs />
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">{t("items:shop.title")}</h1>
-        <p className="text-sm text-slate-500">💎 {formatNumber(gems)}</p>
-      </div>
+    <GameScreen
+      title={t("items:shop.title")}
+      actions={
+        <p className="text-sm text-sky-100/70">💎 {formatNumber(gems)}</p>
+      }
+    >
+      <div className="space-y-6">
+        <MarketTabs />
 
-      <ErrorBanner error={latestError([buy, buyLootbox, checkout])} />
+        <ErrorBanner error={latestError([buy, buyLootbox, checkout])} />
 
-      {drops !== null && (
-        <LootboxDrops
-          drops={drops}
-          onClose={() => setDrops(null)}
-          pending={buyLootbox.isPending}
-          error={buyLootbox.error}
-          again={
-            lastBuy === null
-              ? undefined
-              : {
-                  label: t("items:banners.again", { count: lastBuy.count, price: formatNumber(lastBuy.price * lastBuy.count) }),
-                  disabled: gems < lastBuy.price * lastBuy.count,
-                  onClick: () =>
-                    buyLootbox.mutate(
-                      { itemKey: lastBuy.itemKey, count: lastBuy.count },
-                      { onSuccess: (result) => setDrops(result.drops) },
-                    ),
-                }
-          }
-        />
-      )}
-
-      <KeyChests playerId={playerId} />
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("items:shop.forGems")}</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {shop.data.items.map((offer) => (
-            <Offer
-              key={offer.itemKey}
-              offer={offer}
-              gems={gems}
-              busy={buy.isPending || buyLootbox.isPending}
-              pitySince={pity.data?.find((p) => p.lootboxKey === offer.itemKey)?.since}
-              onBuy={(count) =>
-                // Скриня з крамниці відкривається одразу — показуємо, що випало
-                offer.type === "lootbox"
-                  ? buyLootbox.mutate(
-                      { itemKey: offer.itemKey, count },
-                      {
-                        onSuccess: (result) => {
-                          setDrops(result.drops);
-                          setLastBuy({ itemKey: offer.itemKey, count, price: offer.priceGems });
-                        },
-                      },
-                    )
-                  : buy.mutate({ itemKey: offer.itemKey, count })
-              }
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("items:shop.gems")}</h2>
-        {wallet.data !== undefined && (
-          <p className="text-sm text-slate-600">
-            {wallet.data.nextVipThreshold == null
-              ? t("items:shop.vipMax", { level: wallet.data.vipLevel })
-              : t("items:shop.vipProgress", {
-                  level: wallet.data.vipLevel,
-                  next: wallet.data.vipLevel + 1,
-                  left: formatNumber(wallet.data.nextVipThreshold - wallet.data.purchasedGems),
-                })}
-          </p>
+        {drops !== null && (
+          <LootboxDrops
+            drops={drops}
+            onClose={() => setDrops(null)}
+            pending={buyLootbox.isPending}
+            error={buyLootbox.error}
+            again={
+              lastBuy === null
+                ? undefined
+                : {
+                    label: t("items:banners.again", { count: lastBuy.count, price: formatNumber(lastBuy.price * lastBuy.count) }),
+                    disabled: gems < lastBuy.price * lastBuy.count,
+                    onClick: () =>
+                      buyLootbox.mutate(
+                        { itemKey: lastBuy.itemKey, count: lastBuy.count },
+                        { onSuccess: (result) => setDrops(result.drops) },
+                      ),
+                  }
+            }
+          />
         )}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {shop.data.gemPacks.map((pack) => (
-            <div key={pack.key} className="flex flex-col rounded-xl border border-violet-200 bg-white p-3">
-              <span className="font-medium text-slate-800">{pack.displayName}</span>
-              <span className="mt-1 text-2xl font-semibold text-violet-700">💎 {formatNumber(pack.gems)}</span>
-              {pack.bonusPercent > 0 && <span className="text-xs text-emerald-700">{t("items:shop.bonus", { percent: pack.bonusPercent })}</span>}
-              {/* Оплата йде на сторінку Stripe: тут лише перехід, жодних платіжних даних */}
-              <button
-                type="button"
-                onClick={() =>
-                  checkout.mutate(pack.key, {
-                    onSuccess: (result) => window.location.assign(result.checkoutUrl),
-                  })
+
+        <KeyChests playerId={playerId} />
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("items:shop.forGems")}</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {shop.data.items.map((offer) => (
+              <Offer
+                key={offer.itemKey}
+                offer={offer}
+                gems={gems}
+                busy={buy.isPending || buyLootbox.isPending}
+                pitySince={pity.data?.find((p) => p.lootboxKey === offer.itemKey)?.since}
+                onBuy={(count) =>
+                  // Скриня з крамниці відкривається одразу — показуємо, що випало
+                  offer.type === "lootbox"
+                    ? buyLootbox.mutate(
+                        { itemKey: offer.itemKey, count },
+                        {
+                          onSuccess: (result) => {
+                            setDrops(result.drops);
+                            setLastBuy({ itemKey: offer.itemKey, count, price: offer.priceGems });
+                          },
+                        },
+                      )
+                    : buy.mutate({ itemKey: offer.itemKey, count })
                 }
-                disabled={checkout.isPending}
-                className="mt-3 rounded-lg border border-violet-300 px-3 py-1.5 text-sm font-medium text-violet-800 hover:bg-violet-50 disabled:opacity-50"
-              >
-                {price(pack.priceCents, shop.data.currency)}
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("items:shop.gems")}</h2>
+          {wallet.data !== undefined && (
+            <p className="text-sm text-slate-200">
+              {wallet.data.nextVipThreshold == null
+                ? t("items:shop.vipMax", { level: wallet.data.vipLevel })
+                : t("items:shop.vipProgress", {
+                    level: wallet.data.vipLevel,
+                    next: wallet.data.vipLevel + 1,
+                    left: formatNumber(wallet.data.nextVipThreshold - wallet.data.purchasedGems),
+                  })}
+            </p>
+          )}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {shop.data.gemPacks.map((pack) => (
+              <div key={pack.key} className="flex flex-col rounded-xl border border-violet-400/50 bg-[#1d3b6f] p-3">
+                <span className="font-medium text-white">{pack.displayName}</span>
+                <span className="mt-1 text-2xl font-semibold text-violet-200">💎 {formatNumber(pack.gems)}</span>
+                {pack.bonusPercent > 0 && <span className="text-xs text-emerald-200">{t("items:shop.bonus", { percent: pack.bonusPercent })}</span>}
+                {/* Оплата йде на сторінку Stripe: тут лише перехід, жодних платіжних даних */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    checkout.mutate(pack.key, {
+                      onSuccess: (result) => window.location.assign(result.checkoutUrl),
+                    })
+                  }
+                  disabled={checkout.isPending}
+                  className="mt-3 rounded-lg border border-violet-400/50 px-3 py-1.5 text-sm font-medium text-violet-200 hover:bg-violet-500/15 disabled:opacity-50"
+                >
+                  {price(pack.priceCents, shop.data.currency)}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </GameScreen>
   );
 }
