@@ -30,6 +30,8 @@ public class GameConfigFieldValidationTests : IClassFixture<GameConfigFieldValid
         { "NoLossShareThreshold", c => c.Combat.NoLossShareThreshold = 1 },
         { "RecoveryWindowHours", c => c.Combat.RecoveryWindowHours = 0 },
         { "loss bands", c => c.Combat.DefenderLossLosses.Max = 1.2 },
+        { "loss bands", c => c.Combat.AttackerWinLosses.Min = c.Combat.AttackerWinLosses.Max + 0.1 },
+        { "loss bands", c => c.Combat.DefenderWinLosses.Min = -0.1 },
         { "CityFall", c => c.Combat.CityFall.DefeatsToEvict = 0 },
         { "CityFall", c => c.Combat.CityFall.DamagedProductionMultiplier = 2 },
         { "HelpSharePerPlayer", c => c.Clan.HelpSharePerPlayer = 0 },

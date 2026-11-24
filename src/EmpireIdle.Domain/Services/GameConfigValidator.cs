@@ -1462,21 +1462,7 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         private static void ValidateLossBands(GameConfig config)
         {
-            var bands = new (string Name, LossBand Band)[]
-            {
-                ("AttackerWinLosses", config.Combat.AttackerWinLosses),
-                ("AttackerLossLosses", config.Combat.AttackerLossLosses),
-                ("DefenderWinLosses", config.Combat.DefenderWinLosses),
-                ("DefenderLossLosses", config.Combat.DefenderLossLosses)
-            };
-
-            foreach (var (name, band) in bands)
-            {
-                if (band.Min < 0 || band.Max > 1 || band.Min > band.Max)
-                    throw new InvalidOperationException(
-                        $"Combat.{name} must satisfy 0 <= Min <= Max <= 1.");
-            }
-
+            // Межі кожної смуги (0 ≤ Min ≤ Max ≤ 1) — правило поля в Program.cs; тут лише їхнє співвідношення
             if (config.Combat.AttackerLossLosses.Min < config.Combat.AttackerWinLosses.Max)
                 throw new InvalidOperationException(
                     "Combat.AttackerLossLosses.Min must not be below AttackerWinLosses.Max: losing would cost less than winning.");
@@ -2185,9 +2171,6 @@ namespace EmpireIdle.Domain.Services
                     if (!banner.Drops.Any(d => BannerRoller.Counts(banner, d) && d.Rarity >= rarity))
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' has no {rarity} {banner.Kind} drop — its pity could never pay out.");
-
-                if (banner.PriceGems <= 0)
-                    throw new InvalidOperationException($"Banner '{banner.Key}' has no price in gems.");
 
                 // Стандартний банер — без промо за визначенням: рівні шанси на будь-кого
                 if (banner.Kind == BannerKind.Standard && banner.FeaturedKey is not null)

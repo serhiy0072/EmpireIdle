@@ -423,30 +423,6 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Смуги втрат ----------
 
-        [Fact]
-        public void Validate_ShouldRejectABandWithMinAboveMax()
-        {
-            var error = Rejects(c => c.Combat.AttackerWinLosses = new LossBand { Min = 0.4, Max = 0.2 });
-
-            Assert.Contains("AttackerWinLosses", error.Message);
-        }
-
-        [Fact]
-        public void Validate_ShouldRejectABandAboveOne()
-        {
-            var error = Rejects(c => c.Combat.DefenderLossLosses = new LossBand { Min = 0.3, Max = 1.2 });
-
-            Assert.Contains("DefenderLossLosses", error.Message);
-        }
-
-        [Fact]
-        public void Validate_ShouldRejectANegativeBand()
-        {
-            var error = Rejects(c => c.Combat.DefenderWinLosses = new LossBand { Min = -0.1, Max = 0.2 });
-
-            Assert.Contains("DefenderWinLosses", error.Message);
-        }
-
         /// <summary>
         /// Головна перевірка: нижня межа програшу під верхньою межею перемоги
         /// означає, що за певного співвідношення сил програти дешевше, ніж
