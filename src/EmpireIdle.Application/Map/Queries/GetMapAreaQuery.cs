@@ -17,13 +17,14 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly IMonsterRepository _monsterRepository;
         private readonly IClanStructureRepository _structureRepository;
         private readonly IClanRepository _clanRepository;
+        private readonly IMarchRepository _marchRepository;
         private readonly TerrainGenerator _terrain;
         private readonly GameCatalog _catalog;
         private readonly IServerContext _serverContext;
         private readonly LocaleTexts _texts;
 
         public GetMapAreaQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
-            IClanStructureRepository structureRepository, IClanRepository clanRepository,
+            IClanStructureRepository structureRepository, IClanRepository clanRepository, IMarchRepository marchRepository,
             TerrainGenerator terrain, GameCatalog catalog, IServerContext serverContext, LocaleTexts texts)
         {
             _texts = texts;
@@ -32,6 +33,7 @@ namespace EmpireIdle.Application.Map.Queries
             _monsterRepository = monsterRepository;
             _structureRepository = structureRepository;
             _clanRepository = clanRepository;
+            _marchRepository = marchRepository;
             _terrain = terrain;
             _catalog = catalog;
         }
@@ -46,8 +48,9 @@ namespace EmpireIdle.Application.Map.Queries
 
             var serverId = _serverContext.ServerId;
             var occupants = await OccupantsAsync(serverId, minX, minY, maxX, maxY, cancellationToken);
+            var camps = await _marchRepository.GetCampsInAreaAsync(minX, minY, maxX, maxY, cancellationToken);
 
-            return new MapAreaView(minX, minY, maxX, maxY, Terrain(serverId, minX, minY, maxX, maxY), occupants);
+            return new MapAreaView(minX, minY, maxX, maxY, Terrain(serverId, minX, minY, maxX, maxY), occupants, camps);
         }
 
         private List<MapTerrainTile> Terrain(int serverId, int minX, int minY, int maxX, int maxY)

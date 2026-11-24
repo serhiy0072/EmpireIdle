@@ -5,8 +5,9 @@ using MediatR;
 
 namespace EmpireIdle.Application.Map.ReadModels
 {
-    /// <summary>Вікно карти з межами: місцевість лише в межах світу, окупанти — з бази.</summary>
-    public record MapAreaView(int MinX, int MinY, int MaxX, int MaxY, List<MapTerrainTile> Terrain, List<MapAreaOccupant> Occupants);
+    /// <summary>Вікно карти з межами: місцевість лише в межах світу, окупанти й табори — з бази.</summary>
+    public record MapAreaView(int MinX, int MinY, int MaxX, int MaxY, List<MapTerrainTile> Terrain, List<MapAreaOccupant> Occupants,
+        List<CampOnMap> Camps);
 
     /// <summary>Клітина місцевості — обчислюється з сіду світу, у БД не зберігається.</summary>
     public record MapTerrainTile(int X, int Y, string Type, bool Passable, bool Habitable);

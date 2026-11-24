@@ -6907,17 +6907,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapAreaResponse"
+                  "$ref": "#/components/schemas/MapAreaView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapAreaResponse"
+                  "$ref": "#/components/schemas/MapAreaView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapAreaResponse"
+                  "$ref": "#/components/schemas/MapAreaView"
                 }
               }
             }
@@ -6977,17 +6977,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapCellDetailsResponse"
+                  "$ref": "#/components/schemas/MapCellView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapCellDetailsResponse"
+                  "$ref": "#/components/schemas/MapCellView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapCellDetailsResponse"
+                  "$ref": "#/components/schemas/MapCellView"
                 }
               }
             }
@@ -11709,6 +11709,47 @@
         },
         "additionalProperties": false
       },
+      "CampOnMap": {
+        "required": [
+          "marchId",
+          "ownerName",
+          "ownerPlayerId",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "marchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ownerPlayerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerClanId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ownerClanTag": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CampSlotView": {
         "required": [
           "index"
@@ -15555,7 +15596,61 @@
         },
         "additionalProperties": false
       },
-      "MapAreaResponse": {
+      "MapAreaOccupant": {
+        "required": [
+          "occupantId",
+          "occupantType",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "occupantType": {
+            "$ref": "#/components/schemas/MapOccupantType"
+          },
+          "occupantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "monsterType": {
+            "type": "string",
+            "nullable": true
+          },
+          "monsterLevel": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "clanId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "clanTag": {
+            "type": "string",
+            "nullable": true
+          },
+          "readyAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MapAreaView": {
         "required": [
           "camps",
           "maxX",
@@ -15586,66 +15681,25 @@
           "terrain": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MapTerrainCell"
+              "$ref": "#/components/schemas/MapTerrainTile"
             }
           },
           "occupants": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MapOccupantCell"
+              "$ref": "#/components/schemas/MapAreaOccupant"
             }
           },
           "camps": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MapCampResponse"
+              "$ref": "#/components/schemas/CampOnMap"
             }
           }
         },
         "additionalProperties": false
       },
-      "MapCampResponse": {
-        "required": [
-          "marchId",
-          "ownerName",
-          "ownerPlayerId",
-          "x",
-          "y"
-        ],
-        "type": "object",
-        "properties": {
-          "marchId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "x": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "y": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "ownerPlayerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "ownerName": {
-            "type": "string"
-          },
-          "ownerClanId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "ownerClanTag": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "MapCellDetailsResponse": {
+      "MapCellView": {
         "required": [
           "habitable",
           "moveCost",
@@ -15678,8 +15732,7 @@
             "format": "double"
           },
           "occupantType": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/MapOccupantType"
           },
           "occupantId": {
             "type": "string",
@@ -15720,57 +15773,15 @@
         },
         "additionalProperties": false
       },
-      "MapOccupantCell": {
-        "required": [
-          "occupantId",
-          "occupantType",
-          "x",
-          "y"
+      "MapOccupantType": {
+        "enum": [
+          "Village",
+          "Monster",
+          "ClanStructure"
         ],
-        "type": "object",
-        "properties": {
-          "x": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "y": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "occupantType": {
-            "type": "string"
-          },
-          "occupantId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "monsterType": {
-            "type": "string",
-            "nullable": true
-          },
-          "monsterLevel": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "clanId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "readyAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
+        "type": "string"
       },
-      "MapTerrainCell": {
+      "MapTerrainTile": {
         "required": [
           "habitable",
           "passable",
