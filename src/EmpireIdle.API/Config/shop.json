@@ -1,6 +1,7 @@
 {
   "GameConfig": {
     "Shop": {
+      "Currency": "usd",
       "GemPacks": [
         {
           "Key": "pack_small",

@@ -3,6 +3,8 @@
     "Buildings": [
       {
         "Key": "townhall",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Ратуша",
         "IsMainBuilding": true,
         "RequiresMainBuildingLevel": 0,
@@ -29,6 +31,8 @@
       },
       {
         "Key": "warehouse",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Склад",
         "RequiresMainBuildingLevel": 0,
         "ProtectedStorage": 250,
@@ -51,6 +55,8 @@
       },
       {
         "Key": "farm",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Ферма",
         "RequiresMainBuildingLevel": 3,
         "Position": {
@@ -76,6 +82,8 @@
       },
       {
         "Key": "sawmill",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Лісопилка",
         "RequiresMainBuildingLevel": 0,
         "Position": {
@@ -101,6 +109,8 @@
       },
       {
         "Key": "goldmine",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Золота копальня",
         "RequiresMainBuildingLevel": 0,
         "Position": {
@@ -126,6 +136,8 @@
       },
       {
         "Key": "barracks",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Казарма",
         "RequiresMainBuildingLevel": 1,
         "Position": {
@@ -151,6 +163,8 @@
       },
       {
         "Key": "bank",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Банк",
         "RequiresMainBuildingLevel": 1,
         "ProtectedStorage": 250,
@@ -187,6 +201,8 @@
       },
       {
         "Key": "ironmine",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Залізна копальня",
         "RequiresMainBuildingLevel": 2,
         "Position": {
@@ -212,6 +228,8 @@
       },
       {
         "Key": "hospital",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Госпіталь",
         "RequiresMainBuildingLevel": 3,
         "Position": {
@@ -258,6 +276,8 @@
       },
       {
         "Key": "wall",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Мур",
         "RequiresMainBuildingLevel": 4,
         "DefenceBonusPerLevel": 0.03,
@@ -280,6 +300,8 @@
       },
       {
         "Key": "spearyard",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Двір списоносців",
         "RequiresMainBuildingLevel": 3,
         "Position": {
@@ -309,6 +331,8 @@
       },
       {
         "Key": "range",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Стрільбище",
         "RequiresMainBuildingLevel": 2,
         "Position": {
@@ -334,6 +358,8 @@
       },
       {
         "Key": "embassy",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Посольство",
         "RequiresMainBuildingLevel": 6,
         "Position": {
@@ -391,6 +417,8 @@
       },
       {
         "Key": "fishinghut",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Рибальська хижа",
         "RequiresMainBuildingLevel": 7,
         "Position": {
@@ -416,6 +444,8 @@
       },
       {
         "Key": "beastpen",
+        "EarlyTaxStrength": 2.0,
+        "EarlyTaxDecay": 1.2,
         "DisplayName": "Звіринець",
         "RequiresMainBuildingLevel": 8,
         "Position": {

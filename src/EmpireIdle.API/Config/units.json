@@ -3,6 +3,7 @@
     "Units": [
       {
         "Key": "infantry",
+        "LevelUpCostGrowth": 1.35,
         "DisplayName": "Піхота",
         "RecoverCostGems": 10,
         "Cost": [
@@ -25,6 +26,7 @@
       },
       {
         "Key": "archer",
+        "LevelUpCostGrowth": 1.35,
         "DisplayName": "Лучники",
         "RecoverCostGems": 10,
         "Cost": [
@@ -51,6 +53,7 @@
       },
       {
         "Key": "spearman",
+        "LevelUpCostGrowth": 1.35,
         "DisplayName": "Списоносці",
         "RecoverCostGems": 10,
         "Cost": [
