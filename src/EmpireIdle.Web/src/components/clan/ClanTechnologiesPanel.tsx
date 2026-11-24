@@ -49,27 +49,27 @@ export default function ClanTechnologiesPanel({ playerId, view, now, canMark }: 
 
   return (
     <div className="space-y-4">
-      <section className="grid gap-2 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 sm:grid-cols-2">
+      <section className="grid gap-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4 text-sm text-slate-100 sm:grid-cols-2">
         <p>
           {t("technologies:clan.coins", { coins: formatNumber(view.coins) })}
         </p>
         <p>
           {t("technologies:clan.attempts", { attempts: offering.attempts, max: offering.maxAttempts })}
           {offering.nextAttemptAt != null && (
-            <span className="text-slate-500"> · {t("technologies:clan.nextAttempt", { remaining: formatRemaining(offering.nextAttemptAt, now) })}</span>
+            <span className="text-sky-100/70"> · {t("technologies:clan.nextAttempt", { remaining: formatRemaining(offering.nextAttemptAt, now) })}</span>
           )}
         </p>
         <p>{t("technologies:clan.gems", { count: offering.gemOfferingsToday, limit: offering.gemDailyLimit })}</p>
-        <p className={markedLabel === null ? "text-slate-500" : "font-medium text-amber-700"}>
+        <p className={markedLabel === null ? "text-sky-100/70" : "font-medium text-amber-200"}>
           {markedLabel === null ? t("technologies:clan.noMark") : t("technologies:clan.marked", { name: markedLabel, bonus })}
         </p>
       </section>
 
-      <section className="space-y-2 rounded-xl border border-slate-200 bg-white p-4 text-sm">
-        <h3 className="font-medium text-slate-800">{t("technologies:clan.daily", { points: formatNumber(daily.pointsToday) })}</h3>
+      <section className="space-y-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4 text-sm">
+        <h3 className="font-medium text-white">{t("technologies:clan.daily", { points: formatNumber(daily.pointsToday) })}</h3>
         <ul className="space-y-1">
           {daily.rewards.map((reward) => (
-            <li key={reward.points} className={`flex flex-wrap justify-between gap-2 ${reward.reached ? "text-emerald-700" : "text-slate-600"}`}>
+            <li key={reward.points} className={`flex flex-wrap justify-between gap-2 ${reward.reached ? "text-emerald-200" : "text-slate-200"}`}>
               <span>
                 {reward.reached ? "✓ " : ""}
                 {t("technologies:clan.threshold", { points: formatNumber(reward.points) })}
@@ -86,7 +86,7 @@ export default function ClanTechnologiesPanel({ playerId, view, now, canMark }: 
       </div>
 
       <div className="!mt-0 space-y-6 rounded-b-xl bg-[#1d3b6f] px-2 py-4 text-white">
-        {finished && <p className="rounded-lg bg-amber-200 px-3 py-2 text-sm text-amber-950">{t("technologies:clan.finished")}</p>}
+        {finished && <p className="rounded-lg bg-amber-500/35 px-3 py-2 text-sm text-amber-950">{t("technologies:clan.finished")}</p>}
         {view.tiers.map((tier) => (
           <TierTree
             key={tier.tier}
@@ -106,29 +106,29 @@ export default function ClanTechnologiesPanel({ playerId, view, now, canMark }: 
         ))}
       </div>
 
-      <section className="space-y-2 rounded-xl border border-slate-200 bg-white p-4 text-sm">
-        <h3 className="font-medium text-slate-800">{t("technologies:clan.bonuses")}</h3>
+      <section className="space-y-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4 text-sm">
+        <h3 className="font-medium text-white">{t("technologies:clan.bonuses")}</h3>
         {view.bonuses.length === 0 ? (
-          <p className="text-slate-500">{t("technologies:page.noBonuses")}</p>
+          <p className="text-sky-100/70">{t("technologies:page.noBonuses")}</p>
         ) : (
           <ul className="grid gap-x-4 gap-y-0.5 sm:grid-cols-2">
             {view.bonuses.map((item) => (
               <li key={`${item.stat}:${item.target ?? ""}`} className="flex justify-between gap-2">
-                <span className="text-slate-600">{effectLabel(item, catalog)}</span>
-                <span className="font-semibold text-slate-800">{effectValue(item.stat, item.value)}</span>
+                <span className="text-slate-200">{effectLabel(item, catalog)}</span>
+                <span className="font-semibold text-white">{effectValue(item.stat, item.value)}</span>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="space-y-2 rounded-xl border border-slate-200 bg-white p-4 text-sm">
-        <h3 className="font-medium text-slate-800">{t("technologies:clan.contributors")}</h3>
+      <section className="space-y-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4 text-sm">
+        <h3 className="font-medium text-white">{t("technologies:clan.contributors")}</h3>
         {contributors.length === 0 ? (
-          <p className="text-slate-500">{t("technologies:clan.noContributors")}</p>
+          <p className="text-sky-100/70">{t("technologies:clan.noContributors")}</p>
         ) : (
           <table className="w-full">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-sky-100/70">
               <tr>
                 <th className="text-left font-normal" />
                 <th className="text-right font-normal">{t("technologies:clan.today")}</th>
@@ -137,7 +137,7 @@ export default function ClanTechnologiesPanel({ playerId, view, now, canMark }: 
             </thead>
             <tbody>
               {contributors.map((contributor) => (
-                <tr key={contributor.playerId} className={contributor.playerId === playerId ? "font-medium text-slate-900" : "text-slate-700"}>
+                <tr key={contributor.playerId} className={contributor.playerId === playerId ? "font-medium text-white" : "text-slate-100"}>
                   <td className="py-0.5">{contributor.name}</td>
                   <td className="text-right">{formatNumber(contributor.today)}</td>
                   <td className="text-right">{formatNumber(contributor.total)}</td>

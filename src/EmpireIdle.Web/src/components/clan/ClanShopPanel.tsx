@@ -31,7 +31,7 @@ export default function ClanShopPanel({ playerId, now }: Props) {
 
   const [picked, setPicked] = useState<Showcase | null>(null);
 
-  if (shop.isPending) return <p className="text-sm text-slate-500">{t("social:page.loadingShort")}</p>;
+  if (shop.isPending) return <p className="text-sm text-sky-100/70">{t("social:page.loadingShort")}</p>;
   if (shop.isError) return <ErrorBanner error={shop.error} />;
 
   const view = shop.data;
@@ -52,19 +52,19 @@ export default function ClanShopPanel({ playerId, now }: Props) {
               key={key}
               type="button"
               onClick={() => setPicked(key)}
-              className={`rounded-lg px-3 py-1 text-sm ${showcase === key ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+              className={`rounded-lg px-3 py-1 text-sm ${showcase === key ? "bg-white/20 font-semibold text-white" : "text-slate-200 hover:bg-white/15"}`}
             >
               {t(`technologies:shop.${key}`)}
             </button>
           ))}
         </nav>
-        <p className="text-sm text-slate-600">
-          {view.inClan && <span className="mr-3 font-medium text-amber-700">{t("technologies:shop.coins", { coins: formatNumber(view.coins) })}</span>}
+        <p className="text-sm text-slate-200">
+          {view.inClan && <span className="mr-3 font-medium text-amber-200">{t("technologies:shop.coins", { coins: formatNumber(view.coins) })}</span>}
           {t("technologies:shop.refreshes", { remaining: formatRemaining(refreshesAt, now) })}
         </p>
       </div>
 
-      {!view.inClan && <p className="rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-800">{t("technologies:shop.outsideClan")}</p>}
+      {!view.inClan && <p className="rounded-lg bg-sky-500/15 px-3 py-2 text-sm text-sky-200">{t("technologies:shop.outsideClan")}</p>}
 
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {showcase === "free"
@@ -76,7 +76,7 @@ export default function ClanShopPanel({ playerId, now }: Props) {
               return (
                 <ShopCard key={item.itemKey} itemKey={item.itemKey} countLine={t("technologies:shop.left", { left, limit: item.limit })}>
                   {locked ? (
-                    <span className="text-xs text-slate-500">{t("technologies:shop.clanOnly")}</span>
+                    <span className="text-xs text-sky-100/70">{t("technologies:shop.clanOnly")}</span>
                   ) : (
                     <>
                       {left > 1 && (
@@ -84,7 +84,7 @@ export default function ClanShopPanel({ playerId, now }: Props) {
                           type="button"
                           disabled={busy}
                           onClick={() => claim.mutate({ itemKey: item.itemKey, quantity: left })}
-                          className="text-sm text-sky-700 hover:underline disabled:opacity-50"
+                          className="text-sm text-sky-200 hover:underline disabled:opacity-50"
                         >
                           {t("technologies:shop.claimAll", { count: left })}
                         </button>
@@ -125,10 +125,10 @@ function PaidCard({ offer, affordable, busy, onBuy }: { offer: ClanShopOfferView
         {offer.discountPercent > 0 && (
           <>
             <span className="mr-1 rounded bg-rose-600 px-1 text-xs font-semibold text-white">−{offer.discountPercent}%</span>
-            <s className="mr-1 text-slate-400">{formatNumber(offer.basePrice)}</s>
+            <s className="mr-1 text-sky-100/50">{formatNumber(offer.basePrice)}</s>
           </>
         )}
-        <span className="font-semibold text-amber-700">🪙 {formatNumber(offer.price)}</span>
+        <span className="font-semibold text-amber-200">🪙 {formatNumber(offer.price)}</span>
       </span>
       <button type="button" disabled={busy || left <= 0 || !affordable} onClick={onBuy} className={button}>
         {t("technologies:shop.buy")}
@@ -142,13 +142,13 @@ function ShopCard({ itemKey, countLine, children }: { itemKey: string; countLine
   const item = catalog.item(itemKey);
 
   return (
-    <div className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3">
+    <div className="flex gap-3 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3">
       <ItemIcon itemKey={itemKey} type={item?.type ?? ""} rarity={item?.rarity} size={48} />
       <div className="min-w-0 flex-1 space-y-1">
-        <p className="truncate font-medium text-slate-800" title={item?.description}>
+        <p className="truncate font-medium text-white" title={item?.description}>
           {catalog.itemName(itemKey)}
         </p>
-        <p className="text-xs text-slate-500">{countLine}</p>
+        <p className="text-xs text-sky-100/70">{countLine}</p>
         <div className="flex flex-wrap items-center justify-end gap-2">{children}</div>
       </div>
     </div>

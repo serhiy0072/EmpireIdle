@@ -18,8 +18,8 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
   if (!canEdit) {
     return (
       <div className="space-y-1 text-sm">
-        <p className="text-slate-700">{clan.description === "" ? t("social:settings.noDescription") : clan.description}</p>
-        <p className="text-slate-500">{t("social:settings.joinPolicy", { policy: joinPolicyLabel(clan.joinPolicy) })}</p>
+        <p className="text-slate-100">{clan.description === "" ? t("social:settings.noDescription") : clan.description}</p>
+        <p className="text-sky-100/70">{t("social:settings.joinPolicy", { policy: joinPolicyLabel(clan.joinPolicy) })}</p>
       </div>
     );
   }
@@ -28,23 +28,23 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm text-slate-600">
+      <label className="block text-sm text-slate-200">
         {t("social:settings.description")}
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           maxLength={500}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-800"
+          className="mt-1 w-full rounded-lg border border-[#4a72b0] px-3 py-1.5 text-sm text-white"
         />
       </label>
 
-      <label className="block text-sm text-slate-600">
+      <label className="block text-sm text-slate-200">
         {t("social:settings.join")}
         <select
           value={policy}
           onChange={(event) => setPolicy(event.target.value as ClanJoinPolicy)}
-          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800"
+          className="mt-1 w-full rounded-lg border border-[#4a72b0] bg-[#1d3b6f] px-3 py-1.5 text-sm text-white"
         >
           {JOIN_POLICIES.map((item) => (
             <option key={item} value={item}>
@@ -58,7 +58,7 @@ export default function ClanSettings({ clan, canEdit, busy, onSave }: Props) {
         type="button"
         onClick={() => onSave(description.trim(), policy)}
         disabled={busy || !dirty}
-        className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
+        className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
       >
         {t("social:settings.save")}
       </button>

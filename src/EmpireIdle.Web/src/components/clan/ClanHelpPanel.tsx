@@ -32,7 +32,7 @@ function subjectOf(item: ClanHelpItemResponse, fallback: string): string {
   return (item.subject == null ? null : technologyKeyLabel(item.subject)) ?? fallback;
 }
 
-const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
+const button = "rounded-lg border border-[#4a72b0] px-3 py-1 text-sm text-slate-100 hover:bg-white/10 disabled:opacity-50";
 
 /**
  * Взаємодопомога: кожен клік соклановця скорочує таймер. Своє прохання
@@ -47,16 +47,16 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <section className="space-y-2">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:help.asking")}</h3>
+        <h3 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:help.asking")}</h3>
         {others.length === 0 ? (
-          <p className="text-sm text-slate-500">{t("social:help.none")}</p>
+          <p className="text-sm text-sky-100/70">{t("social:help.none")}</p>
         ) : (
           others.map((item) => (
-            <div key={item.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3">
+            <div key={item.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3">
               <div className="flex-1 text-sm">
-                <span className="font-medium text-slate-800">{item.playerName}</span>
-                <span className="ml-2 text-slate-500">{subjectOf(item, t(`social:help.${HELP_LABEL[item.targetType] ?? "training"}`))}</span>
-                <div className="text-xs text-slate-500">
+                <span className="font-medium text-white">{item.playerName}</span>
+                <span className="ml-2 text-sky-100/70">{subjectOf(item, t(`social:help.${HELP_LABEL[item.targetType] ?? "training"}`))}</span>
+                <div className="text-xs text-sky-100/70">
                   {t("social:help.progress", { count: item.helpCount, max: item.maxHelpers, remaining: formatRemaining(item.expiresAt, now) })}
                 </div>
               </div>
@@ -66,7 +66,7 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
                 disabled={busy || item.alreadyHelped || item.helpCount >= item.maxHelpers}
                 className={
                   item.alreadyHelped
-                    ? "rounded-lg bg-slate-100 px-3 py-1 text-sm text-slate-500"
+                    ? "rounded-lg bg-white/10 px-3 py-1 text-sm text-sky-100/70"
                     : "rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                 }
               >
@@ -78,11 +78,11 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:help.mine")}</h3>
+        <h3 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:help.mine")}</h3>
         {mine.map((item) => (
-          <div key={item.requestId} className="rounded-xl border border-emerald-200 bg-white p-3 text-sm">
-            <span className="text-slate-800">{subjectOf(item, t(`social:help.${HELP_TITLE[item.targetType] ?? "Training"}`))}</span>
-            <span className="ml-2 text-xs text-slate-500">
+          <div key={item.requestId} className="rounded-xl border border-emerald-400/50 bg-[#1d3b6f] p-3 text-sm">
+            <span className="text-white">{subjectOf(item, t(`social:help.${HELP_TITLE[item.targetType] ?? "Training"}`))}</span>
+            <span className="ml-2 text-xs text-sky-100/70">
               {t("social:help.mineProgress", { count: item.helpCount, max: item.maxHelpers, remaining: formatRemaining(item.expiresAt, now) })}
             </span>
           </div>
@@ -91,8 +91,8 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
         {constructions
           .filter((building) => !requested.has(building.id))
           .map((building) => (
-            <div key={building.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm">
-              <span className="flex-1 text-slate-700">
+            <div key={building.id} className="flex items-center gap-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3 text-sm">
+              <span className="flex-1 text-slate-100">
                 {catalog.buildingName(building.type)} → {building.level + 1}
               </span>
               <button type="button" onClick={() => onRequest("Construction", building.id)} disabled={busy} className={button}>
@@ -104,8 +104,8 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
         {trainings
           .filter((order) => !requested.has(order.id))
           .map((order) => (
-            <div key={order.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm">
-              <span className="flex-1 text-slate-700">
+            <div key={order.id} className="flex items-center gap-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3 text-sm">
+              <span className="flex-1 text-slate-100">
                 {catalog.unitName(order.unitType)} ×{order.count}
               </span>
               <button type="button" onClick={() => onRequest("Training", order.id)} disabled={busy} className={button}>
@@ -115,7 +115,7 @@ export default function ClanHelpPanel({ items, constructions, trainings, now, bu
           ))}
 
         {mine.length === 0 && constructions.length === 0 && trainings.length === 0 && (
-          <p className="text-sm text-slate-500">{t("social:help.nothingToAsk")}</p>
+          <p className="text-sm text-sky-100/70">{t("social:help.nothingToAsk")}</p>
         )}
       </section>
     </div>

@@ -57,9 +57,9 @@ export default function ClanMembers({
   const assignable = roles.filter((role) => role.rank < myRank);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-xl border border-[#335c9a] bg-[#1d3b6f]">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <thead className="bg-white/5 text-left text-xs uppercase tracking-wide text-sky-100/70">
           <tr>
             <th className="px-3 py-2">{t("social:members.player")}</th>
             <th className="px-3 py-2">{t("social:members.role")}</th>
@@ -74,27 +74,27 @@ export default function ClanMembers({
             const below = member.rank < myRank;
 
             return (
-              <tr key={member.playerId} className={`border-t border-slate-100 ${me ? "bg-emerald-50/50" : ""}`}>
-                <td className="px-3 py-2 font-medium text-slate-800">
+              <tr key={member.playerId} className={`border-t border-[#335c9a]/60 ${me ? "bg-emerald-50/50" : ""}`}>
+                <td className="px-3 py-2 font-medium text-white">
                   {member.playerName}
                   {me ? (
-                    <span className="ml-1 text-xs text-emerald-700">{t("social:members.you")}</span>
+                    <span className="ml-1 text-xs text-emerald-200">{t("social:members.you")}</span>
                   ) : (
                     <Link
                       to={`/chat?${new URLSearchParams({ tab: "Private", to: member.playerId, name: member.playerName }).toString()}`}
-                      className="ml-2 text-xs font-normal text-emerald-700 hover:underline"
+                      className="ml-2 text-xs font-normal text-emerald-200 hover:underline"
                     >
                       {t("social:members.message")}
                     </Link>
                   )}
                 </td>
-                <td className="px-3 py-2 text-slate-600">
+                <td className="px-3 py-2 text-slate-200">
                   {canAssignRoles && below && assignable.length > 0 ? (
                     <select
                       value={member.roleId}
                       disabled={busy}
                       onChange={(event) => onAssignRole(member.playerId, event.target.value)}
-                      className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm"
+                      className="rounded-lg border border-[#4a72b0] bg-[#1d3b6f] px-2 py-1 text-sm"
                     >
                       {/* Поточна роль може бути вищою за доступні — лишаємо її в списку, щоб select не збрехав */}
                       {!assignable.some((role) => role.id === member.roleId) && (
@@ -110,8 +110,8 @@ export default function ClanMembers({
                     clanRoleName(member.roleKey, member.roleName)
                   )}
                 </td>
-                <td className="px-3 py-2 text-right text-slate-700">{compact(member.power)}</td>
-                <td className="px-3 py-2 text-slate-500">{since(member.lastActiveAt, now)}</td>
+                <td className="px-3 py-2 text-right text-slate-100">{compact(member.power)}</td>
+                <td className="px-3 py-2 text-sky-100/70">{since(member.lastActiveAt, now)}</td>
                 <td className="space-x-1 whitespace-nowrap px-3 py-2 text-right">
                   {isLeader && !me && (
                     <ConfirmButton
@@ -119,7 +119,7 @@ export default function ClanMembers({
                       confirmLabel={t("social:members.confirmLeader")}
                       onConfirm={() => onTransferLeadership(member.playerId)}
                       disabled={busy}
-                      className="rounded-lg border border-amber-300 px-2 py-0.5 text-xs text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                      className="rounded-lg border border-amber-400/50 px-2 py-0.5 text-xs text-amber-200 hover:bg-amber-500/15 disabled:opacity-50"
                     />
                   )}
                   {canKick && below && (
@@ -129,7 +129,7 @@ export default function ClanMembers({
                       confirmLabel={t("social:members.confirmKick")}
                       onConfirm={() => onKick(member.playerId)}
                       disabled={busy}
-                      className="rounded-lg border border-red-200 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      className="rounded-lg border border-red-400/50 px-2 py-0.5 text-xs text-red-200 hover:bg-red-500/15 disabled:opacity-50"
                     />
                   )}
                 </td>

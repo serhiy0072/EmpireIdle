@@ -19,7 +19,7 @@ interface Props {
 /** Довжина назви ролі на сервері (ClanRoles.Name). */
 const MAX_NAME = 32;
 
-const button = "rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50";
+const button = "rounded-lg border border-[#4a72b0] px-2 py-0.5 text-xs text-slate-100 hover:bg-white/10 disabled:opacity-50";
 
 /**
  * Ролі клану (GDD §7.1): перелік із рангами й дозволами та редактор для тих, хто має ManageRoles.
@@ -37,13 +37,13 @@ export default function ClanRoles({ clan, canManage, busy, onCreate, onUpdate, o
 
   return (
     <div className="space-y-2">
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-[#335c9a]">
         {roles.map((role) => (
           <li key={role.id} className="space-y-2 py-2 text-sm">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium text-slate-800">{clanRoleName(role.key, role.name)}</span>
-              <span className="text-xs text-slate-500">{t("social:roles.rank", { rank: role.rank })}</span>
-              <span className="flex-1 text-xs text-slate-500">
+              <span className="font-medium text-white">{clanRoleName(role.key, role.name)}</span>
+              <span className="text-xs text-sky-100/70">{t("social:roles.rank", { rank: role.rank })}</span>
+              <span className="flex-1 text-xs text-sky-100/70">
                 {role.permissions.length === 0 ? t("social:roles.noPermissions") : role.permissions.map(permissionLabel).join(", ")}
               </span>
               {manageable(role) && (
@@ -58,7 +58,7 @@ export default function ClanRoles({ clan, canManage, busy, onCreate, onUpdate, o
                       confirmLabel={t("social:roles.confirmDelete")}
                       onConfirm={() => onDelete(role.id)}
                       disabled={busy}
-                      className="rounded-lg border border-red-200 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      className="rounded-lg border border-red-400/50 px-2 py-0.5 text-xs text-red-200 hover:bg-red-500/15 disabled:opacity-50"
                     />
                   )}
                 </>
@@ -122,18 +122,18 @@ function RoleForm({ initial, myRank, myPermissions, busy, onSubmit }: FormProps)
   const valid = name.trim() !== "" && Number.isInteger(rank) && rank >= 0 && rank < myRank;
 
   return (
-    <div className="space-y-2 rounded-lg bg-slate-50 p-3">
+    <div className="space-y-2 rounded-lg bg-white/5 p-3">
       <div className="flex flex-wrap gap-3">
-        <label className="block flex-1 text-xs text-slate-600">
+        <label className="block flex-1 text-xs text-slate-200">
           {t("social:roles.name")}
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
             maxLength={MAX_NAME}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-800"
+            className="mt-1 w-full rounded-lg border border-[#4a72b0] px-2 py-1 text-sm text-white"
           />
         </label>
-        <label className="block w-28 text-xs text-slate-600">
+        <label className="block w-28 text-xs text-slate-200">
           {t("social:roles.rankField")}
           <input
             type="number"
@@ -141,15 +141,15 @@ function RoleForm({ initial, myRank, myPermissions, busy, onSubmit }: FormProps)
             max={myRank - 1}
             value={rank}
             onChange={(event) => setRank(Number(event.target.value))}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-800"
+            className="mt-1 w-full rounded-lg border border-[#4a72b0] px-2 py-1 text-sm text-white"
           />
         </label>
       </div>
-      <p className="text-xs text-slate-500">{t("social:roles.rankHint", { max: myRank - 1 })}</p>
+      <p className="text-xs text-sky-100/70">{t("social:roles.rankHint", { max: myRank - 1 })}</p>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {CLAN_PERMISSIONS.map((permission) => (
-          <label key={permission} className="flex items-center gap-1 text-xs text-slate-700">
+          <label key={permission} className="flex items-center gap-1 text-xs text-slate-100">
             <input
               type="checkbox"
               checked={permissions.includes(permission)}
@@ -166,7 +166,7 @@ function RoleForm({ initial, myRank, myPermissions, busy, onSubmit }: FormProps)
         type="button"
         onClick={() => onSubmit({ name: name.trim(), rank, permissions })}
         disabled={busy || !valid}
-        className="rounded-lg bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
+        className="rounded-lg bg-sky-600 px-3 py-1 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
       >
         {t("social:roles.save")}
       </button>
