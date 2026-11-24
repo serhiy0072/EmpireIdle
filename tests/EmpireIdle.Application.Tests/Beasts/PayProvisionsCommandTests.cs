@@ -77,7 +77,7 @@ public class PayProvisionsCommandTests
     private Village GivenVillage(GameCatalog catalog, int food)
     {
         var (x, y) = new WorldGeometry(catalog.Config.Map).Centre;
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [.. TestKeys.AllResources], x, y);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [.. TestKeys.AllResources], x, y, serverId: 1);
         village.GrantStartingResources(new Dictionary<string, int> { [TestKeys.Food] = food }, Now);
         village.AddBuilding(catalog.MainBuildingKey, catalog.Buildings, Now);
         village.AddBuilding(TestKeys.BeastPen, catalog.Buildings, Now);

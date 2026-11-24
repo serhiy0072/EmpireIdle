@@ -278,7 +278,7 @@ public class CompleteMarchCommandTests
     /// <summary>Село з ратушею потрібного рівня — інакше діє щит новачка.</summary>
     private static Village NewVillage(GameCatalog catalog, Guid ownerId, int x, int y, int townHallLevel = 5)
     {
-        var village = new Village(Guid.NewGuid(), ownerId, "Test", ["food"], x, y);
+        var village = new Village(Guid.NewGuid(), ownerId, "Test", ["food"], x, y, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 0 }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);

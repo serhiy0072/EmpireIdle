@@ -51,7 +51,7 @@ public class RecalculateAllRatingsCommandTests
             ["townhall"] = new() { Key = "townhall", IsMainBuilding = true }
         };
 
-        var village = new Village(Guid.NewGuid(), playerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), playerId, "Test", ["food"], 0, 0, serverId: 1);
         village.AddBuilding("townhall", configs, Now);
 
         var townhall = village.Buildings.Single();

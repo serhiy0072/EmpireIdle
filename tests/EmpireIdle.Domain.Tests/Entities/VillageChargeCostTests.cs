@@ -14,7 +14,7 @@ public class VillageChargeCostTests
 
     private static Village VillageWithGold(int gold)
     {
-        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test Village", ["gold"], 0, 0);
+        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test Village", ["gold"], 0, 0, serverId: 1);
         village.GrantStartingResources(new Dictionary<string, int> { ["gold"] = gold }, Now);
         return village;
     }

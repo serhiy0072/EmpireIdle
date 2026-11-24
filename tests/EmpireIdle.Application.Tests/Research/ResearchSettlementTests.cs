@@ -51,7 +51,7 @@ public class ResearchSettlementTests
     private (Building Farm, PlayerResearch Research) Given(string node)
     {
         var playerId = Guid.NewGuid();
-        var village = new Village(Guid.NewGuid(), playerId, "Test", [TestKeys.Food], 0, 0);
+        var village = new Village(Guid.NewGuid(), playerId, "Test", [TestKeys.Food], 0, 0, serverId: 1);
         village.AddBuilding(TestKeys.Townhall, _catalog.Buildings, Now.AddHours(-1));
         village.AddBuilding(TestKeys.Farm, _catalog.Buildings, Now.AddHours(-1));
         _villages.GetByPlayerIdAsync(playerId, Arg.Any<CancellationToken>()).Returns(village);

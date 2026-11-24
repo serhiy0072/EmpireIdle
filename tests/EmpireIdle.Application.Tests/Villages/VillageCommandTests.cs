@@ -105,7 +105,7 @@ public class VillageCommandTests
         var (cx, cy) = geometry.Centre;
 
         var x = atCentre ? cx : cx + geometry.Radius - 1;
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], x, cy);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], x, cy, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now.AddMinutes(-accruedMinutes));

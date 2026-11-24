@@ -22,7 +22,7 @@ public class BeastTamerTests
 
     private Task<string?> Tame()
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [], 0, 0, serverId: 1);
         village.AddBuilding(_catalog.MainBuildingKey, _catalog.Buildings, Now);
         village.AddBuilding(TestKeys.BeastPen, _catalog.Buildings, Now);
 

@@ -289,7 +289,7 @@ public class ClaimQuestRewardCommandTests
     public async Task Handle_ShouldClaimAThresholdQuest_ReachedBeforeItOpened()
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         village.AddBuilding("townhall", catalog.Buildings, Now);
         var townhall = village.Buildings.Single();
         for (var i = 1; i < 4; i++)
@@ -314,7 +314,7 @@ public class ClaimQuestRewardCommandTests
     private void GivenTownHall(int level)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         village.AddBuilding("townhall", catalog.Buildings, Now);
 
         var townhall = village.Buildings.Single();

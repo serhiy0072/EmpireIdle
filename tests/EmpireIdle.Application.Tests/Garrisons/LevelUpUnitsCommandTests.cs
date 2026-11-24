@@ -56,7 +56,7 @@ public class LevelUpUnitsCommandTests
     private (Village Village, Garrison Garrison) GivenVillage(int infantryAtLevelOne = 10, int food = 10_000, int townHallLevel = 10)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
@@ -78,7 +78,7 @@ public class LevelUpUnitsCommandTests
     private (Village Village, Garrison Garrison) GivenVillageWithStackAtLevel(int level, int count = 10, int food = 100_000, int townHallLevel = 10)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);

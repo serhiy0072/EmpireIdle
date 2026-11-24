@@ -66,7 +66,7 @@ public class SendScoutCommandTests
 
     private Village GivenVillage(Guid ownerId, int x, int y, bool withTower)
     {
-        var village = new Village(Guid.NewGuid(), ownerId, $"Village {x}", TestKeys.AllResources, x, y);
+        var village = new Village(Guid.NewGuid(), ownerId, $"Village {x}", TestKeys.AllResources, x, y, serverId: 1);
 
         village.AddBuilding(TestKeys.Townhall, _catalog.Buildings, Now);
         if (withTower)

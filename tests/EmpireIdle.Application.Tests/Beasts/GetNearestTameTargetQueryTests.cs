@@ -17,7 +17,7 @@ public class GetNearestTameTargetQueryTests
     private readonly IVillageRepository _villages = Substitute.For<IVillageRepository>();
     private readonly IMonsterRepository _monsters = Substitute.For<IMonsterRepository>();
     private readonly GameCatalog _catalog = new GameConfigBuilder().WithBeasts().BuildCatalog();
-    private readonly Village _village = new(Guid.NewGuid(), PlayerId, "Test", [], 7, -3);
+    private readonly Village _village = new(Guid.NewGuid(), PlayerId, "Test", [], 7, -3, serverId: 1);
 
     public GetNearestTameTargetQueryTests()
         => _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(_village);

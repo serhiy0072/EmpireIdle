@@ -248,7 +248,7 @@ public class OptimisticLockingTests
 
         var village = new Village(
             Guid.NewGuid(), Guid.NewGuid(), "Concurrency Test",
-            ["gold", "food", "wood", "iron", "population"], x: 5, y: 5);
+            ["gold", "food", "wood", "iron", "population"], x: 5, y: 5, serverId: 1);
 
         // Ферма коштує 100 gold + 50 wood — з запасом, щоб ChargeCost не був причиною падіння
         village.GrantStartingResources(

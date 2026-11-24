@@ -53,7 +53,7 @@ public class RecallCampCommandTests
     /// <summary>Село гравця на (10, 10) і його похід на (40, 40).</summary>
     private March GivenMarch(bool camping = true)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Home", ["food"], 10, 10);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Home", ["food"], 10, 10, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         var march = new March(Guid.NewGuid(), 1, garrison.Id, 10, 10, 40, 40,

@@ -47,7 +47,7 @@ public class ReinforcementRulesTests
     private static Village NewVillage(Guid ownerId, int townHallLevel = 5)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), ownerId, "Test", ["food"], 50, 50);
+        var village = new Village(Guid.NewGuid(), ownerId, "Test", ["food"], 50, 50, serverId: 1);
 
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("embassy", catalog.Buildings, Now);

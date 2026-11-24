@@ -27,7 +27,7 @@ public class MarchReturnedNotificationHandlerTests
     public async Task Handle_ShouldNotifyTheGarrisonOwner()
     {
         var playerId = Guid.NewGuid();
-        var village = new Village(Guid.NewGuid(), playerId, "Test", [], 50, 50);
+        var village = new Village(Guid.NewGuid(), playerId, "Test", [], 50, 50, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, village.ServerId);
         var marchId = Guid.NewGuid();
 

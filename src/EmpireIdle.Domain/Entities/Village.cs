@@ -82,7 +82,7 @@ namespace EmpireIdle.Domain.Entities
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
         /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
-        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int x, int y, int serverId = 1) : base(id)
+        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int x, int y, int serverId) : base(id)
         {
             PlayerId = playerId;
             Name = name;

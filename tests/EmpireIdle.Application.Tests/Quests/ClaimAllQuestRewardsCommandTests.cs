@@ -111,7 +111,7 @@ public class ClaimAllQuestRewardsCommandTests
     private void GivenTownHall(int level)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         village.AddBuilding("townhall", catalog.Buildings, Now);
 
         var townhall = village.Buildings.Single();

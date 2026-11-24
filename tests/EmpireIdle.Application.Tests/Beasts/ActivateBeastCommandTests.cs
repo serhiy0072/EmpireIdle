@@ -44,7 +44,7 @@ public class ActivateBeastCommandTests
 
     private Village GivenVillage(GameCatalog catalog, int food)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [.. TestKeys.AllResources], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [.. TestKeys.AllResources], 0, 0, serverId: 1);
         village.GrantStartingResources(new Dictionary<string, int> { [TestKeys.Food] = food }, Now);
         village.AddBuilding(catalog.MainBuildingKey, catalog.Buildings, Now);
 

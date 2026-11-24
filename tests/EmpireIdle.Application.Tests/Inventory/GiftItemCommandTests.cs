@@ -35,7 +35,7 @@ public class GiftItemCommandTests
 
     private static Player NewPlayer(Guid? clanId)
     {
-        var player = new Player(Guid.NewGuid(), "p", "p@example.com", Guid.NewGuid().ToString(), Now);
+        var player = new Player(Guid.NewGuid(), "p", "p@example.com", Guid.NewGuid().ToString(), Now, serverId: 1);
 
         if (clanId is { } id)
             player.JoinClan(id);

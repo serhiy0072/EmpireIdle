@@ -41,7 +41,7 @@ public class WoundedCapacityTechnologyTests
 
     private (Village Village, Garrison Garrison) Given()
     {
-        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", [], 0, 0);
+        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", [], 0, 0, serverId: 1);
         village.AddBuilding(TestKeys.Townhall, _catalog.Buildings, Now);
         village.AddBuilding("hospital", _catalog.Buildings, Now);
 

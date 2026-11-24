@@ -29,7 +29,7 @@ public class BuildingProductionTechnologyTests
 
     private static Building Farm()
     {
-        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", ["food"], 0, 0, serverId: 1);
         village.AddBuilding("townhall", Catalog.Buildings, Now);
         village.AddBuilding("farm", Catalog.Buildings, Now);
 

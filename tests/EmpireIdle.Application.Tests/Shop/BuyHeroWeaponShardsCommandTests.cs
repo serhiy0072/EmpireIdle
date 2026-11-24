@@ -36,7 +36,7 @@ public class BuyHeroWeaponShardsCommandTests
         _catalog = new GameCatalog(config);
 
         _players.GetByIdAsync(PlayerId, Arg.Any<CancellationToken>())
-            .Returns(new Player(PlayerId, "tester", "tester@example.com", "user-1", Now));
+            .Returns(new Player(PlayerId, "tester", "tester@example.com", "user-1", Now, serverId: 1));
         _wallets.GetByUserIdAsync("user-1", Arg.Any<CancellationToken>()).Returns(_wallet);
     }
 

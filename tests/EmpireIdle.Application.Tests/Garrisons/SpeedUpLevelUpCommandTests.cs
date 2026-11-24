@@ -42,7 +42,7 @@ public class SpeedUpLevelUpCommandTests
     private (Garrison Garrison, PlayerWallet Wallet, Guid OrderId) GivenLevellingUp(
         int minutesLeft = 120, int gems = 5000)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         garrison.TrainUnits("infantry", 1, 5, 100, 1000, TimeSpan.Zero, Now);

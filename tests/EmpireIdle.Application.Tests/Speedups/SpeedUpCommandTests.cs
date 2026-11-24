@@ -76,7 +76,7 @@ public class SpeedUpCommandTests
     private Village GivenVillageWithConstruction(int minutesLeft)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 10_000 }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
@@ -162,7 +162,7 @@ public class SpeedUpCommandTests
     public async Task SpeedUpConstruction_ShouldRefuse_AtTheFloor()
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 10_000 }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
@@ -205,7 +205,7 @@ public class SpeedUpCommandTests
     public async Task SpeedUpConstruction_ShouldThrow_WhenNothingIsBeingBuilt()
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
 
         village.AddBuilding("townhall", catalog.Buildings, Now);
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
@@ -222,7 +222,7 @@ public class SpeedUpCommandTests
     [Fact]
     public async Task SpeedUpMarch_ShouldThrow_WhenTheMarchBelongsToSomeoneElse()
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
@@ -242,7 +242,7 @@ public class SpeedUpCommandTests
 
     private March GivenMarch(DateTime arrivesAt)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         var march = new March(
@@ -325,7 +325,7 @@ public class SpeedUpCommandTests
     [Fact]
     public async Task SpeedUpMarch_ShouldMoveArrivalToTheFloor_OnTheDeepestOption()
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         var march = new March(

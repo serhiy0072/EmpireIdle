@@ -100,7 +100,7 @@ public class TrainUnitsCommandTests
         int barracksLevel = 1, int food = 10_000, bool barracksUnderConstruction = false, int townHallLevel = 1)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);

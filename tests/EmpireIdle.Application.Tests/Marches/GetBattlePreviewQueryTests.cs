@@ -87,7 +87,7 @@ public class GetBattlePreviewQueryTests
     /// <summary>Село з піхотою, монстр поруч; повертає монстра й героя з заданим власником.</summary>
     private (Monster Monster, Hero Hero) GivenState(Guid heroOwnerId)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 50, 50);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 50, 50, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
         garrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, Now);
 

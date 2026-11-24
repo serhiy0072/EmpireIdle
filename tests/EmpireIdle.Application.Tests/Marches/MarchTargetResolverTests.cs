@@ -51,7 +51,7 @@ public class MarchTargetResolverTests
     private static Village NewVillage(int townHallLevel)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", ["food"], 50, 50);
+        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", ["food"], 50, 50, serverId: 1);
 
         village.AddBuilding("townhall", catalog.Buildings, Now);
 

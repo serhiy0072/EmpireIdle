@@ -35,7 +35,7 @@ public class SpeedUpWithItemsCommandTests
     {
         var catalog = new GameCatalog(Config());
 
-        _village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        _village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         _village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 10_000 }, Now);
         _village.AddBuilding("townhall", catalog.Buildings, Now);
         _village.AddBuilding("farm", catalog.Buildings, Now);

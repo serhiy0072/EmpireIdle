@@ -43,7 +43,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         private static Village NewVillage(int food = 0)
         {
             var catalog = Catalog();
-            var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", ["food"], 0, 0);
+            var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", ["food"], 0, 0, serverId: 1);
 
             village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
             village.AddBuilding("townhall", catalog.Buildings, Now);
