@@ -64,7 +64,7 @@ builder.Configuration
     .AddIndexedJsonFile("Config/locales.en.json");
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
-// у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
+// у GameConfigValidator (кличе GameCatalog): правило пошуку однозначне, і два списки не розійдуться.
 builder.Services.AddOptions<GameConfig>()
     .Bind(builder.Configuration.GetSection("GameConfig"))
     .Validate(c => c.Resources.Count > 0, "GameConfig.Resources is empty — check Config/resources.json.")
