@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ClanPermission, ClanRoleRequest, ClanRoleResponse, MyClanResponse } from "../../lib/apiTypes";
 import { clanRoleName } from "../../lib/clanRoles";
 import { CLAN_PERMISSIONS, permissionLabel } from "../../lib/queries/clans";
+import { ConfirmButton } from "../game/GameUi";
 import { t } from "i18next";
 
 interface Props {
@@ -28,7 +29,6 @@ const button = "rounded-lg border border-slate-300 px-2 py-0.5 text-xs text-slat
 export default function ClanRoles({ clan, canManage, busy, onCreate, onUpdate, onDelete }: Props) {
   // "new" — форма нової ролі; id — редагування наявної; null — лише перелік
   const [editing, setEditing] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const mine = clan.roles.find((role) => role.id === clan.myRoleId);
   const myRank = mine?.rank ?? 0;
@@ -52,23 +52,14 @@ export default function ClanRoles({ clan, canManage, busy, onCreate, onUpdate, o
                     {editing === role.id ? t("social:roles.cancel") : t("social:roles.edit")}
                   </button>
                   {!role.isDefaultRole && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // Видалення не скасувати — два кліки, як і виключення учасника
-                        if (confirmDelete === role.id) {
-                          setConfirmDelete(null);
-                          onDelete(role.id);
-                        } else {
-                          setConfirmDelete(role.id);
-                        }
-                      }}
-                      onBlur={() => setConfirmDelete(null)}
+                    // Видалення не скасувати — два кліки, як і виключення учасника
+                    <ConfirmButton
+                      label={t("social:roles.delete")}
+                      confirmLabel={t("social:roles.confirmDelete")}
+                      onConfirm={() => onDelete(role.id)}
                       disabled={busy}
                       className="rounded-lg border border-red-200 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
-                    >
-                      {confirmDelete === role.id ? t("social:roles.confirmDelete") : t("social:roles.delete")}
-                    </button>
+                    />
                   )}
                 </>
               )}

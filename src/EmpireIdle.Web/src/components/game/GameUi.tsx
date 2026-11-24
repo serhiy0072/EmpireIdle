@@ -1,12 +1,13 @@
-import type { ReactNode } from "react";
-import { useTabHotkeys } from "../../hooks/useHotkeys";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useHotkeys, useTabHotkeys } from "../../hooks/useHotkeys";
 import { rarityKey } from "../../lib/rarity";
 import { formatNumber } from "../../lib/format";
+import { progressShare } from "../../lib/progress";
 import { t } from "i18next";
 
 /**
  * Ігрова «шкірка» екранів героя, рюкзака й табору (рішення 08.10.2026): темно-синє тло,
- * плитки з рамкою рідкості, великі вкладки. Решта застосунку поки світла — переходить поступово.
+ * плитки з рамкою рідкості, великі вкладки, спільні вікно, смуга поступу й кнопка з підтвердженням.
  */
 
 /** Темно-синій екран із заголовком; дії праворуч від назви. */
@@ -225,6 +226,136 @@ export function StarRow({ starParts, partsPerStar, maxStars, size = 28 }: { star
           size={size}
         />
       ))}
+    </div>
+  );
+}
+
+/** Смуга поступу; колір — класи заливки (градієнт чи суцільний), тло — темне. */
+export function ProgressBar({
+  value,
+  max,
+  fill = "bg-gradient-to-r from-green-500 to-lime-400",
+  track = "bg-black/30",
+  className = "h-2",
+  label,
+}: {
+  value: number;
+  max: number;
+  fill?: string;
+  /** Колір доріжки під заливкою. */
+  track?: string;
+  className?: string;
+  /** Підпис для зчитувачів екрана. */
+  label?: string;
+}) {
+  const share = progressShare(value, max);
+
+  return (
+    <div
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(share * 100)}
+      className={`overflow-hidden rounded-full ${track} ${className}`}
+    >
+      <div className={`h-full ${fill}`} style={{ width: `${share * 100}%` }} />
+    </div>
+  );
+}
+
+/**
+ * Кнопка з підтвердженням другим кліком: перший клік міняє напис на confirmLabel,
+ * другий виконує дію; втрата фокусу скасовує підтвердження.
+ */
+export function ConfirmButton({
+  label,
+  confirmLabel,
+  onConfirm,
+  disabled,
+  className = "",
+  confirmClassName = "",
+}: {
+  label: ReactNode;
+  confirmLabel: ReactNode;
+  onConfirm: () => void;
+  disabled?: boolean;
+  className?: string;
+  /** Додаткові класи, поки кнопка чекає другого кліку. */
+  confirmClassName?: string;
+}) {
+  const [armed, setArmed] = useState(false);
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => {
+        if (armed) {
+          setArmed(false);
+          onConfirm();
+        } else {
+          setArmed(true);
+        }
+      }}
+      onBlur={() => setArmed(false)}
+      className={`${className} ${armed ? confirmClassName : ""}`}
+    >
+      {armed ? confirmLabel : label}
+    </button>
+  );
+}
+
+const DIALOG_WIDTHS = { sm: "max-w-sm", md: "max-w-md", lg: "max-w-2xl" } as const;
+
+/**
+ * Модальне вікно гри: Esc (шар гарячих клавіш modal — екран під вікном їх не чує)
+ * і клік поза вікном закривають; фокус переходить на вікно.
+ */
+export function GameDialog({
+  title,
+  subtitle,
+  label,
+  onClose,
+  children,
+  size = "md",
+}: {
+  title: ReactNode;
+  /** Рядок під заголовком: рівень, стан. */
+  subtitle?: ReactNode;
+  /** Назва для зчитувачів екрана, коли заголовок — не просто текст. */
+  label?: string;
+  onClose: () => void;
+  children: ReactNode;
+  size?: keyof typeof DIALOG_WIDTHS;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useHotkeys({ Escape: onClose }, { modal: true });
+  useEffect(() => ref.current?.focus(), []);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" onClick={onClose}>
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        tabIndex={-1}
+        onClick={(event) => event.stopPropagation()}
+        className={`max-h-[90vh] w-full space-y-3 overflow-y-auto rounded-2xl bg-gradient-to-b from-[#24467f] to-[#16305e] p-4 text-white shadow-2xl ring-2 ring-sky-300 outline-none ${DIALOG_WIDTHS[size]}`}
+      >
+        <div className="flex items-start gap-2">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            {subtitle !== undefined && <p className="text-sm text-white/70">{subtitle}</p>}
+          </div>
+          <button type="button" aria-label={t("common:close")} onClick={onClose} className="text-xl font-bold text-white/60 hover:text-white">
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
     </div>
   );
 }

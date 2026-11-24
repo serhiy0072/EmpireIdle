@@ -1,6 +1,6 @@
 import type { BeastResponse } from "../../lib/queries/beasts";
 import { formatRemaining } from "../../lib/time";
-import { GameButton } from "../game/GameUi";
+import { GameButton, ProgressBar } from "../game/GameUi";
 import { beastArtUrl } from "./beastArt";
 import { passiveLine } from "./beastText";
 import { formatNumber } from "../../lib/format";
@@ -38,12 +38,12 @@ export function BeastFeedPanel({ beast, feedLeft, busy, onFeed }: FeedProps) {
           <p className="text-sm text-sky-100">
             {t("village:beasts.info", { rank: beast.rank, max: beast.maxLevel, passive: passiveLine(beast) })}
           </p>
-          <div className="h-2.5 overflow-hidden rounded-full bg-black/30">
-            <div
-              className="h-full bg-gradient-to-r from-amber-300 to-amber-500"
-              style={{ width: capped ? "100%" : `${Math.min(100, (beast.experience / beast.experienceToNext) * 100)}%` }}
-            />
-          </div>
+          <ProgressBar
+            value={capped ? 1 : beast.experience}
+            max={capped ? 1 : beast.experienceToNext}
+            fill="bg-gradient-to-r from-amber-300 to-amber-500"
+            className="h-2.5"
+          />
           <p className="text-xs text-sky-200/80">
             {capped
               ? t("village:beasts.capped")

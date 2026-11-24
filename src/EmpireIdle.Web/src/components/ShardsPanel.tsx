@@ -1,4 +1,5 @@
 import { rankLabel, rankStyle, useCatalog } from "../lib/queries/catalog";
+import { ProgressBar } from "./game/GameUi";
 import type { HeroShardSummary } from "../lib/queries/heroes";
 import HeroPortrait from "./heroes/HeroPortrait";
 import { t } from "i18next";
@@ -51,12 +52,13 @@ export default function ShardsPanel({ shards, busy, onSummon }: Props) {
               </div>
             </div>
 
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-              <div
-                className={`h-full ${ready ? "bg-amber-500" : "bg-emerald-500"}`}
-                style={{ width: `${Math.min(100, (shard.count / shard.required) * 100)}%` }}
-              />
-            </div>
+            <ProgressBar
+              value={shard.count}
+              max={shard.required}
+              fill={ready ? "bg-amber-500" : "bg-emerald-500"}
+              track="bg-slate-100"
+              className="mt-2 h-1.5 w-full"
+            />
 
             <div className="mt-3 flex items-center gap-2">
               {/* Призов ручний: гравець сам вирішує, коли витратити накопичене */}

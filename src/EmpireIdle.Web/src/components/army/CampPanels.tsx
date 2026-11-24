@@ -5,7 +5,7 @@ import type { CatalogUnit, SpeedUpTimer } from "../../lib/queries/catalog";
 import { useCatalog } from "../../lib/queries/catalog";
 import { formatDuration, formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
-import { GameButton } from "../game/GameUi";
+import { GameButton, ProgressBar } from "../game/GameUi";
 import SpeedUpItemsButton from "../SpeedUpItemsButton";
 import { roman, tierFrame } from "../../lib/unitTiers";
 import { UnitFigure } from "./UnitArt";
@@ -326,9 +326,7 @@ export function UnitStats({ unit, level, maxLevel }: { unit: CatalogUnit; level:
                   <dt>{t(`army:unitStat.${stat.key}`)}</dt>
                   <dd className="font-semibold tabular-nums">{Math.round(value * 10) / 10}</dd>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-900/60">
-                  <div className="h-full bg-gradient-to-r from-green-500 to-lime-400" style={{ width: `${Math.min(1, value / full) * 100}%` }} />
-                </div>
+                <ProgressBar value={value} max={full} track="bg-slate-900/60" />
               </div>
             </div>
           );

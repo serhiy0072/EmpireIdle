@@ -1,5 +1,6 @@
 {
   "language": "Language",
+  "close": "Close",
   "shell": {
     "home": "To the village",
     "shield": "🛡 until {{until}}",

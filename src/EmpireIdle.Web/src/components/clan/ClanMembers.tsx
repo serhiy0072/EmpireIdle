@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { ClanMemberResponse, ClanRoleResponse } from "../../lib/apiTypes";
 import { clanRoleName } from "../../lib/clanRoles";
+import { ConfirmButton } from "../game/GameUi";
 import { t } from "i18next";
 
 interface Props {
@@ -50,8 +50,6 @@ export default function ClanMembers({
   onTransferLeadership,
 }: Props) {
   // Передача лідерства незворотна для того, хто натиснув, — тож у два кліки
-  const [confirmLeader, setConfirmLeader] = useState<string | null>(null);
-  const [confirmKick, setConfirmKick] = useState<string | null>(null);
 
   // Більший ранг — старший: лідер угорі
   const sorted = [...members].sort((a, b) => b.rank - a.rank || b.power - a.power);
@@ -116,41 +114,23 @@ export default function ClanMembers({
                 <td className="px-3 py-2 text-slate-500">{since(member.lastActiveAt, now)}</td>
                 <td className="space-x-1 whitespace-nowrap px-3 py-2 text-right">
                   {isLeader && !me && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (confirmLeader === member.playerId) {
-                          setConfirmLeader(null);
-                          onTransferLeadership(member.playerId);
-                        } else {
-                          setConfirmLeader(member.playerId);
-                        }
-                      }}
-                      onBlur={() => setConfirmLeader(null)}
+                    <ConfirmButton
+                      label={t("social:members.makeLeader")}
+                      confirmLabel={t("social:members.confirmLeader")}
+                      onConfirm={() => onTransferLeadership(member.playerId)}
                       disabled={busy}
                       className="rounded-lg border border-amber-300 px-2 py-0.5 text-xs text-amber-800 hover:bg-amber-50 disabled:opacity-50"
-                    >
-                      {confirmLeader === member.playerId ? t("social:members.confirmLeader") : t("social:members.makeLeader")}
-                    </button>
+                    />
                   )}
                   {canKick && below && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // Виключення не скасувати — два кліки, як і передача лідерства
-                        if (confirmKick === member.playerId) {
-                          setConfirmKick(null);
-                          onKick(member.playerId);
-                        } else {
-                          setConfirmKick(member.playerId);
-                        }
-                      }}
-                      onBlur={() => setConfirmKick(null)}
+                    // Виключення не скасувати — два кліки, як і передача лідерства
+                    <ConfirmButton
+                      label={t("social:members.kick")}
+                      confirmLabel={t("social:members.confirmKick")}
+                      onConfirm={() => onKick(member.playerId)}
                       disabled={busy}
                       className="rounded-lg border border-red-200 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
-                    >
-                      {confirmKick === member.playerId ? t("social:members.confirmKick") : t("social:members.kick")}
-                    </button>
+                    />
                   )}
                 </td>
               </tr>

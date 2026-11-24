@@ -1,5 +1,6 @@
 {
   "language": "Мова",
+  "close": "Закрити",
   "shell": {
     "home": "У село",
     "shield": "🛡 до {{until}}",
