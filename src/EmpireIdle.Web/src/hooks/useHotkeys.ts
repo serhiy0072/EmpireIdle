@@ -104,9 +104,9 @@ export function cycle<T>(items: readonly T[], current: T, step: 1 | -1): T {
 }
 
 /** Стрілки перемикають вкладки екрана по колу (рішення 21.10.2026). */
-export function useTabHotkeys<T>(keys: readonly T[], value: T, onChange: (next: T) => void) {
+export function useTabHotkeys<T>(keys: readonly T[], value: T, onChange: (next: T) => void, enabled = true) {
   useHotkeys(
     { ArrowLeft: () => onChange(cycle(keys, value, -1)), ArrowRight: () => onChange(cycle(keys, value, 1)) },
-    { priority: HOTKEY_PRIORITY.tabs, enabled: keys.length > 1 },
+    { priority: HOTKEY_PRIORITY.tabs, enabled: enabled && keys.length > 1 },
   );
 }

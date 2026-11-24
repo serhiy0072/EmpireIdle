@@ -53,7 +53,7 @@ public class GetMapCellQueryTests
 
         Assert.Equal(expected.Type, cell.TerrainType);
         Assert.Equal(expected.MoveCost, cell.MoveCost);
-        Assert.Null(cell.Occupant);
+        Assert.Null(cell.OccupantType);
         await _map.Received(1).GetAreaAsync(1, 3, 4, 3, 4, Arg.Any<CancellationToken>());
     }
 
@@ -68,7 +68,7 @@ public class GetMapCellQueryTests
 
         var cell = await Handler().Handle(new GetMapCellQuery(3, 4), CancellationToken.None);
 
-        Assert.Equal(TestKeys.BeastMonster, cell.Occupant?.MonsterType);
+        Assert.Equal(TestKeys.BeastMonster, cell.MonsterType);
     }
 
     /// <summary>Назва монстра на клітині — з довідника, а не ключ конфіга: інакше картка й похід показують «wolves».</summary>
@@ -82,7 +82,7 @@ public class GetMapCellQueryTests
 
         var cell = await Handler().Handle(new GetMapCellQuery(3, 4), CancellationToken.None);
 
-        Assert.Equal("Вовки", cell.Occupant?.OccupantName);
+        Assert.Equal("Вовки", cell.OccupantName);
     }
 
     /// <summary>Умовна сила монстра — та сама формула оборони, що в бою: прев'ю й карта не розходяться.</summary>
@@ -102,6 +102,6 @@ public class GetMapCellQueryTests
         var expected = new CombatCalculator(Config.Combat, catalog)
             .CalculateDefencePower(DefenceStacks.FromArmy(army), cell.TerrainType);
 
-        Assert.Equal(Math.Round(expected), cell.Occupant?.MonsterPower);
+        Assert.Equal(Math.Round(expected), cell.MonsterPower);
     }
 }

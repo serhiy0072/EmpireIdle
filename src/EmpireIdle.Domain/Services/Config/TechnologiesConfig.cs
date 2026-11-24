@@ -240,6 +240,12 @@ namespace EmpireIdle.Domain.Services.Config
         public double MarkedBonus { get; set; } = 0.5;
 
         /// <summary>
+        /// Особиста нагорода за внесок у позначений вузол: монети чи очки денних порогів із надбавкою мітки,
+        /// округлені до цілого. Правило мітки живе тут, а не в обробнику підношення.
+        /// </summary>
+        public int WithMarkBonus(int amount) => (int)Math.Round(amount * (1 + MarkedBonus), MidpointRounding.AwayFromZero);
+
+        /// <summary>
         /// Ціна n-го gems-підношення за добу UTC росте партіями: перша партія по GemPriceBase,
         /// кожна наступна в GemPriceGrowth разів дорожча (рішення 03.11: п'ять по 10, п'ять по 20, п'ять по 40…).
         /// </summary>
@@ -277,9 +283,9 @@ namespace EmpireIdle.Domain.Services.Config
     /// </summary>
     public class ClanShopConfig
     {
-        public int DailySlots { get; set; } = 15;
+        public int DailySlots { get; set; }
 
-        public int WeeklySlots { get; set; } = 15;
+        public int WeeklySlots { get; set; }
 
         public List<ClanShopItemConfig> DailyPool { get; set; } = new();
 

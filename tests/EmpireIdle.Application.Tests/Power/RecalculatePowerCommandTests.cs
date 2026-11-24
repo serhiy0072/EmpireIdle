@@ -111,7 +111,7 @@ public class RecalculatePowerCommandTests
     /// <summary>Гарнізон із юнітами, село, порожній список маршів.</summary>
     private Garrison GivenGarrison(int garrisonInfantry = 10)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         _garrisons.GetDeployedReinforcementsAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(new Dictionary<string, int>());

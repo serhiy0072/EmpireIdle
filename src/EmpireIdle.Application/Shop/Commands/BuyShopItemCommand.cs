@@ -14,7 +14,7 @@ namespace EmpireIdle.Application.Shop.Commands
         : IRequest<int>, IPlayerScopedRequest, IIdempotentRequest;
 
     /// <summary>Повертає залишок gems після покупки — клієнту не треба перепитувати гаманець.</summary>
-    internal sealed class BuyShopItemCommandHandler : IRequestHandler<BuyShopItemCommand, int>
+    public sealed class BuyShopItemCommandHandler : IRequestHandler<BuyShopItemCommand, int>
     {
         private readonly ShopCheckout _checkout;
         private readonly RewardDispatcher _dispatcher;

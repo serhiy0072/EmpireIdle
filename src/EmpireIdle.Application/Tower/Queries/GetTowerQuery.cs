@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -45,8 +46,7 @@ namespace EmpireIdle.Application.Tower.Queries
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             var settings = _catalog.Config.Tower;
 
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", request.PlayerId);
+            var village = await _villages.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
             var mainLevel = village.Buildings.FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)?.Level.Value ?? 0;
             var progress = await _tower.GetProgressReadOnlyAsync(request.PlayerId, cancellationToken);

@@ -16,7 +16,7 @@ interface Props {
   onResolveInvite: (requestId: string, approve: boolean) => void;
 }
 
-const input = "rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-800";
+const input = "rounded-lg border border-[#4a72b0] px-3 py-1.5 text-sm text-white";
 
 /** Невиконані правила — лише коли гравець уже щось увів: порожня форма не має кричати. */
 function UnmetRules({ rules, value }: { rules: ClanRule[]; value: string }) {
@@ -27,14 +27,14 @@ function UnmetRules({ rules, value }: { rules: ClanRule[]; value: string }) {
   return (
     <ul className="mt-1 space-y-0.5">
       {unmet.map((rule) => (
-        <li key={rule.key} className="text-xs text-amber-700">
+        <li key={rule.key} className="text-xs text-amber-200">
           • {t(`social:clanRules.${rule.key}`)}
         </li>
       ))}
     </ul>
   );
 }
-const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
+const button = "rounded-lg border border-[#4a72b0] px-3 py-1 text-sm text-slate-100 hover:bg-white/10 disabled:opacity-50";
 
 /** Гравець поза кланом: запрошення, пошук по каталогу й створення свого. */
 export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, onCreate, onResolveInvite }: Props) {
@@ -50,24 +50,24 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
     <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
       <div className="space-y-4">
         {joinOutcome === "ApplicationSubmitted" && (
-          <div role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          <div role="status" className="rounded-lg bg-emerald-500/15 px-3 py-2 text-sm text-emerald-200">
             {t("social:browser.applied")}
           </div>
         )}
 
         {invites.length > 0 && (
           <section className="space-y-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:browser.invites")}</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:browser.invites")}</h2>
             {invites.map((invite) => (
-              <div key={invite.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-violet-200 bg-white p-3">
+              <div key={invite.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-violet-400/50 bg-[#1d3b6f] p-3">
                 <div className="flex-1">
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-white">
                     [{invite.clanTag}] {invite.clanName}
                   </span>
-                  <span className="ml-2 text-xs text-slate-500">
+                  <span className="ml-2 text-xs text-sky-100/70">
                     {t("social:browser.invite", { members: invite.memberCount, capacity: invite.capacity, remaining: formatRemaining(invite.expiresAt, now) })}
                   </span>
-                  {invite.description !== "" && <p className="text-sm text-slate-600">{invite.description}</p>}
+                  {invite.description !== "" && <p className="text-sm text-slate-200">{invite.description}</p>}
                 </div>
                 <button
                   type="button"
@@ -87,7 +87,7 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
 
         <section className="space-y-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:browser.clans")}</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:browser.clans")}</h2>
             <input
               type="search"
               placeholder={t("social:browser.search")}
@@ -101,23 +101,23 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
           </div>
 
           {clans.isPending ? (
-            <p className="text-sm text-slate-500">{t("social:browser.searching")}</p>
+            <p className="text-sm text-sky-100/70">{t("social:browser.searching")}</p>
           ) : clans.isError ? (
-            <p className="text-sm text-red-700">{t("social:browser.loadFailed")}</p>
+            <p className="text-sm text-red-200">{t("social:browser.loadFailed")}</p>
           ) : clans.data.items.length === 0 ? (
-            <p className="text-sm text-slate-500">{t("social:browser.nothing")}</p>
+            <p className="text-sm text-sky-100/70">{t("social:browser.nothing")}</p>
           ) : (
             <ul className="space-y-2">
               {clans.data.items.map((clan) => (
-                <li key={clan.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3">
+                <li key={clan.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3">
                   <div className="flex-1">
-                    <span className="font-medium text-slate-800">
+                    <span className="font-medium text-white">
                       [{clan.tag}] {clan.name}
                     </span>
-                    <span className="ml-2 text-xs text-slate-500">
+                    <span className="ml-2 text-xs text-sky-100/70">
                       {clan.memberCount}/{clan.capacity} · {joinPolicyLabel(clan.joinPolicy)}
                     </span>
-                    {clan.description !== "" && <p className="text-sm text-slate-600">{clan.description}</p>}
+                    {clan.description !== "" && <p className="text-sm text-slate-200">{clan.description}</p>}
                   </div>
                   {/* Закритий клан приймає лише за запрошенням — кнопки нема, щоб не ловити відмову */}
                   {clan.joinPolicy !== "InviteOnly" && (
@@ -135,7 +135,7 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
               <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page <= 1} className={button}>
                 ←
               </button>
-              <span className="text-slate-600">
+              <span className="text-slate-200">
                 {page} / {pages}
               </span>
               <button type="button" onClick={() => setPage((value) => Math.min(pages, value + 1))} disabled={page >= pages} className={button}>
@@ -146,14 +146,14 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
         </section>
       </div>
 
-      <section className="h-fit space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="font-medium text-slate-800">{t("social:browser.create")}</h2>
-        <label className="block text-sm text-slate-600">
+      <section className="h-fit space-y-3 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4">
+        <h2 className="font-medium text-white">{t("social:browser.create")}</h2>
+        <label className="block text-sm text-slate-200">
           {t("social:browser.name")}
           <input value={name} onChange={(event) => setName(event.target.value)} maxLength={32} className={`mt-1 w-full ${input}`} />
           <UnmetRules rules={clanNameRules} value={name.trim()} />
         </label>
-        <label className="block text-sm text-slate-600">
+        <label className="block text-sm text-slate-200">
           {t("social:browser.tag")}
           <input
             value={tag}
@@ -167,7 +167,7 @@ export default function ClanBrowser({ invites, now, busy, joinOutcome, onJoin, o
           type="button"
           onClick={() => onCreate(name.trim(), tag.trim())}
           disabled={busy || !clanNameIsValid(name.trim()) || !clanTagIsValid(tag.trim())}
-          className="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
+          className="w-full rounded-lg bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
         >
           {t("social:browser.found")}
         </button>

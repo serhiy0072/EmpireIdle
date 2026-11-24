@@ -153,7 +153,7 @@ public class SendMarchCommandTests
     private (Garrison Garrison, Monster Monster, Hero Hero) GivenState(
         int infantry = 100, int activeMarches = 0, int availableHeroes = 3, bool withPen = false, string monsterType = "wolves")
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 50, 50);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 50, 50, serverId: 1);
 
         if (withPen)
             village.AddBuilding("beastpen", new GameCatalog(Config()).Buildings, Now);
@@ -507,7 +507,7 @@ public class SendMarchCommandTests
         for (var i = 1; i < level; i++)
         {
             townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
-            townhall.CompleteConstruction(Now);
+            townhall.CompleteConstruction(catalog.Buildings["townhall"], Now, ProductionBoost.None, locationMultiplier: 1.0);
         }
     }
 
@@ -524,7 +524,7 @@ public class SendMarchCommandTests
         RaiseTownHall(origin!, level: 3);
 
         var allyId = Guid.NewGuid();
-        var allyVillage = new Village(Guid.NewGuid(), allyId, "Ally", ["food"], 52, 52);
+        var allyVillage = new Village(Guid.NewGuid(), allyId, "Ally", ["food"], 52, 52, serverId: 1);
         RaiseTownHall(allyVillage, level: 3);
         var allyGarrison = new Garrison(Guid.NewGuid(), allyVillage.Id, 1);
 

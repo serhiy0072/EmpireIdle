@@ -35,7 +35,7 @@ public class GiftItemCommandTests
 
     private static Player NewPlayer(Guid? clanId)
     {
-        var player = new Player(Guid.NewGuid(), "p", "p@example.com", Guid.NewGuid().ToString(), Now);
+        var player = new Player(Guid.NewGuid(), "p", "p@example.com", Guid.NewGuid().ToString(), Now, serverId: 1);
 
         if (clanId is { } id)
             player.JoinClan(id);
@@ -148,10 +148,9 @@ public class GiftItemCommandTests
     {
         var stack = GivenStack("teleport", 1);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() =>
             Handler().Handle(new GiftItemCommand(_giver.Id, _clanmate.Id, "teleport", 2), CancellationToken.None));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.Equal(1, stack.Count);
     }
 }

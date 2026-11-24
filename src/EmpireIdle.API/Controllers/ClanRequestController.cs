@@ -1,6 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Clans.Commands;
 using EmpireIdle.Application.Clans.Queries;
+using EmpireIdle.Application.Clans.ReadModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,34 +26,20 @@ namespace EmpireIdle.API.Controllers
 
         /// <summary>Заявки, що чекають рішення. Потрібен дозвіл Recruit.</summary>
         [HttpGet]
-        [ProducesResponseType(typeof(List<ClanApplicationResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<ClanApplicationItem>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetApplications(Guid playerId, CancellationToken cancellationToken)
         {
-            var items = await _mediator.Send(new GetClanApplicationsQuery(playerId), cancellationToken);
-
-            var response = items
-                .Select(a => new ClanApplicationResponse(a.RequestId, a.PlayerId, a.PlayerName,
-                    a.Power, a.CreatedAt, a.ExpiresAt))
-                .ToList();
-
-            return Ok(response);
+            return Ok(await _mediator.Send(new GetClanApplicationsQuery(playerId), cancellationToken));
         }
 
         /// <summary>Запрошення, адресовані гравцеві.</summary>
         [HttpGet("invites")]
-        [ProducesResponseType(typeof(List<ClanInviteResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<ClanInviteItem>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetInvites(Guid playerId, CancellationToken cancellationToken)
         {
-            var items = await _mediator.Send(new GetMyClanInvitesQuery(playerId), cancellationToken);
-
-            var response = items
-                .Select(i => new ClanInviteResponse(i.RequestId, i.ClanId, i.ClanName, i.ClanTag,
-                    i.Description, i.MemberCount, i.Capacity, i.InvitedAt, i.ExpiresAt))
-                .ToList();
-
-            return Ok(response);
+            return Ok(await _mediator.Send(new GetMyClanInvitesQuery(playerId), cancellationToken));
         }
 
         /// <summary>Запросити гравця в клан. Потрібен дозвіл Recruit.</summary>

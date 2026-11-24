@@ -123,7 +123,7 @@ public class EquipHeroItemCommandTests
 
         var piece = GivenItem(HeroTestConfig.Artifact, EquipmentSlot.Artifact);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<InvalidStateException>(() =>
             Handler().Handle(new EquipHeroItemCommand(PlayerId, hero.Id, piece.Id), CancellationToken.None));
         Assert.Equal(RefusalReasons.HeroOnTheMove.Key, refusal.Reason);
     }

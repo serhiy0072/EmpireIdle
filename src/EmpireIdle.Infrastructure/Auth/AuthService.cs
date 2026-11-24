@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -44,7 +45,19 @@ namespace EmpireIdle.Infrastructure.Auth
                 Email = email
             };
 
-            var result = await _userManager.CreateAsync(user, password);
+            IdentityResult result;
+
+            try
+            {
+                result = await _userManager.CreateAsync(user, password);
+            }
+            // Гонка двох реєстрацій: перевірку Identity пройшли обидві, другу зупинив унікальний індекс.
+            // Гравцю — та сама відмова з тим самим кодом, що й без гонки, а не 409 без пояснення
+            catch (DbUpdateException exception) when (DuplicateCode(exception) is { } code)
+            {
+                throw new RequirementNotMetException(RefusalReasons.AuthRegistrationRejected,
+                    $"Registration failed: {code}", code);
+            }
 
             if (!result.Succeeded)
             {
@@ -58,6 +71,17 @@ namespace EmpireIdle.Infrastructure.Auth
 
             return user.Id;
         }
+
+        /// <summary>Код Identity для порушеного унікального індексу користувачів; null — це не дублікат імені чи email.</summary>
+        private static string? DuplicateCode(DbUpdateException exception)
+            => exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } postgres
+                ? postgres.ConstraintName switch
+                {
+                    "EmailIndex" => nameof(IdentityErrorDescriber.DuplicateEmail),
+                    "UserNameIndex" => nameof(IdentityErrorDescriber.DuplicateUserName),
+                    _ => null
+                }
+                : null;
 
         /// <summary>
         /// Залогінити користувача і повернути JWT + refresh token.

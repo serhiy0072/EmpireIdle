@@ -5,7 +5,7 @@ import ItemIcon from "../components/inventory/ItemIcon";
 import { useSession } from "../hooks/useSession";
 import { useCatalog, type CatalogArtifactSet } from "../lib/queries/catalog";
 import { useInventory } from "../lib/queries/inventory";
-import { RoleBadge } from "../components/game/GameUi";
+import { GameScreen, RoleBadge } from "../components/game/GameUi";
 import { classLabel } from "../lib/heroClasses";
 import { rarityLabel, rarityStyle } from "../lib/rarity";
 import { bonusValue, isDungeonOnly, statLabel, statLabelForClass } from "../lib/statNames";
@@ -14,11 +14,11 @@ import { t } from "i18next";
 
 /** Характер набору словами: гравцеві «Attack, Health» нічого не каже про роль. */
 function character(set: CatalogArtifactSet): { label: string; style: string } | null {
-  if (set.focusStats.includes("Attack")) return { label: t("items:sets.offensive"), style: "bg-rose-100 text-rose-800" };
-  if (set.focusStats.includes("Defense")) return { label: t("items:sets.defensive"), style: "bg-sky-100 text-sky-800" };
+  if (set.focusStats.includes("Attack")) return { label: t("items:sets.offensive"), style: "bg-rose-500/25 text-rose-200" };
+  if (set.focusStats.includes("Defense")) return { label: t("items:sets.defensive"), style: "bg-sky-500/25 text-sky-200" };
 
   return set.focusStats.length > 0
-    ? { label: set.focusStats.map(statLabel).join(", "), style: "bg-slate-100 text-slate-700" }
+    ? { label: set.focusStats.map(statLabel).join(", "), style: "bg-white/10 text-slate-100" }
     : null;
 }
 
@@ -72,121 +72,123 @@ export default function ArtifactSetsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">{t("items:sets.title")}</h1>
-        <p className="text-sm text-slate-500">
-          <Link to="/inventory" className="text-emerald-700 hover:underline">
+    <GameScreen
+      title={t("items:sets.title")}
+      actions={
+        <p className="text-sm text-sky-100/70">
+          <Link to="/inventory" className="text-emerald-200 hover:underline">
             {t("items:sets.inventory")}
           </Link>{" "}
           ·{" "}
-          <Link to="/dungeons" className="text-emerald-700 hover:underline">
+          <Link to="/dungeons" className="text-emerald-200 hover:underline">
             {t("items:sets.dungeons")}
           </Link>
         </p>
+      }
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-slate-200">
+          {t("items:sets.intro")}
+        </p>
+
+        {inventory.isError && <ErrorBanner error={inventory.error} />}
+
+        {tiers.map(([tier, sets]) => (
+          <section key={tier} className="space-y-2">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">
+              {t("items:sets.tier", { tier, multiplier: sets[0] !== undefined ? formatNumber(sets[0].statMultiplier) : "" })}
+            </h2>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {sets.map((set) => {
+                const role = character(set);
+                const isFocused = set.key === focused;
+
+                return (
+                  <article
+                    key={set.key}
+                    ref={isFocused ? focusedRef : undefined}
+                    className={`space-y-3 rounded-xl border bg-[#1d3b6f] p-4 ${
+                      isFocused ? "border-emerald-500 ring-2 ring-emerald-400/50" : "border-[#335c9a]"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="flex items-center gap-1.5 font-medium text-white">
+                        {set.class != null && <RoleBadge role={set.class} size={18} />}
+                        {set.displayName}
+                      </h3>
+                      {role !== null && <span className={`rounded px-2 py-0.5 text-xs ${role.style}`}>{role.label}</span>}
+                    </div>
+
+                    {set.class != null && <p className="text-xs text-sky-100/70">{t("items:sets.forClass", { heroClass: classLabel(set.class) })}</p>}
+                    {set.description !== "" && <p className="text-sm italic text-slate-200">{set.description}</p>}
+
+                    {set.dungeon != null ? (
+                      <p className="text-xs text-sky-100/70">
+                        {t("items:sets.dropsIn")}{" "}
+                        <Link to="/dungeons" className="text-emerald-200 hover:underline">
+                          {set.dungeon.displayName}
+                        </Link>{" "}
+                        {t("items:set.townHall", { level: set.dungeon.requiresMainBuildingLevel })}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-sky-100/70">{t("items:sets.noDungeon")}</p>
+                    )}
+
+                    {set.focusStats.length > 0 && (
+                      <p className="text-xs text-sky-100/70">
+                        {t("items:sets.character", { stats: set.focusStats.map(statLabel).join(", ").toLowerCase() })}
+                      </p>
+                    )}
+
+                    <ul className="space-y-2">
+                      {set.rarities.map((rarity) => {
+                        const collected = rarity.pieceKeys.filter((key) => (owned.get(key) ?? 0) > 0).length;
+                        const complete = rarity.pieceKeys.length > 0 && collected >= rarity.pieceKeys.length;
+
+                        return (
+                          <li key={rarity.setKey} className="rounded-lg bg-white/5 p-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                              <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(rarity.rarity)}`}>
+                                {rarityLabel(rarity.rarity)}
+                              </span>
+                              <span className={complete ? "text-xs font-medium text-emerald-200" : "text-xs text-sky-100/70"}>
+                                {t("items:sets.collected", { collected, total: rarity.pieceKeys.length })}
+                              </span>
+                            </div>
+
+                            {rarity.thresholds.map((threshold) => (
+                              <p key={threshold.requiredPieces} className="mt-1 text-sm text-slate-100">
+                                {t("items:sets.threshold", { count: threshold.requiredPieces, bonus: bonusText(threshold.bonus, set.class) })}
+                              </p>
+                            ))}
+
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {rarity.pieceKeys.map((key) => {
+                                const has = (owned.get(key) ?? 0) > 0;
+
+                                return (
+                                  <span
+                                    key={key}
+                                    title={catalog.itemName(key)}
+                                    className={has ? "" : "opacity-30 grayscale"}
+                                  >
+                                    <ItemIcon itemKey={key} type="equipment" rarity={rarity.rarity} size={32} />
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
-
-      <p className="text-sm text-slate-600">
-        {t("items:sets.intro")}
-      </p>
-
-      {inventory.isError && <ErrorBanner error={inventory.error} />}
-
-      {tiers.map(([tier, sets]) => (
-        <section key={tier} className="space-y-2">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">
-            {t("items:sets.tier", { tier, multiplier: sets[0] !== undefined ? formatNumber(sets[0].statMultiplier) : "" })}
-          </h2>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            {sets.map((set) => {
-              const role = character(set);
-              const isFocused = set.key === focused;
-
-              return (
-                <article
-                  key={set.key}
-                  ref={isFocused ? focusedRef : undefined}
-                  className={`space-y-3 rounded-xl border bg-white p-4 ${
-                    isFocused ? "border-emerald-500 ring-2 ring-emerald-200" : "border-slate-200"
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="flex items-center gap-1.5 font-medium text-slate-800">
-                      {set.class != null && <RoleBadge role={set.class} size={18} />}
-                      {set.displayName}
-                    </h3>
-                    {role !== null && <span className={`rounded px-2 py-0.5 text-xs ${role.style}`}>{role.label}</span>}
-                  </div>
-
-                  {set.class != null && <p className="text-xs text-slate-500">{t("items:sets.forClass", { heroClass: classLabel(set.class) })}</p>}
-                  {set.description !== "" && <p className="text-sm italic text-slate-600">{set.description}</p>}
-
-                  {set.dungeon != null ? (
-                    <p className="text-xs text-slate-500">
-                      {t("items:sets.dropsIn")}{" "}
-                      <Link to="/dungeons" className="text-emerald-700 hover:underline">
-                        {set.dungeon.displayName}
-                      </Link>{" "}
-                      {t("items:set.townHall", { level: set.dungeon.requiresMainBuildingLevel })}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-slate-500">{t("items:sets.noDungeon")}</p>
-                  )}
-
-                  {set.focusStats.length > 0 && (
-                    <p className="text-xs text-slate-500">
-                      {t("items:sets.character", { stats: set.focusStats.map(statLabel).join(", ").toLowerCase() })}
-                    </p>
-                  )}
-
-                  <ul className="space-y-2">
-                    {set.rarities.map((rarity) => {
-                      const collected = rarity.pieceKeys.filter((key) => (owned.get(key) ?? 0) > 0).length;
-                      const complete = rarity.pieceKeys.length > 0 && collected >= rarity.pieceKeys.length;
-
-                      return (
-                        <li key={rarity.setKey} className="rounded-lg bg-slate-50 p-2">
-                          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                            <span className={`rounded px-2 py-0.5 text-xs ${rarityStyle(rarity.rarity)}`}>
-                              {rarityLabel(rarity.rarity)}
-                            </span>
-                            <span className={complete ? "text-xs font-medium text-emerald-700" : "text-xs text-slate-500"}>
-                              {t("items:sets.collected", { collected, total: rarity.pieceKeys.length })}
-                            </span>
-                          </div>
-
-                          {rarity.thresholds.map((threshold) => (
-                            <p key={threshold.requiredPieces} className="mt-1 text-sm text-slate-700">
-                              {t("items:sets.threshold", { count: threshold.requiredPieces, bonus: bonusText(threshold.bonus, set.class) })}
-                            </p>
-                          ))}
-
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {rarity.pieceKeys.map((key) => {
-                              const has = (owned.get(key) ?? 0) > 0;
-
-                              return (
-                                <span
-                                  key={key}
-                                  title={catalog.itemName(key)}
-                                  className={has ? "" : "opacity-30 grayscale"}
-                                >
-                                  <ItemIcon itemKey={key} type="equipment" rarity={rarity.rarity} size={32} />
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      ))}
-    </div>
+    </GameScreen>
   );
 }

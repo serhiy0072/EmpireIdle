@@ -10,6 +10,7 @@ import { useVillage } from "../lib/queries/village";
 import { formatRemaining } from "../lib/time";
 import { roman } from "../lib/unitTiers";
 import { formatNumber } from "../lib/format";
+import { GameScreen } from "../components/game/GameUi";
 import { t } from "i18next";
 
 /**
@@ -46,66 +47,71 @@ export default function ArmyPage() {
   const total = units.reduce((sum, unit) => sum + unit.count, 0);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">{t("army:page.title")}</h1>
-        <p className="text-sm text-slate-500">{t("army:page.total", { count: formatNumber(total) })}</p>
-      </div>
+    <GameScreen
+      title={t("army:page.title")}
+      actions={
+        <p className="text-sm text-sky-100/70">{t("army:page.total", { count: formatNumber(total) })}</p>
+      }
+    >
+      <div className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {camps.map((camp) => {
+            const unit = catalog.unitsFor(camp.type, camp.level)[0];
+            const keys = new Set(catalog.unitsFor(camp.type, camp.level).map((candidate) => candidate.key));
+            const training = garrison.data.trainingOrders.find((order) => keys.has(order.unitType));
+            const owned = units.filter((stack) => keys.has(stack.unitType)).reduce((sum, stack) => sum + stack.count, 0);
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {camps.map((camp) => {
-          const unit = catalog.unitsFor(camp.type, camp.level)[0];
-          const keys = new Set(catalog.unitsFor(camp.type, camp.level).map((candidate) => candidate.key));
-          const training = garrison.data.trainingOrders.find((order) => keys.has(order.unitType));
-          const owned = units.filter((stack) => keys.has(stack.unitType)).reduce((sum, stack) => sum + stack.count, 0);
-
-          return (
-            <Link
-              key={camp.id}
-              to={`/army/${camp.type}`}
-              data-tutorial={`camp:${camp.type}`}
-              className="flex items-center gap-3 rounded-xl bg-gradient-to-b from-[#3b6aa8] to-[#1d3b6f] p-3 text-white shadow hover:brightness-110"
-            >
-              {unit !== undefined && <UnitFigure unitType={unit.key} level={1} size={48} />}
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold">{catalog.buildingName(camp.type)}</span>
-                <span className="block text-xs text-sky-100">
-                  {unit?.displayName ?? "—"}: {formatNumber(owned)}
-                </span>
-                <span className="block text-xs text-lime-300">
-                  {training === undefined
-                    ? t("army:page.queueFree")
-                    : t("army:page.queue", { level: roman(training.level), count: training.count, remaining: formatRemaining(training.completesAt, now) })}
-                </span>
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-medium text-slate-700">{t("army:page.garrison")}</h2>
-
-        {units.length === 0 ? (
-          <p className="text-sm text-slate-500">{t("army:page.empty")}</p>
-        ) : (
-          <div className="grid gap-2 sm:grid-cols-2">
-            {units.map((unit) => (
-              <div
-                key={`${unit.unitType}@${unit.level}`}
-                className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"
+            return (
+              <Link
+                key={camp.id}
+                to={`/army/${camp.type}`}
+                data-tutorial={`camp:${camp.type}`}
+                className="flex items-center gap-3 rounded-xl bg-gradient-to-b from-[#3b6aa8] to-[#1d3b6f] p-3 text-white shadow hover:brightness-110"
               >
-                <span className="text-slate-800">
-                  {catalog.unitName(unit.unitType)} {roman(unit.level)}
+                {unit !== undefined && <UnitFigure unitType={unit.key} level={1} size={48} />}
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">{catalog.buildingName(camp.type)}</span>
+                  <span className="block text-xs text-sky-100">
+                    {unit?.displayName ?? "—"}: {formatNumber(owned)}
+                  </span>
+                  <span className="block text-xs text-lime-300">
+                    {training === undefined
+                      ? t("army:page.queueFree")
+                      : t("army:page.queue", { level: roman(training.level), count: training.count, remaining: formatRemaining(training.completesAt, now) })}
+                  </span>
                 </span>
-                <span className="font-medium text-slate-700">{formatNumber(unit.count)}</span>
-              </div>
-            ))}
-          </div>
-        )}
+              </Link>
+            );
+          })}
+        </div>
 
-        <HospitalPanel playerId={playerId} />
+        <div className="space-y-3 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4">
+          <h2 className="text-sm font-medium text-slate-100">{t("army:page.garrison")}</h2>
+
+          {units.length === 0 ? (
+            <p className="text-sm text-sky-100/70">{t("army:page.empty")}</p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {units.map((unit) => (
+                <div
+                  key={`${unit.unitType}@${unit.level}`}
+                  className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm"
+                >
+                  <span className="text-white">
+                    {catalog.unitName(unit.unitType)} {roman(unit.level)}
+                  </span>
+                  <span className="font-medium text-slate-100">{formatNumber(unit.count)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Панель спільна зі світлою карткою будівлі в селі — тут вона в такій самій світлій картці */}
+          <div className="rounded-xl bg-white p-3 text-slate-800">
+            <HospitalPanel playerId={playerId} />
+          </div>
+        </div>
       </div>
-    </div>
+    </GameScreen>
   );
 }

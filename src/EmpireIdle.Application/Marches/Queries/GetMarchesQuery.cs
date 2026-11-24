@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.ReadModels;
@@ -48,11 +49,9 @@ namespace EmpireIdle.Application.Marches.Queries
 
         public async Task<List<MarchView>> Handle(GetMarchesQuery request, CancellationToken cancellationToken)
         {
-            var village = await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
-            var garrison = await _garrisonRepository.GetByVillageIdReadOnlyAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageReadOnlyAsync(village.Id, cancellationToken);
 
             var marches = await _marchRepository.GetActiveByGarrisonAsync(garrison.Id, cancellationToken);
             var views = new List<MarchView>(marches.Count);

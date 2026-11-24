@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Beasts.ReadModels;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -18,28 +19,24 @@ namespace EmpireIdle.Application.Beasts.Commands
     public record ActivateBeastCommand(Guid PlayerId, string BeastKey)
         : IRequest<BeastActivatedView>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class ActivateBeastCommandHandler : IRequestHandler<ActivateBeastCommand, BeastActivatedView>
+    public sealed class ActivateBeastCommandHandler : IRequestHandler<ActivateBeastCommand, BeastActivatedView>
     {
         private readonly IBeastPenRepository _pens;
         private readonly IVillageRepository _villages;
-        private readonly IServerRepository _servers;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly EffectResolver _effects;
-        private readonly WorldGeometry _geometry;
+        private readonly VillageProductionRates _rates;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<ActivateBeastCommandHandler> _logger;
 
-        public ActivateBeastCommandHandler(IBeastPenRepository pens, IVillageRepository villages, IServerRepository servers,
-            IUnitOfWork unitOfWork, EffectResolver effects, WorldGeometry geometry, GameCatalog catalog, TimeProvider timeProvider,
+        public ActivateBeastCommandHandler(IBeastPenRepository pens, IVillageRepository villages, IUnitOfWork unitOfWork,
+            VillageProductionRates rates, GameCatalog catalog, TimeProvider timeProvider,
             ILogger<ActivateBeastCommandHandler> logger)
         {
             _pens = pens;
             _villages = villages;
-            _servers = servers;
             _unitOfWork = unitOfWork;
-            _effects = effects;
-            _geometry = geometry;
+            _rates = rates;
             _catalog = catalog;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -55,8 +52,7 @@ namespace EmpireIdle.Application.Beasts.Commands
             var pen = await _pens.GetByPlayerAsync(request.PlayerId, cancellationToken)
                 ?? throw new EntityNotFoundException("Beast", request.BeastKey);
 
-            var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             // Звіринцю бракує корму — звірі голодні й не працюють, доки їх не нагодують (рішення 20.10.2026)
             if (village.BeastsHungry)
@@ -87,11 +83,9 @@ namespace EmpireIdle.Application.Beasts.Commands
         private async Task MaterializeProductionAsync(Guid playerId, Domain.Entities.Village village, DateTime utcNow,
             CancellationToken cancellationToken)
         {
-            var boost = await _effects.GetProductionBoostAsync(playerId, utcNow, cancellationToken);
-            var serverLevel = await _servers.GetLevelAsync(village.ServerId, cancellationToken);
+            var rates = await _rates.ForAsync(village, utcNow, cancellationToken);
 
-            village.MaterializeProduction(_catalog.Buildings, utcNow, boost,
-                _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel));
+            village.MaterializeProduction(_catalog.Buildings, utcNow, rates.Boost, rates.LocationMultiplier);
         }
     }
 }

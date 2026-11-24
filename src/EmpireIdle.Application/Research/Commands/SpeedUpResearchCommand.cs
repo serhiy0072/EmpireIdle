@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
@@ -51,10 +52,9 @@ namespace EmpireIdle.Application.Research.Commands
 
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
-            var wallet = await _wallets.GetByUserIdAsync(userId, cancellationToken)
-                ?? throw new InvalidOperationException("Wallet not found.");
+            var wallet = await _wallets.RequireByUserAsync(userId, cancellationToken);
 
-            wallet.SpendGems(new GemAmount(cost), $"Speed up research {research.ActiveKey}", request.PlayerId, now);
+            wallet.SpendGems(new GemAmount(cost), $"speedup:research:{research.ActiveKey}", request.PlayerId, now);
 
             research.Shorten(cut, now);
 

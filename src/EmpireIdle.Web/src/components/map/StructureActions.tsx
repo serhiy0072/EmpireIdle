@@ -4,6 +4,7 @@ import type { ClanStructureResponse, ClanTerritoryResponse } from "../../lib/api
 import { useDemolishStructure, useRecallFromStructure } from "../../lib/queries/territory";
 import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
+import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 
 interface Props {
@@ -27,7 +28,7 @@ export default function StructureActions({ playerId, territory, structure, onRei
 
   return (
     <div className="space-y-2 text-sm">
-      <ErrorBanner error={recall.error ?? demolish.error} />
+      <ErrorBanner error={latestError([recall, demolish])} />
 
       {building ? (
         <p className="text-amber-800">

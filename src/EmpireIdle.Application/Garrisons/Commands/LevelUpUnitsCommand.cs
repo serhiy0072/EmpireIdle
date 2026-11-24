@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
@@ -17,7 +18,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
     public record LevelUpUnitsCommand(Guid PlayerId, string UnitType, int FromLevel, int ToLevel, int Count)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class LevelUpUnitsCommandHandler : IRequestHandler<LevelUpUnitsCommand>
+    public sealed class LevelUpUnitsCommandHandler : IRequestHandler<LevelUpUnitsCommand>
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IGarrisonRepository _garrisonRepository;
@@ -52,11 +53,9 @@ namespace EmpireIdle.Application.Garrisons.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
             var config = _catalog.FindUnit(request.UnitType)
                 ?? throw new EntityNotFoundException("Unit type", request.UnitType);
@@ -75,8 +74,7 @@ namespace EmpireIdle.Application.Garrisons.Commands
 
             // Будівля під туманом стоїть у селі з першого дня, але ще не відкрита гравцю
             var trainingBuilding = village.Buildings
-                .FirstOrDefault(b => b.Type == config.RequiresBuilding && !b.IsUnderConstruction
-                                     && _status.IsUnlocked(village, b.Type))
+                .FirstOrDefault(b => b.Type == config.RequiresBuilding && _status.IsUnlocked(village, b.Type))
                 ?? throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Levelling up '{request.UnitType}' requires a '{config.RequiresBuilding}'.",
                     config.RequiresBuilding);

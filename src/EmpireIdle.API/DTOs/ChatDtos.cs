@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.Domain.Enums;
 
 namespace EmpireIdle.API.DTOs;

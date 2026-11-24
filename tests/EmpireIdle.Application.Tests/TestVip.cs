@@ -22,7 +22,7 @@ internal static class TestVip
     {
         var players = Substitute.For<IPlayerRepository>();
         var wallets = Substitute.For<IPlayerWalletRepository>();
-        var player = new Player(playerId, "vip", "vip@example.com", "vip-user", DateTime.UtcNow);
+        var player = new Player(playerId, "vip", "vip@example.com", "vip-user", DateTime.UtcNow, serverId: 1);
         var wallet = new PlayerWallet(Guid.NewGuid(), player.UserId);
         wallet.AddGems(new GemAmount(purchasedGems), "cs_vip", DateTime.UtcNow);
 

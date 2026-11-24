@@ -16,15 +16,15 @@ namespace EmpireIdle.Api.Tests.Schema;
 /// Окрема база в тому самому контейнері: решта колекції ділить свою
 /// й не пережила б відкату міграцій.
 /// </summary>
-[Collection("postgres")]
+[Collection("postgres-migrations")]
 public class ArtifactRenameMigrationTests
 {
     private const string Before = "20260923093606_AddDungeons";
     private const string Rename = "20260924053117_RenameArtifactPiecesForTypedSlots";
 
-    private readonly PostgresFixture _postgres;
+    private readonly MigrationPostgresFixture _postgres;
 
-    public ArtifactRenameMigrationTests(PostgresFixture postgres) => _postgres = postgres;
+    public ArtifactRenameMigrationTests(MigrationPostgresFixture postgres) => _postgres = postgres;
 
     private sealed record Row(Guid Id, string ItemKey, Guid? EquippedByHeroId, int SlotIndex);
 

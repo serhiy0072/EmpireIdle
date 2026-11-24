@@ -13,7 +13,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
     /// </summary>
     public record AbandonDungeonRunCommand(Guid PlayerId, Guid RunId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class AbandonDungeonRunCommandHandler : IRequestHandler<AbandonDungeonRunCommand>
+    public sealed class AbandonDungeonRunCommandHandler : IRequestHandler<AbandonDungeonRunCommand>
     {
         private readonly IDungeonRepository _dungeons;
         private readonly IUnitOfWork _unitOfWork;

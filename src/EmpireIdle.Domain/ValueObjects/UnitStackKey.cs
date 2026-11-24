@@ -1,3 +1,5 @@
+using EmpireIdle.Domain.Exceptions;
+
 namespace EmpireIdle.Domain.ValueObjects
 {
     /// <summary>
@@ -15,14 +17,14 @@ namespace EmpireIdle.Domain.ValueObjects
         /// <summary>
         /// Розбирає ключ у форматі "unitType@level" — так стеки з рівнями
         /// їдуть по дроту в JSON-словниках (HTTP-запити маршів, лікування, викупу).
-        /// Кривий ключ — це кривий запит клієнта, тому ArgumentException (400), а не збій сервера.
+        /// Кривий ключ — це кривий запит клієнта, тому MalformedRequestException (400), а не збій сервера.
         /// </summary>
         public static UnitStackKey Parse(string key)
         {
             var separator = key.LastIndexOf('@');
 
             if (separator <= 0 || !int.TryParse(key[(separator + 1)..], out var level))
-                throw new ArgumentException($"Invalid unit stack key '{key}'. Expected format 'unitType@level'.", nameof(key));
+                throw new MalformedRequestException($"Invalid unit stack key '{key}'. Expected format 'unitType@level'.");
 
             return new UnitStackKey(key[..separator], level);
         }

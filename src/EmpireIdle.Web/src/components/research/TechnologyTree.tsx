@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { TechnologyStat } from "../../lib/apiTypes";
 import { formatNumber } from "../../lib/format";
-import { technologyName, tierNumeral } from "../../lib/technologies";
+import { statIcon, technologyName, tierNumeral } from "../../lib/technologies";
 import { t } from "i18next";
 
 /** Вузол дерева, як його віддають і особисті, і кланові технології. */
@@ -192,11 +192,7 @@ function NodeTile({ node, active, marked, tileRef, onClick }: NodeTileProps) {
   );
 }
 
-/** Значок за першим ефектом вузла — поки без малюнків. */
+/** Значок за першим ефектом вузла. */
 function iconFor(node: TreeNode): string {
-  // Порядок — як у TechnologyStat: атака, захист, конвой, марш, вантаж, видобуток, їжа, будівництво…
-  const icons = ["⚔️", "🛡️", "🚩", "🐎", "🛒", "⛏️", "🍖", "🏗️", "🎯", "⬆️", "📜", "🩹", "🏕️", "⭐", "🐾", "🔐"];
-  const stat = node.effects[0]?.stat;
-
-  return stat === undefined ? "🔬" : (icons[stat] ?? "🔬");
+  return statIcon(node.effects[0]?.stat);
 }

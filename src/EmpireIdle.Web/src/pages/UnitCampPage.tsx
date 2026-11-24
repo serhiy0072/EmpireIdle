@@ -71,7 +71,6 @@ export default function UnitCampPage() {
           playerId={playerId}
           buildingType={camp.type}
           buildingLevel={camp.level}
-          underConstruction={camp.isUnderConstruction}
           unit={unit}
         />
       )}
@@ -93,11 +92,10 @@ interface CampProps {
   playerId: string;
   buildingType: string;
   buildingLevel: number;
-  underConstruction: boolean;
   unit: CatalogUnit;
 }
 
-function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }: CampProps) {
+function Camp({ playerId, buildingType, buildingLevel, unit }: CampProps) {
   const catalog = useCatalog();
   const garrison = useGarrison(playerId);
   const ceiling = useUnitLevelCeiling(playerId);
@@ -218,14 +216,7 @@ function Camp({ playerId, buildingType, buildingLevel, underConstruction, unit }
               level={selected}
               maxBatch={Math.max(1, Math.min(maxBatch, free))}
               speedBonus={trainingSpeed}
-              blocked={
-                locked ??
-                (underConstruction
-                  ? t("army:unitCamp.underConstruction")
-                  : free === 0
-                    ? t("army:unitCamp.full")
-                    : null)
-              }
+              blocked={locked ?? (free === 0 ? t("army:unitCamp.full") : null)}
               pending={train.isPending}
               error={train.error}
               onTrain={(count) => train.mutate({ unitType: unit.key, level: selected, count })}

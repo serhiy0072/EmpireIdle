@@ -16,7 +16,7 @@ public class LoginRewardProgressConfiguration : IEntityTypeConfiguration<LoginRe
         builder.HasIndex(p => p.PlayerId).IsUnique();
 
         // Два входи одночасно видали б день двічі
-        builder.Property(p => p.Version).IsRowVersion();
+        builder.Property<uint>("Version").IsRowVersion();
 
         builder.Ignore(p => p.DomainEvents);
     }

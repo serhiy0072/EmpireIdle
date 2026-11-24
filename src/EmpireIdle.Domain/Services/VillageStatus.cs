@@ -79,6 +79,7 @@ namespace EmpireIdle.Domain.Services
         /// Множник до сили оборони від укріплень. 1.0 — стін немає.
         /// Належить селищу, тож підкріплення клану ними теж прикриті.
         /// Пошкоджене укріплення дає лише частку бонусу (GDD §2.6).
+        /// Укріплення на апгрейді захищає на поточному рівні (рішення 16.11.2026).
         /// </summary>
         public double DefenceMultiplier(Village village, DateTime utcNow)
         {
@@ -88,8 +89,7 @@ namespace EmpireIdle.Domain.Services
             var hunger = village.IsHungry ? _catalog.Config.Provisions.HungerDefenceMultiplier : 1.0;
 
             return hunger * (1.0 + village.Buildings
-                .Where(b => !b.IsUnderConstruction
-                            && _catalog.Buildings.TryGetValue(b.Type, out var c)
+                .Where(b => _catalog.Buildings.TryGetValue(b.Type, out var c)
                             && c.DefenceBonusPerLevel > 0)
                 .Sum(b => _catalog.Buildings[b.Type].DefenceBonusPerLevel * b.Level.Value
                           * Math.Max(0, 1 - b.DamageAt(utcNow) * lossPerDamage)));

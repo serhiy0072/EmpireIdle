@@ -120,7 +120,7 @@ namespace EmpireIdle.Application.Territory.Queries
                 unlocks,
                 structures,
                 quests,
-                top.Select(m => new ClanContributorView(m.PlayerId, names.GetValueOrDefault(m.PlayerId, "?"), m.Contribution)).ToList());
+                top.Select(m => new TerritoryContributorView(m.PlayerId, names.GetValueOrDefault(m.PlayerId, "?"), m.Contribution)).ToList());
         }
     }
 }

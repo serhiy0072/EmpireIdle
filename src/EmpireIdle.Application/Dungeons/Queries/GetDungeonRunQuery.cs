@@ -1,5 +1,5 @@
 using EmpireIdle.Application.Common.Security;
-using EmpireIdle.Application.Dungeons.Contracts;
+using EmpireIdle.Application.Dungeons.ReadModels;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;
@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Dungeons.Queries
     /// </summary>
     public record GetDungeonRunQuery(Guid PlayerId) : IRequest<DungeonRunView?>, IPlayerScopedRequest;
 
-    internal sealed class GetDungeonRunQueryHandler : IRequestHandler<GetDungeonRunQuery, DungeonRunView?>
+    public sealed class GetDungeonRunQueryHandler : IRequestHandler<GetDungeonRunQuery, DungeonRunView?>
     {
         private readonly IDungeonRepository _dungeons;
         private readonly BattleBuilder _builder;

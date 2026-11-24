@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
 import type { DungeonRunView, DungeonsOverview } from "../apiTypes";
+import type { components } from "../schema";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { t } from "i18next";
@@ -117,7 +118,7 @@ export function artifactRarityLabel(rarity: string): string {
     : rarity;
 }
 
-const STATUSES = ["Poison", "Stun", "AttackUp", "DefenseUp", "DefenseDown", "Shield", "Taunt"] as const;
+const STATUSES = ["Poison", "Stun", "AttackUp", "DefenseUp", "DefenseDown", "Shield", "Taunt"] as const satisfies readonly components["schemas"]["BattleStatusKind"][];
 
 export function statusLabel(kind: string): string {
   return (STATUSES as readonly string[]).includes(kind) ? t(`battle:status.${kind as (typeof STATUSES)[number]}`) : kind;

@@ -33,8 +33,6 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime UpdatedAt { get; private set; }
 
-        public uint Version { get; private set; }
-
         public PlayerResearch(Guid id, Guid playerId, int serverId, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;

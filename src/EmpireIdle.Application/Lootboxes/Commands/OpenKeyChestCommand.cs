@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Lootboxes.Services;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Exceptions;
@@ -22,7 +22,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
         public const int MaxCount = 100;
     }
 
-    internal sealed class OpenKeyChestCommandHandler : IRequestHandler<OpenKeyChestCommand, LootboxOpening>
+    public sealed class OpenKeyChestCommandHandler : IRequestHandler<OpenKeyChestCommand, LootboxOpening>
     {
         private readonly IInventoryRepository _inventory;
         private readonly ILootboxRepository _lootboxes;
@@ -95,9 +95,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
             var stack = await _inventory.GetItemAsync(playerId, keyItemKey, cancellationToken);
 
             if (stack is null || stack.Count < count)
-                throw new RequirementNotMetException(RefusalReasons.ItemNotEnough,
-                    $"Not enough '{keyItemKey}': {stack?.Count ?? 0} of {count}.",
-                    keyItemKey, count, stack?.Count ?? 0);
+                throw new NotEnoughResourcesException(keyItemKey, count, stack?.Count ?? 0);
 
             stack.Consume(count);
 

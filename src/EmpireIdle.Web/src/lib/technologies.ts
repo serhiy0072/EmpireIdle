@@ -18,34 +18,39 @@ export function technologyTabName(key: string): string {
   return key in uk.tab ? t(`technologies:tab.${key as keyof typeof uk.tab}`) : key;
 }
 
-/** Імена TechnologyStat у порядку enum на сервері: на дроті — число. */
-const STATS: readonly StatKey[] = [
-  "Attack",
-  "Defense",
-  "ConvoySize",
-  "MarchSpeed",
-  "Carry",
-  "Production",
-  "MealUpkeep",
-  "ConstructionSpeed",
-  "TrainingSpeed",
-  "UnitLevelUpSpeed",
-  "ResearchSpeed",
-  "WoundedCapacity",
-  "UnitCapacity",
-  "HeroExperience",
-  "TameChance",
-  "ProtectedStorage",
-  "HelpShareCap",
-  "OfferingAttempts",
-  "CoinBonus",
-  "TerritoryAttack",
-  "TerritoryDefense",
-  "StructureBuildSpeed",
-  "StructureGarrison",
-  "StructureCost",
-  "LootCashback",
-];
+/** Значок стату — поки без малюнків. Запис на кожен стат: новий без значка не збереться. */
+const STAT_ICONS: Record<StatKey, string> = {
+  Attack: "⚔️",
+  Defense: "🛡️",
+  ConvoySize: "🚩",
+  MarchSpeed: "🐎",
+  Carry: "🛒",
+  Production: "⛏️",
+  MealUpkeep: "🍖",
+  ConstructionSpeed: "🏗️",
+  TrainingSpeed: "🎯",
+  UnitLevelUpSpeed: "⬆️",
+  ResearchSpeed: "📜",
+  WoundedCapacity: "🩹",
+  UnitCapacity: "🏕️",
+  HeroExperience: "⭐",
+  TameChance: "🐾",
+  ProtectedStorage: "🔐",
+  HelpShareCap: "🤝",
+  OfferingAttempts: "🙏",
+  CoinBonus: "🪙",
+  TerritoryAttack: "🗡️",
+  TerritoryDefense: "🏰",
+  StructureBuildSpeed: "🧱",
+  StructureGarrison: "💂",
+  StructureCost: "💰",
+  LootCashback: "💎",
+};
+
+/** Значок стату технології; невідомий стат — пробірка. */
+export function statIcon(stat: TechnologyStat | undefined): string {
+  return stat === undefined ? "🔬" : STAT_ICONS[stat];
+}
 
 /** Сумарний бонус технологій зі ResearchView.bonuses. */
 export interface TechnologyBonus {
@@ -59,10 +64,8 @@ export interface TechnologyBonus {
  * без цілі — лише «для всіх».
  */
 export function bonusOf(bonuses: readonly TechnologyBonus[], stat: StatKey, target?: string): number {
-  const index = STATS.indexOf(stat);
-
   return bonuses
-    .filter((bonus) => bonus.stat === index && (bonus.target == null || bonus.target === target))
+    .filter((bonus) => bonus.stat === stat && (bonus.target == null || bonus.target === target))
     .reduce((sum, bonus) => sum + bonus.value, 0);
 }
 
@@ -82,8 +85,8 @@ export interface TargetNames {
 
 /** «Атака · Піхота» або просто «Швидкість маршу», коли ефект на всіх. */
 export function effectLabel(effect: TechnologyEffect, names: TargetNames): string {
-  const stat = STATS[effect.stat];
-  const label = stat === undefined ? String(effect.stat) : t(`technologies:stat.${stat}`);
+  const stat = effect.stat;
+  const label = t(`technologies:stat.${stat}`);
 
   if (effect.target == null) return label;
 
@@ -94,9 +97,7 @@ export function effectLabel(effect: TechnologyEffect, names: TargetNames): strin
 
 /** Значення ефекту зі знаком: частки — у відсотках, штуки — як є. */
 export function effectValue(stat: TechnologyStat, value: number): string {
-  const key = STATS[stat];
-
-  if (key !== undefined && FLAT.has(key)) return `+${Math.round(value)}`;
+  if (FLAT.has(stat)) return `+${Math.round(value)}`;
 
   return `+${Math.round(value * 1000) / 10}%`;
 }

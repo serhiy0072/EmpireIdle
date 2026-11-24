@@ -1,6 +1,7 @@
 using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Map.Queries;
+using EmpireIdle.Application.Map.ReadModels;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -18,6 +19,7 @@ public class GetMapAreaQueryTests
     private readonly IMonsterRepository _monsters = Substitute.For<IMonsterRepository>();
     private readonly IClanStructureRepository _structures = Substitute.For<IClanStructureRepository>();
     private readonly IClanRepository _clans = Substitute.For<IClanRepository>();
+    private readonly IMarchRepository _marches = Substitute.For<IMarchRepository>();
 
     private static readonly GameConfig Config = BuildConfig();
 
@@ -38,8 +40,21 @@ public class GetMapAreaQueryTests
     }
 
     private GetMapAreaQueryHandler Handler()
-        => new(_map, _monsters, _structures, _clans, new TerrainGenerator(Config.Map), new GameCatalog(Config), ServerOne(),
+        => new(_map, _monsters, _structures, _clans, _marches, new TerrainGenerator(Config.Map), new GameCatalog(Config), ServerOne(),
             new LocaleTexts(Config, "uk"));
+
+    /// <summary>Табори приходять тим самим запитом і з тими самими межами вікна, що й окупанти.</summary>
+    [Fact]
+    public async Task Handle_ShouldIncludeTheCampsOfTheSameWindow()
+    {
+        var camp = new CampOnMap(Guid.NewGuid(), 11, 12, Guid.NewGuid(), "Табір", null, null);
+        _map.GetAreaAsync(1, 5, 5, 15, 15, Arg.Any<CancellationToken>()).Returns([]);
+        _marches.GetCampsInAreaAsync(5, 5, 15, 15, Arg.Any<CancellationToken>()).Returns([camp]);
+
+        var area = await Handler().Handle(new GetMapAreaQuery(10, 10, 5), CancellationToken.None);
+
+        Assert.Equal([camp], area.Camps);
+    }
 
     /// <summary>Споруда несе свій клан, тег і момент готовності — клієнт малює радіус і відрізняє свою територію.</summary>
     [Fact]

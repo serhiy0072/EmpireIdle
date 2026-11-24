@@ -14,25 +14,16 @@ namespace EmpireIdle.Api.Tests.Marches;
 /// На InMemory вона не перевіряється: важливо, що Postgres її перекладе й поверне те саме.
 /// </summary>
 [Collection("postgres")]
-public class IncomingAttackProjectionTests : IAsyncLifetime
+public class IncomingAttackProjectionTests
 {
     private const int ServerId = 1;
 
     private static readonly Dictionary<UnitStackKey, int> Army = new() { [new UnitStackKey("infantry", 1)] = 10 };
 
-    private readonly PostgresFixture _postgres;
     private readonly Random _random = new();
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public IncomingAttackProjectionTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public IncomingAttackProjectionTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task Attack_OnAClanmateVillage_ShouldCarryAttackerTargetAndClans()

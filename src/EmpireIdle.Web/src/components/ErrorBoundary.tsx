@@ -3,6 +3,8 @@ import { t } from "i18next";
 
 interface Props {
   children: ReactNode;
+  /** Зміна значення повертає впалий екран до життя; здоровий екран вона не чіпає. */
+  resetKey: string;
 }
 
 interface State {
@@ -12,13 +14,20 @@ interface State {
 /**
  * Падіння рендеру замість білого екрана показує пояснення й кнопку.
  * Класовий компонент, бо хуком помилку рендеру не зловити.
- * Скидається зміною key ззовні — так перехід на іншу вкладку повертає екран.
+ * Скидається зміною resetKey — так перехід на іншу адресу повертає екран. Не через key:
+ * key перемонтовував би й здорову сторінку на кожній зміні вкладки всередині неї.
  */
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { failed: false };
 
   static getDerivedStateFromError(): State {
     return { failed: true };
+  }
+
+  componentDidUpdate(previous: Props) {
+    if (this.state.failed && previous.resetKey !== this.props.resetKey) {
+      this.setState({ failed: false });
+    }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {

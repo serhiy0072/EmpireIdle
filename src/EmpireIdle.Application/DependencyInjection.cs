@@ -77,6 +77,7 @@ namespace EmpireIdle.Application
             services.AddScoped<ItemEffectDispatcher>();
             services.AddScoped<SpeedUpTargets>();
             services.AddScoped<EffectResolver>();
+            services.AddScoped<VillageProductionRates>();
             services.AddScoped<ItemGranter>();
             services.AddScoped<HeroGranter>();
             services.AddScoped<HeroShardBank>();

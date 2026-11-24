@@ -47,8 +47,7 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Знімає юнітів — втрати в обороні або відкликання.</summary>
         public void Subtract(int amount)
         {
-            if (amount < 0)
-                throw new InvalidOperationException("Amount to subtract cannot be negative.");
+            ArgumentOutOfRangeException.ThrowIfNegative(amount);
 
             Count = Math.Max(0, Count - amount);
         }

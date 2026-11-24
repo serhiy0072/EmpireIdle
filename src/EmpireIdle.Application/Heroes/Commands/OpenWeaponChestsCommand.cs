@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record OpenWeaponChestsCommand(Guid PlayerId, Guid HeroId, string ItemKey, int Count)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class OpenWeaponChestsCommandHandler : IRequestHandler<OpenWeaponChestsCommand>
+    public sealed class OpenWeaponChestsCommandHandler : IRequestHandler<OpenWeaponChestsCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IInventoryRepository _inventoryRepository;

@@ -48,7 +48,7 @@ public class CampTargetTests
     private static Village NewVillage(string name, int x = 10, int y = 10)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), name, ["food"], x, y);
+        var village = new Village(Guid.NewGuid(), Guid.NewGuid(), name, ["food"], x, y, serverId: 1);
 
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("wall", catalog.Buildings, Now);
@@ -60,7 +60,7 @@ public class CampTargetTests
             while (building.Level.Value < level)
             {
                 building.BeginUpgrade(catalog.Buildings[type], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
-                building.CompleteConstruction(Now);
+                building.CompleteConstruction(catalog.Buildings[type], Now, ProductionBoost.None, locationMultiplier: 1.0);
             }
         }
 

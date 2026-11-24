@@ -138,18 +138,7 @@ namespace EmpireIdle.Domain.Services
             if (total <= 0)
                 throw new InvalidOperationException($"Banner '{banner.Key}' has no drop with positive weight.");
 
-            var roll = random.Next(total);
-            var cumulative = 0;
-
-            foreach (var drop in ordered)
-            {
-                cumulative += drop.Weight;
-
-                if (roll < cumulative)
-                    return drop;
-            }
-
-            return ordered[^1]; // недосяжно: roll < total
+            return WeightedPick.ByInteger(ordered, d => d.Weight, random);
         }
     }
 }

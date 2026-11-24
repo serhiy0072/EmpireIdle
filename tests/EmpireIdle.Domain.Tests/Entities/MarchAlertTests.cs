@@ -145,6 +145,22 @@ public class MarchAlertTests
         Assert.Empty(march.DomainEvents);
     }
 
+    /// <summary>
+    /// Пауза після невдалого прибуття належить нозі, на якій воно впало: розворот після переїзду села
+    /// починає нову ногу, і сканер бере її у свій час, а не через годину.
+    /// </summary>
+    [Fact]
+    public void CallHomeAtOnce_ShouldDropTheRetryPause_OfThePreviousLeg()
+    {
+        var march = Send(MarchTargetType.Monster, MarchIntent.Attack, Guid.NewGuid());
+        march.DeferArrival(Now.AddHours(2));
+        Assert.NotNull(march.ArrivalRetryAt);
+
+        march.CallHomeAtOnce(7, 8, Now.AddHours(2));
+
+        Assert.Null(march.ArrivalRetryAt);
+    }
+
     /// <summary>Нога починається з виходу, а з розворотом — заново: від неї клієнт веде загін.</summary>
     [Fact]
     public void LegStartedAt_ShouldRestart_WhenTheMarchTurnsBack()

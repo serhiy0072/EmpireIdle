@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Beasts.Services;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -99,11 +100,9 @@ namespace EmpireIdle.Application.Marches.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
             var heroIds = request.HeroIds.Distinct().ToList();
             var heroes = await _heroRepository.GetByIdsAsync(heroIds, cancellationToken);

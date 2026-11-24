@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Banners.ReadModels;
 using EmpireIdle.Application.Banners.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
@@ -30,7 +31,7 @@ public class RollBannerCommandTests
 
     public RollBannerCommandTests()
     {
-        var player = new Player(_playerId, "tester", "tester@example.com", "user-1", Now);
+        var player = new Player(_playerId, "tester", "tester@example.com", "user-1", Now, serverId: 1);
         _players.GetByIdAsync(_playerId, Arg.Any<CancellationToken>()).Returns(player);
 
         _wallet = new PlayerWallet(Guid.NewGuid(), "user-1");

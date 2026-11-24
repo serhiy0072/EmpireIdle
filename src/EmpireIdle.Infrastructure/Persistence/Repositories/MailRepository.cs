@@ -25,6 +25,8 @@ namespace EmpireIdle.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .Where(l => l.PlayerId == playerId && l.ExpiresAt > utcNow)
                 .OrderByDescending(l => l.CreatedAt)
+                // Листи одного моменту (нагороди одним проходом) — інакше порядок стрибав між запитами
+                .ThenByDescending(l => l.Id)
                 .Take(limit)
                 .ToListAsync(cancellationToken);
 

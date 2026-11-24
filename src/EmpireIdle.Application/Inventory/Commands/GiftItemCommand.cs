@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -51,8 +52,7 @@ namespace EmpireIdle.Application.Inventory.Commands
             if (request.RecipientId == request.PlayerId)
                 throw new RequirementNotMetException(RefusalReasons.ItemGiftToSelf, "A gift needs another player.");
 
-            var giver = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+            var giver = await _playerRepository.RequireAsync(request.PlayerId, cancellationToken);
 
             // Отримувач шукається в тому ж світі (query-фільтр), тож чужий світ — як «не соратник»
             var recipient = await _playerRepository.GetByIdAsync(request.RecipientId, cancellationToken);
@@ -64,8 +64,7 @@ namespace EmpireIdle.Application.Inventory.Commands
             var have = stack?.Count ?? 0;
 
             if (stack is null || have < request.Count)
-                throw new RequirementNotMetException(RefusalReasons.ItemNotEnough,
-                    $"Not enough '{request.ItemKey}' to gift.", request.ItemKey, request.Count, have);
+                throw new NotEnoughResourcesException(request.ItemKey, request.Count, have);
 
             stack.Consume(request.Count);
 

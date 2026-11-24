@@ -58,8 +58,8 @@ export default function AppRoutes() {
             <Route path="/beasts" element={<BeastPenPage />} />
             <Route path="/beasts/:beastKey" element={<BeastPage />} />
             <Route path="/banners" element={<BannersPage />} />
-            <Route path="/clan" element={<ClanPage />} />
-            <Route path="/clan/:tab" element={<ClanPage />} />
+            {/* Один маршрут на всі вкладки: окремі маршрути перемонтовували б сторінку на кожній зміні вкладки */}
+            <Route path="/clan/:tab?" element={<ClanPage />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/market" element={<MarketPage />} />
             <Route path="/chat" element={<ChatPage />} />

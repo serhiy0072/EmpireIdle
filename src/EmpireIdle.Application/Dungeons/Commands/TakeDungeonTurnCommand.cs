@@ -1,6 +1,6 @@
+using EmpireIdle.Application.Dungeons.ReadModels;
 using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Common.Security;
-using EmpireIdle.Application.Dungeons.Contracts;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;
@@ -35,10 +35,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
     public record TakeDungeonTurnCommand(Guid PlayerId, Guid RunId, int ExpectedTurn, bool Auto, string? AbilityKey, int? TargetIndex)
         : IRequest<DungeonRunView>, IPlayerScopedRequest;
 
-    /// <param name="Artifacts">Ключі виданих артефактів — назви додає проєкція з каталогу.</param>
-    public record DungeonReward(IReadOnlyList<ResourceCost> Resources, IReadOnlyList<string> Artifacts, long HeroExperience);
-
-    internal sealed class TakeDungeonTurnCommandHandler : IRequestHandler<TakeDungeonTurnCommand, DungeonRunView>
+    public sealed class TakeDungeonTurnCommandHandler : IRequestHandler<TakeDungeonTurnCommand, DungeonRunView>
     {
         private readonly IDungeonRepository _dungeons;
         private readonly BattleEngine _engine;

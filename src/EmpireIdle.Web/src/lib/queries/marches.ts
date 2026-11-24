@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "../api";
 import type {
-  BattleVerdict,
   BattlePreviewResult,
   IncomingAttackResponse,
   MarchIntent,
@@ -14,34 +13,27 @@ import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
 
-/** Значення enum-ів з контракту: числа на дроті, імена — тут. */
+/** Значення enum-ів з контракту: на дроті — імена; satisfies ловить перейменування на сервері. */
 export const MARCH_STATE = {
-  outbound: 1,
-  returning: 2,
-  completed: 3,
-  camping: 4,
+  outbound: "Outbound",
+  returning: "Returning",
+  completed: "Completed",
+  camping: "Camping",
 } as const satisfies Record<string, MarchState>;
 
 export const MARCH_INTENT = {
-  attack: 1,
-  reinforce: 2,
-  scout: 3,
-  tame: 4,
+  attack: "Attack",
+  reinforce: "Reinforce",
+  scout: "Scout",
+  tame: "Tame",
 } as const satisfies Record<string, MarchIntent>;
 
 export const MARCH_TARGET = {
-  monster: 1,
-  village: 2,
-  clanStructure: 3,
-  camp: 4,
+  monster: "Monster",
+  village: "Village",
+  clanStructure: "ClanStructure",
+  camp: "Camp",
 } as const satisfies Record<string, MarchTargetType>;
-
-/** Вердикт за межами удачі в бою: гарантована перемога, можлива чи неможлива. */
-export const BATTLE_VERDICT: Record<BattleVerdict, { label: string; className: string }> = {
-  0: { label: "Перемога", className: "bg-emerald-100 text-emerald-800" },
-  1: { label: "Перемогти можливо", className: "bg-amber-100 text-amber-800" },
-  2: { label: "Не перемогти", className: "bg-red-100 text-red-800" },
-};
 
 export function useMarches(playerId: string): UseQueryResult<MarchResponse[]> {
   return useQuery({

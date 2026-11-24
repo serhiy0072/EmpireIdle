@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import ErrorBanner from "../components/ErrorBanner";
 import { useSession } from "../hooks/useSession";
@@ -15,6 +16,8 @@ import {
   type MailLetterView,
 } from "../lib/queries/mail";
 import { formatMoment } from "../lib/format";
+import { latestError } from "../lib/latestError";
+import { GameScreen } from "../components/game/GameUi";
 import { t } from "i18next";
 
 const ANNOUNCEMENTS = ["News", "Event", "Maintenance"] as const;
@@ -45,21 +48,21 @@ function CityFallLetter({ letter, onOpen }: Omit<LetterProps, "playerId">) {
 
   return (
     <li
-      className="space-y-1 rounded-xl border border-rose-200 bg-white p-3"
+      className="space-y-1 rounded-xl border border-rose-400/50 bg-[#1d3b6f] p-3"
       onMouseEnter={() => !letter.isRead && onOpen()}
       onClick={() => !letter.isRead && onOpen()}
     >
       <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span className="font-medium text-slate-800">
+        <span className="font-medium text-white">
           {!letter.isRead && unreadDot}
           {t("social:mail.fallTitle")}
         </span>
-        <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
+        <span className="text-xs text-sky-100/50">{date(letter.createdAt)}</span>
       </div>
       {fall == null ? (
-        <p className="text-sm text-slate-500">{t("social:mail.noDetails")}</p>
+        <p className="text-sm text-sky-100/70">{t("social:mail.noDetails")}</p>
       ) : (
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-slate-100">
           {t("social:mail.fall", {
             attacker: fall.attackerName,
             fromX: fall.fromX,
@@ -80,21 +83,21 @@ function StructureFallLetter({ letter, onOpen }: Omit<LetterProps, "playerId">) 
 
   return (
     <li
-      className="space-y-1 rounded-xl border border-rose-200 bg-white p-3"
+      className="space-y-1 rounded-xl border border-rose-400/50 bg-[#1d3b6f] p-3"
       onMouseEnter={() => !letter.isRead && onOpen()}
       onClick={() => !letter.isRead && onOpen()}
     >
       <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span className="font-medium text-slate-800">
+        <span className="font-medium text-white">
           {!letter.isRead && unreadDot}
           {t("social:mail.structureTitle")}
         </span>
-        <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
+        <span className="text-xs text-sky-100/50">{date(letter.createdAt)}</span>
       </div>
       {fall == null ? (
-        <p className="text-sm text-slate-500">{t("social:mail.noDetails")}</p>
+        <p className="text-sm text-sky-100/70">{t("social:mail.noDetails")}</p>
       ) : (
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-slate-100">
           {t("social:mail.structure", { attacker: fall.attackerName, x: fall.x, y: fall.y })}
         </p>
       )}
@@ -120,22 +123,22 @@ function InviteLetter({ playerId, letter, onOpen }: LetterProps) {
 
   return (
     <li
-      className="space-y-2 rounded-xl border border-slate-200 bg-white p-3"
+      className="space-y-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3"
       onMouseEnter={() => !letter.isRead && onOpen()}
       onClick={() => !letter.isRead && onOpen()}
     >
       <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span className="font-medium text-slate-800">
+        <span className="font-medium text-white">
           {!letter.isRead && unreadDot}
           {t("social:mail.inviteTitle")} {invite != null && `${invite.clanName} [${invite.clanTag}]`}
         </span>
-        <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
+        <span className="text-xs text-sky-100/50">{date(letter.createdAt)}</span>
       </div>
 
       <ErrorBanner error={resolve.error} />
 
       {invite == null ? (
-        <p className="text-sm text-slate-500">{t("social:mail.inviteGone")}</p>
+        <p className="text-sm text-sky-100/70">{t("social:mail.inviteGone")}</p>
       ) : invite.canRespond ? (
         <div className="flex gap-2">
           <button
@@ -150,13 +153,13 @@ function InviteLetter({ playerId, letter, onOpen }: LetterProps) {
             type="button"
             disabled={resolve.isPending}
             onClick={() => answer(false)}
-            className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-lg border border-[#4a72b0] px-3 py-1 text-sm text-slate-100 hover:bg-white/10 disabled:opacity-50"
           >
             {t("social:mail.decline")}
           </button>
         </div>
       ) : (
-        <p className="text-sm text-slate-500">{inviteStateLabel(invite.state)}</p>
+        <p className="text-sm text-sky-100/70">{inviteStateLabel(invite.state)}</p>
       )}
     </li>
   );
@@ -165,20 +168,20 @@ function InviteLetter({ playerId, letter, onOpen }: LetterProps) {
 function Announcement({ announcement, onOpen }: { announcement: AnnouncementView; onOpen: () => void }) {
   return (
     <li
-      className="space-y-1 rounded-xl border border-slate-200 bg-white p-3"
+      className="space-y-1 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3"
       onMouseEnter={() => !announcement.isRead && onOpen()}
       onClick={() => !announcement.isRead && onOpen()}
     >
       <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span className="font-medium text-slate-800">
+        <span className="font-medium text-white">
           {!announcement.isRead && unreadDot}
           {announcement.title}
         </span>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-sky-100/50">
           {announcementLabel(announcement.kind)} · {date(announcement.publishedAt)}
         </span>
       </div>
-      <p className="whitespace-pre-wrap text-sm text-slate-700">{announcement.body}</p>
+      <p className="whitespace-pre-wrap text-sm text-slate-100">{announcement.body}</p>
     </li>
   );
 }
@@ -191,8 +194,18 @@ export default function MailPage() {
   const session = useSession();
   const playerId = session?.playerId ?? "";
   const mailbox = useMailbox(playerId);
-  const readLetter = useMarkLetterRead(playerId);
-  const readAnnouncement = useMarkAnnouncementRead(playerId);
+  const markLetter = useMarkLetterRead(playerId);
+  const markAnnouncement = useMarkAnnouncementRead(playerId);
+  // Наведення спрацьовує на кожен рух миші, а isRead оновиться лише після відповіді —
+  // тож кожен лист позначаємо прочитаним щонайбільше раз за візит
+  const marked = useRef(new Set<string>());
+  const once = (id: string, mark: (id: string) => void) => {
+    if (marked.current.has(id)) return;
+    marked.current.add(id);
+    mark(id);
+  };
+  const readLetter = { mutate: (id: string) => once(id, markLetter.mutate) };
+  const readAnnouncement = { mutate: (id: string) => once(id, markAnnouncement.mutate) };
   const claimLetter = useClaimLetter(playerId);
   const claimAll = useClaimAll(playerId);
   const catalog = useCatalog();
@@ -210,10 +223,10 @@ export default function MailPage() {
   const claiming = claimLetter.isPending || claimAll.isPending;
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">{t("social:mail.title")}</h1>
-        {claimable > 0 && (
+    <GameScreen
+      title={t("social:mail.title")}
+      actions={
+        claimable > 0 && (
           <button
             type="button"
             disabled={claiming}
@@ -222,62 +235,59 @@ export default function MailPage() {
           >
             {t("social:mail.claimAll", { count: claimable })}
           </button>
-        )}
+        )
+      }
+    >
+      <div className="space-y-5">
+        <ErrorBanner error={latestError([claimAll, claimLetter])} />
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:mail.announcements")}</h2>
+          {announcements.length === 0 ? (
+            <p className="text-sm text-sky-100/70">{t("social:mail.noAnnouncements")}</p>
+          ) : (
+            <ul className="space-y-2">
+              {announcements.map((announcement) => (
+                <Announcement
+                  key={announcement.id}
+                  announcement={announcement}
+                  onOpen={() => readAnnouncement.mutate(announcement.id)}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:mail.letters")}</h2>
+          {letters.length === 0 ? (
+            <p className="text-sm text-sky-100/70">{t("social:mail.noLetters")}</p>
+          ) : (
+            <ul className="space-y-2">
+              {letters.map((letter) =>
+                letter.rewards.length > 0 ? (
+                  <RewardLetter
+                    key={letter.id}
+                    letter={letter}
+                    catalog={catalog}
+                    busy={claiming}
+                    onClaim={() => claimLetter.mutate(letter.id)}
+                    onOpen={() => readLetter.mutate(letter.id)}
+                  />
+                ) : letter.kind === "CityFall" ? (
+                  <CityFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
+                ) : letter.kind === "ScoutReport" ? (
+                  <ScoutReportLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
+                ) : letter.kind === "StructureFall" ? (
+                  <StructureFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
+                ) : letter.kind === "ClanInvite" ? (
+                  <InviteLetter key={letter.id} playerId={playerId} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
+                ) : null,
+              )}
+            </ul>
+          )}
+        </section>
       </div>
-
-      <ErrorBanner error={claimAll.error ?? claimLetter.error} />
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:mail.announcements")}</h2>
-        {announcements.length === 0 ? (
-          <p className="text-sm text-slate-500">{t("social:mail.noAnnouncements")}</p>
-        ) : (
-          <ul className="space-y-2">
-            {announcements.map((announcement) => (
-              <Announcement
-                key={announcement.id}
-                announcement={announcement}
-                onOpen={() => readAnnouncement.mutate(announcement.id)}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:mail.letters")}</h2>
-        {letters.length === 0 ? (
-          <p className="text-sm text-slate-500">{t("social:mail.noLetters")}</p>
-        ) : (
-          <ul className="space-y-2">
-            {letters.map((letter) =>
-              letter.rewards.length > 0 ? (
-                <RewardLetter
-                  key={letter.id}
-                  letter={letter}
-                  catalog={catalog}
-                  busy={claiming}
-                  onClaim={() => claimLetter.mutate(letter.id)}
-                  onOpen={() => readLetter.mutate(letter.id)}
-                />
-              ) : letter.kind === "CityFall" ? (
-                <CityFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
-              ) : letter.kind === "ScoutReport" ? (
-                <ScoutReportLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
-              ) : letter.kind === "StructureFall" ? (
-                <StructureFallLetter key={letter.id} letter={letter} onOpen={() => readLetter.mutate(letter.id)} />
-              ) : (
-                <InviteLetter
-                  key={letter.id}
-                  playerId={playerId}
-                  letter={letter}
-                  onOpen={() => readLetter.mutate(letter.id)}
-                />
-              ),
-            )}
-          </ul>
-        )}
-      </section>
-    </div>
+    </GameScreen>
   );
 }

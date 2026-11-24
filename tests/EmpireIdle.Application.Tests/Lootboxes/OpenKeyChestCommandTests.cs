@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Lootboxes.Commands;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Lootboxes.Services;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Contracts;
@@ -124,9 +124,8 @@ public class OpenKeyChestCommandTests
     {
         var keys = GivenKeys(1);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Open(free: false, count: 2));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Open(free: false, count: 2));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.Equal(1, keys.Count);
         Assert.Empty(_granted);
     }

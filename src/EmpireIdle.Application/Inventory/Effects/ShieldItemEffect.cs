@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Domain.Exceptions;
@@ -15,8 +16,7 @@ namespace EmpireIdle.Application.Inventory.Effects
 
         public async Task ApplyAsync(ItemUsageContext context, CancellationToken cancellationToken)
         {
-            var village = await _villages.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", context.PlayerId);
+            var village = await _villages.RequireByPlayerAsync(context.PlayerId, cancellationToken);
 
             village.RaiseShield(TimeSpan.FromHours(context.Config.DurationHours * context.Count), context.UtcNow);
         }

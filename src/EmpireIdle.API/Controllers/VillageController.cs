@@ -1,6 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Villages.Commands;
 using EmpireIdle.Application.Villages.Queries;
+using EmpireIdle.Application.Villages.ReadModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,31 +22,11 @@ namespace EmpireIdle.API.Controllers
         /// Отримати стан села гравця з будівлями та ресурсами.
         /// </summary>
         [HttpGet("{playerId:guid}")]
-        [ProducesResponseType(typeof(VillageResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(VillageView), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetVillage(Guid playerId, CancellationToken cancellationToken)
         {
-            var village = await _mediator.Send(new GetVillageQuery(playerId), cancellationToken);
-
-            var response = new VillageResponse(
-                village.Id,
-                village.Name,
-                village.X,
-                village.Y,
-                village.Buildings.Select(b => new BuildingResponse(
-                    b.Id, b.Type, b.Level, b.LastCollectedAt, b.StoredAmount, b.StorageCap,
-                    b.ConstructionCompletesAt, b.IsUnderConstruction, b.SpeedUpCostGems, b.IsUnlocked,
-                    b.DamageLevel, b.DamagedUntil, b.X, b.Y)).ToList(),
-                village.Resources.Select(r => new ResourceResponse(r.ResourceType, r.Amount, r.IsUnlocked)).ToList(),
-                village.ShieldUntil,
-                village.Damage is null
-                    ? null
-                    : new VillageDamageResponse(village.Damage.DefeatStreak, village.Damage.DefeatsToEvict,
-                        village.Damage.RepairCost.Select(c => new RepairCostResponse(c.Resource, c.Amount)).ToList()),
-                village.IsHungry,
-                village.MealPerHour);
-
-            return Ok(response);
+            return Ok(await _mediator.Send(new GetVillageQuery(playerId), cancellationToken));
         }
 
         /// <summary>
@@ -89,13 +70,10 @@ namespace EmpireIdle.API.Controllers
         /// Зібрати накопичені ресурси з усіх будівель села разом.
         /// </summary>
         [HttpPost("{playerId:guid}/collect-all")]
-        [ProducesResponseType(typeof(CollectAllResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(CollectAllView), StatusCodes.Status200OK)]
         public async Task<IActionResult> CollectAllBuildings(Guid playerId, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new CollectAllBuildingsCommand(playerId), cancellationToken);
-
-            return Ok(new CollectAllResponse(
-                result.Collected.Select(c => new CollectedResourceResponse(c.ResourceType, c.Amount)).ToList()));
+            return Ok(await _mediator.Send(new CollectAllBuildingsCommand(playerId), cancellationToken));
         }
 
         /// <summary>

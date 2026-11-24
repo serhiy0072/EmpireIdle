@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Banners.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
@@ -10,26 +11,7 @@ namespace EmpireIdle.Application.Banners.Queries
     /// <summary>Вітрина банерів: пул, шанси й поточний прогрес pity гравця.</summary>
     public record GetBannersQuery(Guid PlayerId) : IRequest<IReadOnlyList<BannerView>>, IPlayerScopedRequest;
 
-    /// <param name="RareSince">Скільки роллів гравець уже зробив без рідкісного в цій групі.</param>
-    public record BannerView(
-        string Key,
-        string DisplayName,
-        BannerKind Kind,
-        string PityGroup,
-        int PriceGems,
-        int RarePity,
-        int UniquePity,
-        string? FeaturedKey,
-        DateTimeOffset? EndsAt,
-        int RareSince,
-        int UniqueSince,
-        bool FeaturedGuaranteed,
-        IReadOnlyList<BannerDropView> Drops);
-
-    /// <param name="Chance">Базовий шанс у відсотках, без урахування гарантій.</param>
-    public record BannerDropView(string Key, string DisplayName, Rarity Rarity, BannerKind? Kind, double Chance);
-
-    internal sealed class GetBannersQueryHandler : IRequestHandler<GetBannersQuery, IReadOnlyList<BannerView>>
+    public sealed class GetBannersQueryHandler : IRequestHandler<GetBannersQuery, IReadOnlyList<BannerView>>
     {
         private readonly GameCatalog _catalog;
         private readonly BannerRoller _roller;

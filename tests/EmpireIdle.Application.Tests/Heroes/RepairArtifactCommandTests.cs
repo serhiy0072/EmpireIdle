@@ -31,7 +31,7 @@ public class RepairArtifactCommandTests
     public RepairArtifactCommandTests()
     {
         _players.GetByIdAsync(PlayerId, Arg.Any<CancellationToken>())
-            .Returns(new Player(PlayerId, "tester", "tester@example.com", "user-1", Now));
+            .Returns(new Player(PlayerId, "tester", "tester@example.com", "user-1", Now, serverId: 1));
         _wallets.GetByUserIdAsync("user-1", Arg.Any<CancellationToken>()).Returns(_wallet);
         _wallet.AddGems(new GemAmount(1_000), "test", Now);
     }
@@ -101,9 +101,8 @@ public class RepairArtifactCommandTests
     {
         var item = GivenBroken();
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Repair(item, useKit: true));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Repair(item, useKit: true));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.True(item.IsBroken);
     }
 

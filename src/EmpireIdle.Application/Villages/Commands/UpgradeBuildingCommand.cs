@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -55,10 +56,9 @@ namespace EmpireIdle.Application.Villages.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
-            // Апгрейд зупиняє виробництво — буфер треба зафіксувати за поточним множником
+            // Старт апгрейду фіксує буфер за поточним множником
             var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
 
             var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);

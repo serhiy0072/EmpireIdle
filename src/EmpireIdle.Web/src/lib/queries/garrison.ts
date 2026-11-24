@@ -7,10 +7,10 @@ import { useCatalog } from "./catalog";
 import { refetchAtDue } from "./polling";
 import { useVillage } from "./village";
 
-/** Значення HealPaymentMethod з контракту: числа на дроті, імена — тут. */
+/** Значення HealPaymentMethod з контракту: на дроті — імена. */
 export const HEAL_PAYMENT = {
-  resources: 1,
-  gems: 2,
+  resources: "Resources",
+  gems: "Gems",
 } as const satisfies Record<string, HealPaymentMethod>;
 
 export function useGarrison(playerId: string): UseQueryResult<GarrisonResponse> {

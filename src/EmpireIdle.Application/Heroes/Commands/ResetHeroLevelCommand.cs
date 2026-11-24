@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record ResetHeroLevelCommand(Guid PlayerId, Guid HeroId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class ResetHeroLevelCommandHandler : IRequestHandler<ResetHeroLevelCommand>
+    public sealed class ResetHeroLevelCommandHandler : IRequestHandler<ResetHeroLevelCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IServerContext _serverContext;

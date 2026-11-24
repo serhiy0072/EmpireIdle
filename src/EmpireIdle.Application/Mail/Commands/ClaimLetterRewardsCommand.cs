@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Mail.Contracts;
+using EmpireIdle.Application.Mail.ReadModels;
 using EmpireIdle.Application.Mail.Services;
 using EmpireIdle.Domain.Exceptions;
 using MediatR;

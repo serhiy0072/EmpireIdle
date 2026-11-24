@@ -1,4 +1,4 @@
-using EmpireIdle.API.DTOs;
+using EmpireIdle.Application.Wallets.ReadModels;
 using EmpireIdle.Application.Wallets.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -20,11 +20,10 @@ namespace EmpireIdle.API.Controllers
         /// Отримати баланс gems гравця і його VIP-рівень.
         /// </summary>
         [HttpGet("{playerId:guid}")]
-        [ProducesResponseType(typeof(WalletResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(WalletView), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetWallet(Guid playerId, CancellationToken cancellationToken)
         {
-            var wallet = await _mediator.Send(new GetWalletQuery(playerId), cancellationToken);
-            return Ok(new WalletResponse(wallet.GemBalance, wallet.PurchasedGems, wallet.VipLevel, wallet.NextVipThreshold));
+            return Ok(await _mediator.Send(new GetWalletQuery(playerId), cancellationToken));
         }
     }
 }

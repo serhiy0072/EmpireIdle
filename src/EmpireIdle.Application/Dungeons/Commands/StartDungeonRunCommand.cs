@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
@@ -19,7 +20,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
     public record StartDungeonRunCommand(Guid PlayerId, string DungeonKey, int Level, IReadOnlyList<Guid> HeroIds)
         : IRequest<Guid>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class StartDungeonRunCommandHandler : IRequestHandler<StartDungeonRunCommand, Guid>
+    public sealed class StartDungeonRunCommandHandler : IRequestHandler<StartDungeonRunCommand, Guid>
     {
         private readonly IDungeonRepository _dungeons;
         private readonly IVillageRepository _villages;
@@ -77,8 +78,7 @@ namespace EmpireIdle.Application.Dungeons.Commands
             if (await _dungeons.GetActiveRunAsync(request.PlayerId, cancellationToken) is not null)
                 throw new AlreadyExistsException(RefusalReasons.DungeonRunInProgress, "Dungeon run", request.PlayerId.ToString());
 
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", request.PlayerId);
+            var village = await _villages.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
             var mainLevel = village.Buildings
                 .FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)?.Level.Value ?? 0;

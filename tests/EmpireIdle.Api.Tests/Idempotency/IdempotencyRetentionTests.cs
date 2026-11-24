@@ -12,20 +12,11 @@ namespace EmpireIdle.Api.Tests.Idempotency;
 /// чистка ж не має чіпати свіжих записів — повтор із тим самим ключем має отримати ту саму відповідь.
 /// </summary>
 [Collection("postgres")]
-public class IdempotencyRetentionTests : IAsyncLifetime
+public class IdempotencyRetentionTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public IdempotencyRetentionTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public IdempotencyRetentionTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task PurgeCompleted_ShouldRemoveOnlyOldCompletedRecords()

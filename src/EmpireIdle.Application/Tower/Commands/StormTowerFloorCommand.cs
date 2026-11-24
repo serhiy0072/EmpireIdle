@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Tower.ReadModels;
 using EmpireIdle.Application.Battles.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
@@ -22,11 +23,7 @@ namespace EmpireIdle.Application.Tower.Commands
     public record StormTowerFloorCommand(Guid PlayerId, int Floor, IReadOnlyList<Guid?> Lanes, IReadOnlyList<ManualCast>? Casts = null)
         : IRequest<TowerStormResult>, IPlayerScopedRequest, IIdempotentRequest;
 
-    /// <param name="Rewards">Видана нагорода; після поразки — порожньо.</param>
-    /// <param name="Battle">Лог бою для відтворення.</param>
-    public record TowerStormResult(bool Victory, int Floor, IReadOnlyList<RewardConfig> Rewards, BattleReplay Battle);
-
-    internal sealed class StormTowerFloorCommandHandler : IRequestHandler<StormTowerFloorCommand, TowerStormResult>
+    public sealed class StormTowerFloorCommandHandler : IRequestHandler<StormTowerFloorCommand, TowerStormResult>
     {
         private readonly ITowerRepository _tower;
         private readonly TowerBattle _battles;

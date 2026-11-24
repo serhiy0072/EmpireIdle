@@ -16,7 +16,7 @@ public class EquipmentItemConfiguration : IEntityTypeConfiguration<EquipmentItem
         builder.Property(e => e.Rarity).HasConversion<int>();
         builder.Property(e => e.Slot).HasConversion<int>();
 
-        builder.Property(e => e.Version).IsRowVersion();
+        builder.Property<uint>("Version").IsRowVersion();
 
         // Окремих індексів по PlayerId і EquippedByHeroId немає навмисно:
         // обидва повністю покриваються префіксами складених нижче, і були б

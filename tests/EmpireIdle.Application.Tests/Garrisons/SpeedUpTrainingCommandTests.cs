@@ -45,7 +45,7 @@ public class SpeedUpTrainingCommandTests
     private (Garrison Garrison, PlayerWallet Wallet, Guid OrderId) GivenTraining(
         int minutesLeft = 120, int gems = 5000)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
 
         garrison.TrainUnits("infantry", level: 1, count: 5, maxBatchSize: 100, armyCapacity: 1000,
@@ -98,7 +98,7 @@ public class SpeedUpTrainingCommandTests
     [Fact]
     public async Task Handle_ShouldRefuse_AtTheFloor()
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
         garrison.TrainUnits("infantry", level: 1, count: 5, maxBatchSize: 100, armyCapacity: 1000,
             TimeSpan.FromSeconds(30), Now);

@@ -15,10 +15,6 @@
   "beast.levelCapped": [
     "level"
   ],
-  "beast.notEnoughFeed": [
-    "need",
-    "have"
-  ],
   "beast.notTameable": [],
   "beast.onCooldown": [
     "readyAt"
@@ -121,6 +117,9 @@
     "name"
   ],
   "clan.roleProtected": [],
+  "clan.rolesLimit": [
+    "max"
+  ],
   "clan.targetInClan": [],
   "clantech.gemLimit": [
     "limit"
@@ -194,6 +193,8 @@
     "need",
     "have"
   ],
+  "garrison.nothingToHeal": [],
+  "garrison.nothingToRecover": [],
   "garrison.trainingBusy": [],
   "garrison.unitLevelCeiling": [
     "ceiling"
@@ -231,11 +232,6 @@
   "hero.skillMaxed": [
     "level"
   ],
-  "hero.skillNoBook": [
-    "book",
-    "need",
-    "have"
-  ],
   "hero.skillStarCapped": [
     "stars"
   ],
@@ -261,11 +257,6 @@
   ],
   "item.giftNotClanmate": [],
   "item.giftToSelf": [],
-  "item.notEnough": [
-    "item",
-    "need",
-    "have"
-  ],
   "item.notGiftable": [],
   "item.strongerBoostActive": [
     "multiplier",

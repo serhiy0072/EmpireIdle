@@ -184,7 +184,8 @@ public class CompleteMarchCommandTests
         // Спорядження в цих сценах немає: бійця дають власні стати героя
         _inventory.GetEquippedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
         _inventory.GetEquippedByHeroesAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(new List<EquipmentItem>());
-        var combatants = new HeroCombatants(_inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
+        var combatants = new HeroCombatants(_inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog,
+            TestTechnologies.For(catalog, _research));
         var armyBuffs = TestCombatants.Buffs(catalog, combatants, _research);
         var defenders = new GarrisonDefenders(_heroes, _inventory, new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog);
 
@@ -277,7 +278,7 @@ public class CompleteMarchCommandTests
     /// <summary>Село з ратушею потрібного рівня — інакше діє щит новачка.</summary>
     private static Village NewVillage(GameCatalog catalog, Guid ownerId, int x, int y, int townHallLevel = 5)
     {
-        var village = new Village(Guid.NewGuid(), ownerId, "Test", ["food"], x, y);
+        var village = new Village(Guid.NewGuid(), ownerId, "Test", ["food"], x, y, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 0 }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
@@ -290,7 +291,7 @@ public class CompleteMarchCommandTests
         for (var i = 1; i < townHallLevel; i++)
         {
             townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
-            townhall.CompleteConstruction(Now);
+            townhall.CompleteConstruction(catalog.Buildings["townhall"], Now, ProductionBoost.None, locationMultiplier: 1.0);
         }
 
         return village;

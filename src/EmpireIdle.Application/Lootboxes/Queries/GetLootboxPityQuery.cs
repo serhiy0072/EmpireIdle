@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Domain.Services;
 using MediatR;
 
@@ -12,7 +12,7 @@ namespace EmpireIdle.Application.Lootboxes.Queries
     /// </summary>
     public record GetLootboxPityQuery(Guid PlayerId) : IRequest<IReadOnlyList<LootboxPityView>>, IPlayerScopedRequest;
 
-    internal sealed class GetLootboxPityQueryHandler : IRequestHandler<GetLootboxPityQuery, IReadOnlyList<LootboxPityView>>
+    public sealed class GetLootboxPityQueryHandler : IRequestHandler<GetLootboxPityQuery, IReadOnlyList<LootboxPityView>>
     {
         private readonly ILootboxRepository _lootboxes;
         private readonly GameCatalog _catalog;

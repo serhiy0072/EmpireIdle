@@ -13,32 +13,8 @@ public record SendMarchRequest(
     List<Guid> HeroIds,
     MarchIntent Intent = MarchIntent.Attack);
 
-/// <summary>
-/// Активний похід. TargetName null — ціль уже зникла з мапи (монстра вбили,
-/// село покинули), а армія ще повертається. TargetLevel — рівень монстра;
-/// у села null. LegStartedAt — початок поточної ноги (до цілі чи додому): від нього клієнт веде загін.
-/// </summary>
-public record MarchResponse(
-    Guid Id,
-    MarchTargetType TargetType,
-    Guid TargetId,
-    string? TargetName,
-    int? TargetLevel,
-    int TargetX,
-    int TargetY,
-    MarchIntent Intent,
-    MarchState State,
-    IReadOnlyList<Guid> HeroIds,
-    DateTime DepartedAt,
-    DateTime LegStartedAt,
-    DateTime ArrivesAt,
-    List<MarchUnitResponse> Units);
-
 /// <summary>Прискорення маршу: відсоток залишку дороги — один із варіантів каталогу (SpeedUp.MarchOptions).</summary>
 public record SpeedUpMarchRequest(int Percent);
-
-/// <summary>Загін у поході.</summary>
-public record MarchUnitResponse(string UnitType, int Level, int Count);
 
 /// <summary>
 /// Ворожий марш у дорозі на село гравця, соклановця чи споруду клану: напад (Attack) чи розвідка (Scout).
@@ -65,21 +41,3 @@ public record IncomingAttackResponse(
 
 /// <summary>Куди відправити розвідників: чуже село чи споруда клану.</summary>
 public record SendScoutRequest(MarchTargetType TargetType, Guid TargetId);
-
-/// <summary>
-/// Звіт розвідки. Outcome — "Success", "Blocked", "TargetMoved" або "TargetGone";
-/// DefencePower і Lootable — лише в успішного звіту.
-/// </summary>
-/// <param name="DefencePower">Сила оборони з усіма бонусами: бусти, територія клану, лідери гарнізону.</param>
-/// <param name="Lootable">Що можна винести за ключем ресурсу; порожньо для споруди.</param>
-public record ScoutReportResponse(
-    Guid Id,
-    MarchTargetType TargetType,
-    Guid TargetId,
-    string TargetName,
-    int X,
-    int Y,
-    string Outcome,
-    double? DefencePower,
-    Dictionary<string, long> Lootable,
-    DateTime CreatedAt);

@@ -16,7 +16,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             // Два паралельні ролли інакше прочитали б однаковий лічильник
             // і обидва списали б одну гарантію
-            builder.Property(p => p.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             // Один рядок на пару гравець-група. Індексом, а не перевіркою в коді:
             // перший ролл у двох вкладках створив би два лічильники

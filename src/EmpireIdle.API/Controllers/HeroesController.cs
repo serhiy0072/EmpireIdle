@@ -1,6 +1,6 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Heroes.Commands;
-using EmpireIdle.Application.Heroes.Contracts;
+using EmpireIdle.Application.Heroes.ReadModels;
 using EmpireIdle.Application.Heroes.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

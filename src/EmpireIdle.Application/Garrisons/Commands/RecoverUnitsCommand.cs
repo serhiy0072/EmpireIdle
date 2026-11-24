@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -48,28 +49,25 @@ namespace EmpireIdle.Application.Garrisons.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
             // Спершу забираємо зі стеків — платимо рівно за те, що реально повернулось,
             // бо частина могла згоріти по дедлайну між показом екрана і натисканням кнопки
             var recovered = garrison.RecoverUnits(request.Units, now);
             if (recovered.Count == 0)
-                throw new InvalidStateException("Nothing to recover.");
+                throw new InvalidStateException(RefusalReasons.GarrisonNothingToRecover, "Nothing to recover.");
 
             var cost = CalculateCost(recovered);
 
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                ?? throw new InvalidOperationException("Wallet not found.");
+            var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
             // Кине виняток при нестачі gems — SaveChanges не дійде, стеки лишаться на місці
-            wallet.SpendGems(new GemAmount(cost), $"Recover {recovered.Values.Sum()} units", request.PlayerId, now);
+            wallet.SpendGems(new GemAmount(cost), $"recover:{recovered.Values.Sum()}", request.PlayerId, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

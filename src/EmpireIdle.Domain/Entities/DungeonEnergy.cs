@@ -24,8 +24,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Скільки разів шкалу доливали за gems у добу <see cref="RefillDay"/>.</summary>
         public int RefillsOnDay { get; private set; }
 
-        public uint Version { get; private set; }
-
         public DungeonEnergy(Guid id, Guid playerId, int amount, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;

@@ -1,6 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Clans.Commands;
 using EmpireIdle.Application.Clans.Queries;
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -25,30 +26,20 @@ namespace EmpireIdle.API.Controllers
         /// склад не віддається — його бачать лише свої.
         /// </summary>
         [HttpGet]
-        [ProducesResponseType(typeof(ClanListResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClanListPage), StatusCodes.Status200OK)]
         public async Task<IActionResult> Browse([FromQuery] string? search, [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default)
         {
-            var result = await _mediator.Send(new BrowseClansQuery(search, page, pageSize), cancellationToken);
-
-            var items = result.Items
-                .Select(c => new ClanListItemResponse(c.Id, c.Name, c.Tag, c.Description,
-                    c.JoinPolicy.ToString(), c.MemberCount, c.Capacity, c.IsFull))
-                .ToList();
-
-            return Ok(new ClanListResponse(items, result.Total, result.Page, result.PageSize));
+            return Ok(await _mediator.Send(new BrowseClansQuery(search, page, pageSize), cancellationToken));
         }
 
         /// <summary>Картка клану за id.</summary>
         [HttpGet("profile/{clanId:guid}")]
-        [ProducesResponseType(typeof(ClanProfileResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClanProfile), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetProfile(Guid clanId, CancellationToken cancellationToken)
         {
-            var clan = await _mediator.Send(new GetClanProfileQuery(clanId), cancellationToken);
-
-            return Ok(new ClanProfileResponse(clan.Id, clan.Name, clan.Tag, clan.Description,
-                clan.JoinPolicy.ToString(), clan.MemberCount, clan.Capacity, clan.IsFull, clan.CreatedAt));
+            return Ok(await _mediator.Send(new GetClanProfileQuery(clanId), cancellationToken));
         }
 
         /// <summary>
@@ -56,45 +47,21 @@ namespace EmpireIdle.API.Controllers
         /// 200 і null: це нормальний стан екрана, а не помилка.
         /// </summary>
         [HttpGet("{playerId:guid}")]
-        [ProducesResponseType(typeof(MyClanResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MyClan), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetMyClan(Guid playerId, CancellationToken cancellationToken)
         {
-            var clan = await _mediator.Send(new GetMyClanQuery(playerId), cancellationToken);
-
-            if (clan is null)
-                return Ok(null);
-
-            var roles = clan.Roles
-                .Select(r => new ClanRoleResponse(r.Id, r.Name, r.Key, r.Rank,
-                    PermissionNames(r.Permissions), r.IsLeaderRole, r.IsDefaultRole))
-                .ToList();
-
-            var members = clan.Members
-                .Select(m => new ClanMemberResponse(m.PlayerId, m.PlayerName, m.RoleId, m.RoleName, m.RoleKey,
-                    m.Rank, m.Power, m.JoinedAt, m.LastActiveAt))
-                .ToList();
-
-            return Ok(new MyClanResponse(clan.Id, clan.Name, clan.Tag, clan.Description,
-                clan.JoinPolicy.ToString(), clan.MemberCount, clan.Capacity, clan.CreatedAt,
-                clan.MyRoleId, PermissionNames(clan.MyPermissions), roles, members));
+            // null — гравець поза кланом: Ok(null) віддає 204, клієнт зводить його до порожнього стану
+            return Ok(await _mediator.Send(new GetMyClanQuery(playerId), cancellationToken));
         }
 
         /// <summary>Активні запити на допомогу в клані гравця.</summary>
         [HttpGet("{playerId:guid}/help")]
-        [ProducesResponseType(typeof(List<ClanHelpItemResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<ClanHelpItem>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetHelp(Guid playerId, CancellationToken cancellationToken)
         {
-            var items = await _mediator.Send(new GetClanHelpQuery(playerId), cancellationToken);
-
-            var response = items
-                .Select(h => new ClanHelpItemResponse(h.RequestId, h.PlayerId, h.PlayerName,
-                    h.TargetType.ToString(), h.TargetId, h.HelpCount, h.MaxHelpers,
-                    h.AlreadyHelped, h.IsMine, h.CreatedAt, h.ExpiresAt, h.Subject))
-                .ToList();
-
-            return Ok(response);
+            return Ok(await _mediator.Send(new GetClanHelpQuery(playerId), cancellationToken));
         }
 
         // ---------- Склад ----------
@@ -172,6 +139,47 @@ namespace EmpireIdle.API.Controllers
             return NoContent();
         }
 
+        /// <summary>Створити власну роль клану. Потрібен дозвіл ManageRoles.</summary>
+        [HttpPost("{playerId:guid}/roles")]
+        [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> CreateRole(Guid playerId, [FromBody] ClanRoleRequest request,
+            CancellationToken cancellationToken)
+        {
+            var roleId = await _mediator.Send(
+                new CreateClanRoleCommand(playerId, request.Name, request.Rank, Combine(request.Permissions)), cancellationToken);
+
+            return Created((string?)null, roleId);
+        }
+
+        /// <summary>Змінити назву, ранг і дозволи ролі. Роль лідера незмінна.</summary>
+        [HttpPut("{playerId:guid}/roles/{roleId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> UpdateRole(Guid playerId, Guid roleId, [FromBody] ClanRoleRequest request,
+            CancellationToken cancellationToken)
+        {
+            await _mediator.Send(
+                new UpdateClanRoleCommand(playerId, roleId, request.Name, request.Rank, Combine(request.Permissions)), cancellationToken);
+
+            return NoContent();
+        }
+
+        /// <summary>Видалити роль: її носії переходять на роль за замовчуванням.</summary>
+        [HttpDelete("{playerId:guid}/roles/{roleId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteRole(Guid playerId, Guid roleId, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(new DeleteClanRoleCommand(playerId, roleId), cancellationToken);
+
+            return NoContent();
+        }
+
         /// <summary>Змінити опис і політику вступу. Потрібен дозвіл EditProfile.</summary>
         [HttpPut("{playerId:guid}/settings")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -226,14 +234,8 @@ namespace EmpireIdle.API.Controllers
             return Ok(sent);
         }
 
-        /// <summary>
-        /// Прапорці дозволів — списком назв: фронту простіше перевірити
-        /// наявність у масиві, ніж робити бітову арифметику.
-        /// </summary>
-        private static List<string> PermissionNames(ClanPermission permissions)
-            => Enum.GetValues<ClanPermission>()
-                .Where(p => p != ClanPermission.None && permissions.HasFlag(p))
-                .Select(p => p.ToString())
-                .ToList();
+        /// <summary>Назад із списку назв у прапорці — для запитів, що задають дозволи ролі.</summary>
+        private static ClanPermission Combine(IEnumerable<ClanPermission>? permissions)
+            => (permissions ?? []).Aggregate(ClanPermission.None, (all, permission) => all | permission);
     }
 }

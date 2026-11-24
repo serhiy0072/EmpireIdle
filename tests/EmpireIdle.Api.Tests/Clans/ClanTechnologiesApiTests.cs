@@ -17,24 +17,33 @@ namespace EmpireIdle.Api.Tests.Clans;
 
 /// <summary>Кланові технології наскрізь: HTTP, відмови за контрактом, справжня база й завантажений конфіг гри.</summary>
 [Collection("postgres")]
-public class ClanTechnologiesApiTests : IAsyncLifetime
+public class ClanTechnologiesApiTests : IClassFixture<ClanTechnologiesApiTests.Host>, IAsyncLifetime
 {
+    /// <summary>
+    /// Власний хост класу на базі колекції: кожен тест реєструє свого гравця, а ліміт реєстрацій
+    /// рахується на хост — на спільному він зачепив би інші класи колекції.
+    /// </summary>
+    public sealed class Host : IAsyncDisposable
+    {
+        public Host(PostgresFixture postgres) => Factory = new TestApiFactory(postgres.ConnectionString);
+
+        public TestApiFactory Factory { get; }
+
+        public ValueTask DisposeAsync() => Factory.DisposeAsync();
+    }
+
     private const int ServerId = 1;
     private const string FreeTeleport = "teleport_random";
     private const string ClanTeleport = "teleport_clan";
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
     private HttpClient _client = null!;
     private Guid _playerId;
 
-    public ClanTechnologiesApiTests(PostgresFixture postgres) => _postgres = postgres;
+    public ClanTechnologiesApiTests(Host host) => _factory = host.Factory;
 
     public async Task InitializeAsync()
     {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-
         _client = _factory.CreateClient();
 
         var response = await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest(
@@ -49,10 +58,11 @@ public class ClanTechnologiesApiTests : IAsyncLifetime
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.AccessToken);
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         _client.Dispose();
-        await _factory.DisposeAsync();
+
+        return Task.CompletedTask;
     }
 
     private string Url(string path = "") => $"/api/clan-technologies/{_playerId}{path}";
@@ -73,7 +83,7 @@ public class ClanTechnologiesApiTests : IAsyncLifetime
     }
 
     private async Task<ClanTechnologiesView> GetViewAsync()
-        => (await _client.GetFromJsonAsync<ClanTechnologiesView>(Url()))!;
+        => (await _client.GetFromJsonAsync<ClanTechnologiesView>(Url(), TestApiFactory.Json))!;
 
     /// <summary>Робить гравця лідером нового клану: шлях створення через будівлю тут не перевіряється.</summary>
     private async Task JoinClanAsync()
@@ -109,14 +119,14 @@ public class ClanTechnologiesApiTests : IAsyncLifetime
     [Fact]
     public async Task ClaimFree_ShouldCountAgainstTheWeeklyLimit_WithoutAClan()
     {
-        var before = (await _client.GetFromJsonAsync<ClanShopView>(Url("/shop")))!;
+        var before = (await _client.GetFromJsonAsync<ClanShopView>(Url("/shop"), TestApiFactory.Json))!;
         Assert.False(before.InClan);
         var limit = before.Free.Items.Single(i => i.ItemKey == FreeTeleport).Limit;
 
         var claimed = await PostAsync("/shop/claim-free", new ClaimClanFreeItemRequest(FreeTeleport, 1));
         Assert.Equal(HttpStatusCode.NoContent, claimed.StatusCode);
 
-        var after = (await _client.GetFromJsonAsync<ClanShopView>(Url("/shop")))!;
+        var after = (await _client.GetFromJsonAsync<ClanShopView>(Url("/shop"), TestApiFactory.Json))!;
         Assert.Equal(1, after.Free.Items.Single(i => i.ItemKey == FreeTeleport).Claimed);
 
         var overLimit = await PostAsync("/shop/claim-free", new ClaimClanFreeItemRequest(FreeTeleport, limit));
@@ -151,7 +161,7 @@ public class ClanTechnologiesApiTests : IAsyncLifetime
         var offered = await PostAsync("/offer-resources", new OfferClanResourcesRequest(1, node.Node));
         Assert.Equal(HttpStatusCode.OK, offered.StatusCode);
 
-        var result = (await offered.Content.ReadFromJsonAsync<ClanOfferingResult>())!;
+        var result = (await offered.Content.ReadFromJsonAsync<ClanOfferingResult>(TestApiFactory.Json))!;
         Assert.True(result.Coins > 0);
         Assert.Equal(fresh.Offering.PointsPerAttempt, result.Progress);
 
@@ -195,7 +205,7 @@ public class ClanTechnologiesApiTests : IAsyncLifetime
         Assert.Equal($"1:{node.Node}", (await GetViewAsync()).MarkedTechnology);
 
         var offered = await PostAsync("/offer-resources", new OfferClanResourcesRequest(1, node.Node));
-        Assert.True((await offered.Content.ReadFromJsonAsync<ClanOfferingResult>())!.Marked);
+        Assert.True((await offered.Content.ReadFromJsonAsync<ClanOfferingResult>(TestApiFactory.Json))!.Marked);
 
         var cleared = await PostAsync("/mark", new MarkClanTechnologyRequest(null, null));
         Assert.Equal(HttpStatusCode.NoContent, cleared.StatusCode);

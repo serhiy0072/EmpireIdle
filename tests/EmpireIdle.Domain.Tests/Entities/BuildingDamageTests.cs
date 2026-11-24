@@ -43,7 +43,7 @@ namespace EmpireIdle.Domain.Tests.Entities
         private static Village NewVillage(int food = 0)
         {
             var catalog = Catalog();
-            var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", ["food"], 0, 0);
+            var village = new Village(Guid.NewGuid(), Guid.NewGuid(), "Test", ["food"], 0, 0, serverId: 1);
 
             village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
             village.AddBuilding("townhall", catalog.Buildings, Now);
@@ -151,6 +151,32 @@ namespace EmpireIdle.Domain.Tests.Entities
             // 0.2 × (1 − 2 × 0.25)
             Assert.Equal(1.1, status.DefenceMultiplier(village, Now.AddMinutes(1)), 6);
             Assert.Equal(1.2, status.DefenceMultiplier(village, Now.AddHours(8)), 6);
+        }
+
+        /// <summary>Стіна на апгрейді захищає на поточному рівні (рішення 16.11.2026).</summary>
+        [Fact]
+        public void DefenceMultiplier_ShouldKeepTheWallBonus_WhileTheWallIsUpgrading()
+        {
+            var village = NewVillage();
+
+            Wall(village).BeginUpgrade(Catalog().Buildings["wall"], TimeSpan.FromHours(1), Now, ProductionBoost.None,
+                locationMultiplier: 1.0);
+
+            Assert.Equal(1.2, new VillageStatus(Catalog()).DefenceMultiplier(village, Now), 6);
+        }
+
+        /// <summary>Стіна на апгрейді працює, тож перша поразка серії б'є й по ній.</summary>
+        [Fact]
+        public void PickDamaged_ShouldTakeTheWall_WhileItIsUpgrading()
+        {
+            var village = NewVillage();
+
+            Wall(village).BeginUpgrade(Catalog().Buildings["wall"], TimeSpan.FromHours(1), Now, ProductionBoost.None,
+                locationMultiplier: 1.0);
+
+            var picked = new CityFallRules(Catalog()).PickDamaged(village, firstInStreak: true, new DeterministicRandom(42));
+
+            Assert.Contains(Wall(village).Id, picked);
         }
 
         // ---------- Серія поразок ----------

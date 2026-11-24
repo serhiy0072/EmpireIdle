@@ -12,23 +12,14 @@ namespace EmpireIdle.Api.Tests.Tower;
 /// й фільтр сервера. Власний сервер тесту — щоб рядки інших тестів колекції не зсували місця.
 /// </summary>
 [Collection("postgres")]
-public class TowerRepositoryTests : IAsyncLifetime
+public class TowerRepositoryTests
 {
     private const int ServerId = 31;
     private static readonly DateTime Start = new(2026, 10, 19, 12, 0, 0, DateTimeKind.Utc);
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public TowerRepositoryTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public TowerRepositoryTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AppDbContext CreateContext(int serverId = ServerId)
     {

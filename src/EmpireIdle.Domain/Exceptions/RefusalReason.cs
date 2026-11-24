@@ -61,6 +61,12 @@
         /// <summary>У стеку цього рівня менше юнітів, ніж просять прокачати.</summary>
         public static readonly RefusalReason GarrisonNotEnoughUnits = new("garrison.notEnoughUnits", "need", "have");
 
+        /// <summary>Відновлювати нічого: строк відновлення цих юнітів сплив між показом екрана й натисканням.</summary>
+        public static readonly RefusalReason GarrisonNothingToRecover = new("garrison.nothingToRecover");
+
+        /// <summary>Лікувати нічого: цих поранених уже вилікувано або їх не лишилось.</summary>
+        public static readonly RefusalReason GarrisonNothingToHeal = new("garrison.nothingToHeal");
+
         // ---------- Акаунт ----------
 
         /// <summary>Identity відхилив реєстрацію; codes — його коди через кому, текст за кожним дає клієнт.</summary>
@@ -125,9 +131,6 @@
         /// <summary>Подарувати собі не можна.</summary>
         public static readonly RefusalReason ItemGiftToSelf = new("item.giftToSelf");
 
-        /// <summary>Предметів менше, ніж треба; need — скільки, have — скільки є.</summary>
-        public static readonly RefusalReason ItemNotEnough = new("item.notEnough", "item", "need", "have");
-
         /// <summary>Безкоштовне відкриття ключової скрині ще не готове; at — UTC у форматі ISO 8601.</summary>
         public static readonly RefusalReason KeyChestFreeNotReady = new("lootbox.freeNotReady", "at");
 
@@ -183,6 +186,9 @@
         public static readonly RefusalReason ClanRoleProtected = new("clan.roleProtected");
 
         public static readonly RefusalReason ClanRoleNameTaken = new("clan.roleNameTaken", "name");
+
+        /// <summary>У клані вже найбільша дозволена кількість ролей; max — скільки їх може бути.</summary>
+        public static readonly RefusalReason ClanRolesLimit = new("clan.rolesLimit", "max");
 
         /// <summary>Роль видає дозволи, яких сама не має; role — назва ролі виконавця, roleKey — ключ вбудованої ролі або порожньо.</summary>
         public static readonly RefusalReason ClanPermissionsExceedOwn = new("clan.permissionsExceedOwn", "role", "roleKey");
@@ -377,9 +383,6 @@
         /// <summary>Слот не перезаряджається — пропускати нічого; slot — його номер від 1.</summary>
         public static readonly RefusalReason CampSlotReady = new("camp.slotReady", "slot");
 
-        /// <summary>Немає книги для цього вміння (GDD §6.1); book — ключ потрібної книги.</summary>
-        public static readonly RefusalReason HeroSkillNoBook = new("hero.skillNoBook", "book", "need", "have");
-
         // ---------- Спорядження ----------
 
         /// <summary>Артефакт уже на стелі рівня (GDD §6.4); max — стеля.</summary>
@@ -485,9 +488,6 @@
 
         /// <summary>Цей монстр не приручається.</summary>
         public static readonly RefusalReason BeastNotTameable = new("beast.notTameable");
-
-        /// <summary>Корму менше, ніж гравець хоче віддати. need — скільки просив, have — скільки є.</summary>
-        public static readonly RefusalReason BeastNotEnoughFeed = new("beast.notEnoughFeed", "need", "have");
 
         /// <summary>Звір на стелі рівня для свого рангу: далі веде лише дублікат. level — стеля.</summary>
         public static readonly RefusalReason BeastLevelCapped = new("beast.levelCapped", "level");

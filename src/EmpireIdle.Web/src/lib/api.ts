@@ -127,10 +127,6 @@ async function execute<T>(path: string, options: RequestOptions): Promise<T> {
   return unwrap<T>(response);
 }
 
-export function apiGet<T>(path: string): Promise<T> {
-  return api<T>(path);
-}
-
 export function apiPost<T>(path: string, body: unknown, options: RequestOptions = {}): Promise<T> {
   return api<T>(path, { ...options, method: "POST", body });
 }
@@ -241,7 +237,11 @@ async function rotateUnlocked(stale: string | null): Promise<boolean> {
     body: JSON.stringify({ refreshToken: session.refreshToken }),
   });
 
-  if (!response.ok) return false;
+  // Сесію гасить лише відмова самого токена. 502 під час викладки, 429 чи 500 — збій сервера:
+  // токен ще чинний, тож запит падає помилкою, а гравець лишається в грі й повторить пізніше
+  if (response.status === 400 || response.status === 401 || response.status === 403) return false;
+
+  if (!response.ok) throw new ApiError(response.status, { status: response.status });
 
   setSession(fromAuthResponse((await response.json()) as AuthResponse));
   return true;

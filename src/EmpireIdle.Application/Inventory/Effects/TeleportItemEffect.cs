@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Contracts;
@@ -60,8 +61,7 @@ namespace EmpireIdle.Application.Inventory.Effects
             if (context.Count != 1)
                 throw new RequirementNotMetException("Teleport is used one at a time.");
 
-            var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", context.PlayerId);
+            var village = await _villageRepository.RequireByPlayerAsync(context.PlayerId, cancellationToken);
 
             var serverId = _serverContext.ServerId;
             var serverLevel = await _serverRepository.GetLevelAsync(serverId, cancellationToken);
@@ -93,8 +93,7 @@ namespace EmpireIdle.Application.Inventory.Effects
             if (leaderId == playerId)
                 throw new RequirementNotMetException(RefusalReasons.TeleportYouAreLeader, "The leader cannot teleport to themselves.");
 
-            var leaderVillage = await _villageRepository.GetByPlayerIdAsync(leaderId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", leaderId);
+            var leaderVillage = await _villageRepository.RequireByPlayerAsync(leaderId, cancellationToken);
 
             var spot = await _placer.FindSpotNearAsync(serverId, serverLevel, leaderVillage.X, leaderVillage.Y,
                 async (minX, minY, maxX, maxY) =>

@@ -35,8 +35,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Куплено в клановому магазині: «період|предмет» → кількість; старі періоди забуваються.</summary>
         public IReadOnlyDictionary<string, int> ShopPurchases { get; private set; } = new Dictionary<string, int>();
 
-        public uint Version { get; private set; }
-
         public ClanOfferingLedger(Guid id, Guid playerId, int serverId, DateTime utcNow) : base(id)
         {
             PlayerId = playerId;

@@ -105,28 +105,29 @@ namespace EmpireIdle.Domain.Services
 
             var clan = technologies.Clan;
 
-            if (clan.Nodes.Count == 0)
-                return;
-
-            ValidateTechnologyTree(config, "Clan", clan.Tabs, clan.Tiers, clan.Nodes, clan: true);
-
-            foreach (var (resource, rate) in clan.Offering.ResourceRates)
+            // Без вузлів немає дерева й підношень — але магазин і щоденні нагороди клану перевіряються завжди
+            if (clan.Nodes.Count > 0)
             {
-                if (config.Resources.All(r => r.Key != resource) || rate <= 0)
+                ValidateTechnologyTree(config, "Clan", clan.Tabs, clan.Tiers, clan.Nodes, clan: true);
+
+                foreach (var (resource, rate) in clan.Offering.ResourceRates)
+                {
+                    if (config.Resources.All(r => r.Key != resource) || rate <= 0)
+                        throw new InvalidOperationException(
+                            $"Technologies.Clan.Offering.ResourceRates prices {resource}, which must be a resource with a positive rate.");
+                }
+
+                // Вузол без ціненого ресурсу не приймав би підношень ресурсом зовсім
+                foreach (var node in clan.Nodes.Where(n => n.Resource is null || !clan.Offering.ResourceRates.ContainsKey(n.Resource)))
                     throw new InvalidOperationException(
-                        $"Technologies.Clan.Offering.ResourceRates prices {resource}, which must be a resource with a positive rate.");
+                        $"Technologies.Clan node {node.Key} needs a Resource priced in Offering.ResourceRates.");
+
+                if (clan.Tiers.Any(t => t.AttemptCostMultiplier <= 0))
+                    throw new InvalidOperationException("Technologies.Clan.Tiers need a positive AttemptCostMultiplier.");
+
+                if (clan.Coins.Multipliers.Count == 0)
+                    throw new InvalidOperationException("Technologies.Clan.Coins.Multipliers is empty — an offering would roll no coins.");
             }
-
-            // Вузол без ціненого ресурсу не приймав би підношень ресурсом зовсім
-            foreach (var node in clan.Nodes.Where(n => n.Resource is null || !clan.Offering.ResourceRates.ContainsKey(n.Resource)))
-                throw new InvalidOperationException(
-                    $"Technologies.Clan node {node.Key} needs a Resource priced in Offering.ResourceRates.");
-
-            if (clan.Tiers.Any(t => t.AttemptCostMultiplier <= 0))
-                throw new InvalidOperationException("Technologies.Clan.Tiers need a positive AttemptCostMultiplier.");
-
-            if (clan.Coins.Multipliers.Count == 0)
-                throw new InvalidOperationException("Technologies.Clan.Coins.Multipliers is empty — an offering would roll no coins.");
 
             ValidateClanDailyRewards(config, clan.DailyContributionRewards);
 
@@ -1261,17 +1262,7 @@ namespace EmpireIdle.Domain.Services
         /// <summary>Вартості, виробництво, сховища, стартові ресурси, світи.</summary>
         private static void ValidateEconomy(GameConfig config)
         {
-            // 0 означає «не задано» — мінімальні фікстури в тестах не описують
-            // криві вартості. Помилка тільки при явно хибному значенні.
-            var badGrowth = config.Buildings
-                .Where(b => b.UpgradeCostGrowth != 0 && b.UpgradeCostGrowth < 1.0)
-                .Select(b => b.Key)
-                .ToList();
-
-            if (badGrowth.Count > 0)
-                throw new InvalidOperationException(
-                    $"UpgradeCostGrowth below 1.0 makes upgrades cheaper with level: {string.Join(", ", badGrowth)}.");
-
+            // Ріст вартості апгрейду (UpgradeCostGrowth) перевіряє правило поля в Program.cs
             var resourceKeys = config.Resources.Select(r => r.Key).ToHashSet();
 
             var unknownStarting = config.StartingResources.Keys
@@ -1471,21 +1462,7 @@ namespace EmpireIdle.Domain.Services
         /// </summary>
         private static void ValidateLossBands(GameConfig config)
         {
-            var bands = new (string Name, LossBand Band)[]
-            {
-                ("AttackerWinLosses", config.Combat.AttackerWinLosses),
-                ("AttackerLossLosses", config.Combat.AttackerLossLosses),
-                ("DefenderWinLosses", config.Combat.DefenderWinLosses),
-                ("DefenderLossLosses", config.Combat.DefenderLossLosses)
-            };
-
-            foreach (var (name, band) in bands)
-            {
-                if (band.Min < 0 || band.Max > 1 || band.Min > band.Max)
-                    throw new InvalidOperationException(
-                        $"Combat.{name} must satisfy 0 <= Min <= Max <= 1.");
-            }
-
+            // Межі кожної смуги (0 ≤ Min ≤ Max ≤ 1) — правило поля в Program.cs; тут лише їхнє співвідношення
             if (config.Combat.AttackerLossLosses.Min < config.Combat.AttackerWinLosses.Max)
                 throw new InvalidOperationException(
                     "Combat.AttackerLossLosses.Min must not be below AttackerWinLosses.Max: losing would cost less than winning.");
@@ -2194,9 +2171,6 @@ namespace EmpireIdle.Domain.Services
                     if (!banner.Drops.Any(d => BannerRoller.Counts(banner, d) && d.Rarity >= rarity))
                         throw new InvalidOperationException(
                             $"Banner '{banner.Key}' has no {rarity} {banner.Kind} drop — its pity could never pay out.");
-
-                if (banner.PriceGems <= 0)
-                    throw new InvalidOperationException($"Banner '{banner.Key}' has no price in gems.");
 
                 // Стандартний банер — без промо за визначенням: рівні шанси на будь-кого
                 if (banner.Kind == BannerKind.Standard && banner.FeaturedKey is not null)

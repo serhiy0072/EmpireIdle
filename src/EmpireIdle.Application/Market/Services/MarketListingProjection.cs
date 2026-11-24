@@ -1,5 +1,5 @@
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Market.Contracts;
+using EmpireIdle.Application.Market.ReadModels;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;

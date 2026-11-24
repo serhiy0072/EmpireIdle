@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Dungeons.ReadModels;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Dungeons.Commands;
 using EmpireIdle.Application.Heroes.Services;
@@ -64,8 +66,7 @@ namespace EmpireIdle.Application.Dungeons.Services
                 .Select(r => new ResourceCost { Resource = r.Resource, Amount = (int)Math.Round(r.Amount * multiplier) })
                 .ToList();
 
-            var village = await _villages.GetByPlayerIdAsync(run.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", run.PlayerId);
+            var village = await _villages.RequireByPlayerAsync(run.PlayerId, cancellationToken);
 
             village.GrantResources(resources, now);
 

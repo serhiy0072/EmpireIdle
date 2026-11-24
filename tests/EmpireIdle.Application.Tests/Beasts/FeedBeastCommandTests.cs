@@ -92,10 +92,9 @@ public class FeedBeastCommandTests
         GivenPenWithWolf();
         GivenFeed(10);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() =>
             Handler().Handle(new FeedBeastCommand(PlayerId, TestKeys.Beast, 50), CancellationToken.None));
 
-        Assert.Equal(RefusalReasons.BeastNotEnoughFeed.Key, refusal.Reason);
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

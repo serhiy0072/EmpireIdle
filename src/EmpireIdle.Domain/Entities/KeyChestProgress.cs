@@ -23,9 +23,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Коли було останнє безкоштовне відкриття — від нього рахується перезарядка.</summary>
         public DateTime? LastFreeAt { get; private set; }
 
-        /// <summary>Токен паралелізму: два кліки у двох вкладках інакше взяли б одне безкоштовне двічі.</summary>
-        public uint Version { get; private set; }
-
         public KeyChestProgress(Guid id, Guid playerId, string chestKey) : base(id)
         {
             PlayerId = playerId;

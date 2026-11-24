@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
@@ -61,8 +62,7 @@ namespace EmpireIdle.Application.Chat.Commands
                 throw new RequirementNotMetException(RefusalReasons.ChatTooLong,
                     $"Message of {text.Length} characters exceeds {chat.MaxLength}.", chat.MaxLength);
 
-            var sender = await _players.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId.ToString());
+            var sender = await _players.RequireAsync(request.PlayerId, cancellationToken);
 
             Guid? clanId = null;
 

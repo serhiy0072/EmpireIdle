@@ -438,7 +438,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BattleReportResponse"
+                    "$ref": "#/components/schemas/BattleReportView"
                   }
                 }
               },
@@ -446,7 +446,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BattleReportResponse"
+                    "$ref": "#/components/schemas/BattleReportView"
                   }
                 }
               },
@@ -454,7 +454,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BattleReportResponse"
+                    "$ref": "#/components/schemas/BattleReportView"
                   }
                 }
               }
@@ -568,17 +568,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastPenResponse"
+                  "$ref": "#/components/schemas/BeastPenView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastPenResponse"
+                  "$ref": "#/components/schemas/BeastPenView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastPenResponse"
+                  "$ref": "#/components/schemas/BeastPenView"
                 }
               }
             }
@@ -723,17 +723,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastFedResponse"
+                  "$ref": "#/components/schemas/BeastFedView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastFedResponse"
+                  "$ref": "#/components/schemas/BeastFedView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastFedResponse"
+                  "$ref": "#/components/schemas/BeastFedView"
                 }
               }
             }
@@ -801,17 +801,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastActivatedResponse"
+                  "$ref": "#/components/schemas/BeastActivatedView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastActivatedResponse"
+                  "$ref": "#/components/schemas/BeastActivatedView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeastActivatedResponse"
+                  "$ref": "#/components/schemas/BeastActivatedView"
                 }
               }
             }
@@ -1162,17 +1162,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanListResponse"
+                  "$ref": "#/components/schemas/ClanListPage"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanListResponse"
+                  "$ref": "#/components/schemas/ClanListPage"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanListResponse"
+                  "$ref": "#/components/schemas/ClanListPage"
                 }
               }
             }
@@ -1203,17 +1203,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanProfileResponse"
+                  "$ref": "#/components/schemas/ClanProfile"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanProfileResponse"
+                  "$ref": "#/components/schemas/ClanProfile"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanProfileResponse"
+                  "$ref": "#/components/schemas/ClanProfile"
                 }
               }
             }
@@ -1264,17 +1264,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyClanResponse"
+                  "$ref": "#/components/schemas/MyClan"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyClanResponse"
+                  "$ref": "#/components/schemas/MyClan"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyClanResponse"
+                  "$ref": "#/components/schemas/MyClan"
                 }
               }
             }
@@ -1417,7 +1417,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanHelpItemResponse"
+                    "$ref": "#/components/schemas/ClanHelpItem"
                   }
                 }
               },
@@ -1425,7 +1425,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanHelpItemResponse"
+                    "$ref": "#/components/schemas/ClanHelpItem"
                   }
                 }
               },
@@ -1433,7 +1433,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanHelpItemResponse"
+                    "$ref": "#/components/schemas/ClanHelpItem"
                   }
                 }
               }
@@ -1909,6 +1909,319 @@
         }
       }
     },
+    "/api/clans/{playerId}/roles": {
+      "post": {
+        "tags": [
+          "Clan"
+        ],
+        "operationId": "Clan_CreateRole",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClanRoleRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClanRoleRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ClanRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clans/{playerId}/roles/{roleId}": {
+      "put": {
+        "tags": [
+          "Clan"
+        ],
+        "operationId": "Clan_UpdateRole",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClanRoleRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClanRoleRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ClanRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Clan"
+        ],
+        "operationId": "Clan_DeleteRole",
+        "parameters": [
+          {
+            "name": "playerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "\u0423\u043D\u0456\u043A\u0430\u043B\u044C\u043D\u0438\u0439 \u043A\u043B\u044E\u0447 \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457 \u2014 \u0437\u0430\u0445\u0438\u0441\u0442 \u0432\u0456\u0434 \u043F\u043E\u0434\u0432\u0456\u0439\u043D\u043E\u0433\u043E \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F \u043F\u0440\u0438 \u0440\u0435\u0442\u0440\u0430\u044F\u0445",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/clans/{playerId}/settings": {
       "put": {
         "tags": [
@@ -2141,7 +2454,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanApplicationResponse"
+                    "$ref": "#/components/schemas/ClanApplicationItem"
                   }
                 }
               },
@@ -2149,7 +2462,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanApplicationResponse"
+                    "$ref": "#/components/schemas/ClanApplicationItem"
                   }
                 }
               },
@@ -2157,7 +2470,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanApplicationResponse"
+                    "$ref": "#/components/schemas/ClanApplicationItem"
                   }
                 }
               }
@@ -2211,7 +2524,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanInviteResponse"
+                    "$ref": "#/components/schemas/ClanInviteItem"
                   }
                 }
               },
@@ -2219,7 +2532,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanInviteResponse"
+                    "$ref": "#/components/schemas/ClanInviteItem"
                   }
                 }
               },
@@ -2227,7 +2540,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ClanInviteResponse"
+                    "$ref": "#/components/schemas/ClanInviteItem"
                   }
                 }
               }
@@ -3553,17 +3866,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/GarrisonResponse"
+                  "$ref": "#/components/schemas/GarrisonView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GarrisonResponse"
+                  "$ref": "#/components/schemas/GarrisonView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GarrisonResponse"
+                  "$ref": "#/components/schemas/GarrisonView"
                 }
               }
             }
@@ -5295,17 +5608,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/InventoryResponse"
+                  "$ref": "#/components/schemas/InventoryView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InventoryResponse"
+                  "$ref": "#/components/schemas/InventoryView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InventoryResponse"
+                  "$ref": "#/components/schemas/InventoryView"
                 }
               }
             }
@@ -6594,17 +6907,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapAreaResponse"
+                  "$ref": "#/components/schemas/MapAreaView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapAreaResponse"
+                  "$ref": "#/components/schemas/MapAreaView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapAreaResponse"
+                  "$ref": "#/components/schemas/MapAreaView"
                 }
               }
             }
@@ -6664,17 +6977,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapCellDetailsResponse"
+                  "$ref": "#/components/schemas/MapCellView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapCellDetailsResponse"
+                  "$ref": "#/components/schemas/MapCellView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MapCellDetailsResponse"
+                  "$ref": "#/components/schemas/MapCellView"
                 }
               }
             }
@@ -6727,7 +7040,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MarchResponse"
+                    "$ref": "#/components/schemas/MarchView"
                   }
                 }
               },
@@ -6735,7 +7048,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MarchResponse"
+                    "$ref": "#/components/schemas/MarchView"
                   }
                 }
               },
@@ -6743,7 +7056,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MarchResponse"
+                    "$ref": "#/components/schemas/MarchView"
                   }
                 }
               }
@@ -6999,7 +7312,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ScoutReportResponse"
+                    "$ref": "#/components/schemas/ScoutReportView"
                   }
                 }
               },
@@ -7007,7 +7320,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ScoutReportResponse"
+                    "$ref": "#/components/schemas/ScoutReportView"
                   }
                 }
               },
@@ -7015,7 +7328,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ScoutReportResponse"
+                    "$ref": "#/components/schemas/ScoutReportView"
                   }
                 }
               }
@@ -8161,17 +8474,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PowerResponse"
+                  "$ref": "#/components/schemas/PlayerPowerView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PowerResponse"
+                  "$ref": "#/components/schemas/PlayerPowerView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PowerResponse"
+                  "$ref": "#/components/schemas/PlayerPowerView"
                 }
               }
             }
@@ -8405,7 +8718,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LeaderboardEntryResponse"
+                    "$ref": "#/components/schemas/LeaderboardEntry"
                   }
                 }
               },
@@ -8413,7 +8726,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LeaderboardEntryResponse"
+                    "$ref": "#/components/schemas/LeaderboardEntry"
                   }
                 }
               },
@@ -8421,7 +8734,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LeaderboardEntryResponse"
+                    "$ref": "#/components/schemas/LeaderboardEntry"
                   }
                 }
               }
@@ -8453,17 +8766,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlayerRankResponse"
+                  "$ref": "#/components/schemas/PlayerRankView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlayerRankResponse"
+                  "$ref": "#/components/schemas/PlayerRankView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlayerRankResponse"
+                  "$ref": "#/components/schemas/PlayerRankView"
                 }
               }
             }
@@ -8702,7 +9015,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServerQuestResponse"
+                    "$ref": "#/components/schemas/ServerQuestView"
                   }
                 }
               },
@@ -8710,7 +9023,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServerQuestResponse"
+                    "$ref": "#/components/schemas/ServerQuestView"
                   }
                 }
               },
@@ -8718,7 +9031,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServerQuestResponse"
+                    "$ref": "#/components/schemas/ServerQuestView"
                   }
                 }
               }
@@ -9134,17 +9447,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                  "$ref": "#/components/schemas/ClanTerritoryView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                  "$ref": "#/components/schemas/ClanTerritoryView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClanTerritoryResponse"
+                  "$ref": "#/components/schemas/ClanTerritoryView"
                 }
               }
             }
@@ -9768,17 +10081,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/TutorialProgressResponse"
+                  "$ref": "#/components/schemas/TutorialProgressView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TutorialProgressResponse"
+                  "$ref": "#/components/schemas/TutorialProgressView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TutorialProgressResponse"
+                  "$ref": "#/components/schemas/TutorialProgressView"
                 }
               }
             }
@@ -9923,17 +10236,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/VillageResponse"
+                  "$ref": "#/components/schemas/VillageView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VillageResponse"
+                  "$ref": "#/components/schemas/VillageView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VillageResponse"
+                  "$ref": "#/components/schemas/VillageView"
                 }
               }
             }
@@ -10198,17 +10511,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CollectAllResponse"
+                  "$ref": "#/components/schemas/CollectAllView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CollectAllResponse"
+                  "$ref": "#/components/schemas/CollectAllView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CollectAllResponse"
+                  "$ref": "#/components/schemas/CollectAllView"
                 }
               }
             }
@@ -10354,17 +10667,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/WalletResponse"
+                  "$ref": "#/components/schemas/WalletView"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WalletResponse"
+                  "$ref": "#/components/schemas/WalletView"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WalletResponse"
+                  "$ref": "#/components/schemas/WalletView"
                 }
               }
             }
@@ -10375,7 +10688,7 @@
   },
   "components": {
     "schemas": {
-      "ActiveEffectResponse": {
+      "ActiveEffectView": {
         "required": [
           "expiresAt",
           "multiplier",
@@ -10385,7 +10698,7 @@
         "type": "object",
         "properties": {
           "target": {
-            "type": "string"
+            "$ref": "#/components/schemas/EffectTarget"
           },
           "multiplier": {
             "type": "number",
@@ -10604,11 +10917,10 @@
       },
       "BannerKind": {
         "enum": [
-          1,
-          3
+          "Hero",
+          "Standard"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "BannerRollResponse": {
         "required": [
@@ -10715,14 +11027,13 @@
       },
       "BattleOdds": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
+          "Overwhelming",
+          "Favoured",
+          "Even",
+          "Risky",
+          "Hopeless"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "BattlePreviewResult": {
         "required": [
@@ -10956,7 +11267,7 @@
         },
         "additionalProperties": false
       },
-      "BattleReportLineResponse": {
+      "BattleReportLineView": {
         "required": [
           "dead",
           "recoverable",
@@ -10993,7 +11304,7 @@
         },
         "additionalProperties": false
       },
-      "BattleReportResponse": {
+      "BattleReportView": {
         "required": [
           "attackerPower",
           "defenderPower",
@@ -11059,7 +11370,7 @@
           "lines": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BattleReportLineResponse"
+              "$ref": "#/components/schemas/BattleReportLineView"
             }
           },
           "tamedBeastKey": {
@@ -11075,27 +11386,25 @@
       },
       "BattleStatusKind": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6
+          "Poison",
+          "Stun",
+          "AttackUp",
+          "DefenseUp",
+          "DefenseDown",
+          "Shield",
+          "Taunt"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "BattleVerdict": {
         "enum": [
-          0,
-          1,
-          2
+          "Win",
+          "Possible",
+          "Loss"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
-      "BeastActivatedResponse": {
+      "BeastActivatedView": {
         "required": [
           "activeUntil",
           "beastKey",
@@ -11117,7 +11426,7 @@
         },
         "additionalProperties": false
       },
-      "BeastFedResponse": {
+      "BeastFedView": {
         "required": [
           "beastKey",
           "eaten",
@@ -11144,7 +11453,7 @@
         },
         "additionalProperties": false
       },
-      "BeastPassiveResponse": {
+      "BeastPassiveView": {
         "required": [
           "activationFodder",
           "bonus",
@@ -11186,7 +11495,7 @@
         },
         "additionalProperties": false
       },
-      "BeastPenResponse": {
+      "BeastPenView": {
         "required": [
           "beasts",
           "capacity",
@@ -11203,13 +11512,13 @@
           "beasts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BeastResponse"
+              "$ref": "#/components/schemas/BeastView"
             }
           },
           "taming": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BeastTamingResponse"
+              "$ref": "#/components/schemas/BeastTamingView"
             }
           },
           "fodderUpkeepPerHour": {
@@ -11222,7 +11531,38 @@
         },
         "additionalProperties": false
       },
-      "BeastResponse": {
+      "BeastTamingView": {
+        "required": [
+          "beastKey",
+          "chance",
+          "misses",
+          "monsterKey",
+          "pityWins"
+        ],
+        "type": "object",
+        "properties": {
+          "beastKey": {
+            "type": "string"
+          },
+          "monsterKey": {
+            "type": "string"
+          },
+          "chance": {
+            "type": "number",
+            "format": "double"
+          },
+          "misses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pityWins": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeastView": {
         "required": [
           "beastKey",
           "experience",
@@ -11263,43 +11603,12 @@
             "format": "date-time"
           },
           "passive": {
-            "$ref": "#/components/schemas/BeastPassiveResponse"
+            "$ref": "#/components/schemas/BeastPassiveView"
           }
         },
         "additionalProperties": false
       },
-      "BeastTamingResponse": {
-        "required": [
-          "beastKey",
-          "chance",
-          "misses",
-          "monsterKey",
-          "pityWins"
-        ],
-        "type": "object",
-        "properties": {
-          "beastKey": {
-            "type": "string"
-          },
-          "monsterKey": {
-            "type": "string"
-          },
-          "chance": {
-            "type": "number",
-            "format": "double"
-          },
-          "misses": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pityWins": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "BuildingResponse": {
+      "BuildingView": {
         "required": [
           "damageLevel",
           "id",
@@ -11344,13 +11653,13 @@
           "isUnderConstruction": {
             "type": "boolean"
           },
+          "isUnlocked": {
+            "type": "boolean"
+          },
           "speedUpCostGems": {
             "type": "integer",
             "format": "int32",
             "nullable": true
-          },
-          "isUnlocked": {
-            "type": "boolean"
           },
           "damageLevel": {
             "type": "integer",
@@ -11396,6 +11705,47 @@
           "expectedPrice": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CampOnMap": {
+        "required": [
+          "marchId",
+          "ownerName",
+          "ownerPlayerId",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "marchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ownerPlayerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerClanId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ownerClanTag": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -11737,6 +12087,39 @@
         },
         "additionalProperties": false
       },
+      "CatalogLimits": {
+        "required": [
+          "maxArtifactFood",
+          "maxItemsPerUse",
+          "maxKeyChestsPerOpen",
+          "newbieShieldTownHallLevel",
+          "towerSquadSize"
+        ],
+        "type": "object",
+        "properties": {
+          "maxItemsPerUse": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxArtifactFood": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxKeyChestsPerOpen": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "towerSquadSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newbieShieldTownHallLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogLootbox": {
         "required": [
           "entries",
@@ -11884,6 +12267,7 @@
           "heroes",
           "items",
           "language",
+          "limits",
           "lootboxes",
           "mainBuildingKey",
           "mapSize",
@@ -11907,6 +12291,7 @@
           "unitCapacities",
           "unitLevelStatBonus",
           "units",
+          "universalShardUpgrade",
           "version",
           "weaponShardCosts"
         ],
@@ -12089,6 +12474,16 @@
           },
           "language": {
             "type": "string"
+          },
+          "universalShardUpgrade": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "limits": {
+            "$ref": "#/components/schemas/CatalogLimits"
           },
           "version": {
             "type": "string"
@@ -12445,12 +12840,11 @@
       },
       "ChatChannel": {
         "enum": [
-          1,
-          2,
-          3
+          "Server",
+          "Clan",
+          "Private"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "ChatConversationView": {
         "required": [
@@ -12665,7 +13059,7 @@
         },
         "additionalProperties": false
       },
-      "ClanApplicationResponse": {
+      "ClanApplicationItem": {
         "required": [
           "createdAt",
           "expiresAt",
@@ -12698,28 +13092,6 @@
           "expiresAt": {
             "type": "string",
             "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ClanContributorResponse": {
-        "required": [
-          "contribution",
-          "name",
-          "playerId"
-        ],
-        "type": "object",
-        "properties": {
-          "playerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "contribution": {
-            "type": "integer",
-            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -12841,7 +13213,7 @@
         },
         "additionalProperties": false
       },
-      "ClanHelpItemResponse": {
+      "ClanHelpItem": {
         "required": [
           "alreadyHelped",
           "createdAt",
@@ -12869,7 +13241,7 @@
             "type": "string"
           },
           "targetType": {
-            "type": "string"
+            "$ref": "#/components/schemas/ClanHelpTarget"
           },
           "targetId": {
             "type": "string",
@@ -12906,53 +13278,13 @@
       },
       "ClanHelpTarget": {
         "enum": [
-          0,
-          1,
-          2
+          "Construction",
+          "Training",
+          "Research"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
-      "ClanInviteLetterView": {
-        "required": [
-          "canRespond",
-          "clanId",
-          "clanName",
-          "clanTag",
-          "expiresAt",
-          "requestId",
-          "state"
-        ],
-        "type": "object",
-        "properties": {
-          "requestId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "clanId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "clanName": {
-            "type": "string"
-          },
-          "clanTag": {
-            "type": "string"
-          },
-          "state": {
-            "type": "string"
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "canRespond": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ClanInviteResponse": {
+      "ClanInviteItem": {
         "required": [
           "capacity",
           "clanId",
@@ -13002,16 +13334,54 @@
         },
         "additionalProperties": false
       },
+      "ClanInviteLetterView": {
+        "required": [
+          "canRespond",
+          "clanId",
+          "clanName",
+          "clanTag",
+          "expiresAt",
+          "requestId",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clanId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clanName": {
+            "type": "string"
+          },
+          "clanTag": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "canRespond": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClanJoinPolicy": {
         "enum": [
-          0,
-          1,
-          2
+          "Open",
+          "ByApproval",
+          "InviteOnly"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
-      "ClanListItemResponse": {
+      "ClanListItem": {
         "required": [
           "capacity",
           "description",
@@ -13038,7 +13408,7 @@
             "type": "string"
           },
           "joinPolicy": {
-            "type": "string"
+            "$ref": "#/components/schemas/ClanJoinPolicy"
           },
           "memberCount": {
             "type": "integer",
@@ -13054,7 +13424,7 @@
         },
         "additionalProperties": false
       },
-      "ClanListResponse": {
+      "ClanListPage": {
         "required": [
           "items",
           "page",
@@ -13066,7 +13436,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanListItemResponse"
+              "$ref": "#/components/schemas/ClanListItem"
             }
           },
           "total": {
@@ -13084,7 +13454,7 @@
         },
         "additionalProperties": false
       },
-      "ClanMemberResponse": {
+      "ClanMemberView": {
         "required": [
           "joinedAt",
           "lastActiveAt",
@@ -13230,7 +13600,21 @@
         },
         "additionalProperties": false
       },
-      "ClanProfileResponse": {
+      "ClanPermission": {
+        "enum": [
+          "None",
+          "Recruit",
+          "Kick",
+          "AssignRoles",
+          "ManageRoles",
+          "EditProfile",
+          "BuildStructures",
+          "Disband",
+          "ManageTechnologies"
+        ],
+        "type": "string"
+      },
+      "ClanProfile": {
         "required": [
           "capacity",
           "createdAt",
@@ -13258,7 +13642,7 @@
             "type": "string"
           },
           "joinPolicy": {
-            "type": "string"
+            "$ref": "#/components/schemas/ClanJoinPolicy"
           },
           "memberCount": {
             "type": "integer",
@@ -13278,7 +13662,7 @@
         },
         "additionalProperties": false
       },
-      "ClanQuestResponse": {
+      "ClanQuestView": {
         "required": [
           "amount",
           "clanPoints",
@@ -13325,7 +13709,31 @@
         },
         "additionalProperties": false
       },
-      "ClanRoleResponse": {
+      "ClanRoleRequest": {
+        "required": [
+          "name",
+          "permissions",
+          "rank"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClanPermission"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClanRoleView": {
         "required": [
           "id",
           "isDefaultRole",
@@ -13354,7 +13762,7 @@
           "permissions": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ClanPermission"
             }
           },
           "isLeaderRole": {
@@ -13368,11 +13776,10 @@
       },
       "ClanShopKind": {
         "enum": [
-          0,
-          1
+          "Daily",
+          "Weekly"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "ClanShopOfferView": {
         "required": [
@@ -13460,7 +13867,7 @@
         },
         "additionalProperties": false
       },
-      "ClanSlotUnlockResponse": {
+      "ClanSlotUnlockView": {
         "required": [
           "unlocked"
         ],
@@ -13481,7 +13888,7 @@
         },
         "additionalProperties": false
       },
-      "ClanStructureResponse": {
+      "ClanStructureView": {
         "required": [
           "acceleratedShare",
           "garrisonUnits",
@@ -13682,7 +14089,7 @@
         },
         "additionalProperties": false
       },
-      "ClanTerritoryResponse": {
+      "ClanTerritoryView": {
         "required": [
           "buildMinutes",
           "canBuild",
@@ -13737,31 +14144,31 @@
           "slotUnlocks": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanSlotUnlockResponse"
+              "$ref": "#/components/schemas/ClanSlotUnlockView"
             }
           },
           "structures": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanStructureResponse"
+              "$ref": "#/components/schemas/ClanStructureView"
             }
           },
           "quests": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanQuestResponse"
+              "$ref": "#/components/schemas/ClanQuestView"
             }
           },
           "contributors": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanContributorResponse"
+              "$ref": "#/components/schemas/TerritoryContributorView"
             }
           }
         },
         "additionalProperties": false
       },
-      "CollectAllResponse": {
+      "CollectAllView": {
         "required": [
           "collected"
         ],
@@ -13770,13 +14177,13 @@
           "collected": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CollectedResourceResponse"
+              "$ref": "#/components/schemas/CollectedResourceView"
             }
           }
         },
         "additionalProperties": false
       },
-      "CollectedResourceResponse": {
+      "CollectedResourceView": {
         "required": [
           "amount",
           "resourceType"
@@ -14210,6 +14617,17 @@
         },
         "additionalProperties": false
       },
+      "EffectTarget": {
+        "enum": [
+          "Production",
+          "Attack",
+          "Defense",
+          "ScoutBlock",
+          "MarchSpeed",
+          "Carry"
+        ],
+        "type": "string"
+      },
       "EquipBestResponse": {
         "required": [
           "equipped"
@@ -14223,7 +14641,13 @@
         },
         "additionalProperties": false
       },
-      "EquipmentResponse": {
+      "EquipmentSlot": {
+        "enum": [
+          "Artifact"
+        ],
+        "type": "string"
+      },
+      "EquipmentView": {
         "required": [
           "experience",
           "id",
@@ -14248,10 +14672,10 @@
             "type": "string"
           },
           "slot": {
-            "type": "string"
+            "$ref": "#/components/schemas/EquipmentSlot"
           },
           "rarity": {
-            "type": "string"
+            "$ref": "#/components/schemas/Rarity"
           },
           "level": {
             "type": "integer",
@@ -14333,7 +14757,7 @@
         },
         "additionalProperties": false
       },
-      "GarrisonResponse": {
+      "GarrisonView": {
         "required": [
           "id",
           "levelUpOrders",
@@ -14356,31 +14780,31 @@
           "units": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UnitResponse"
+              "$ref": "#/components/schemas/UnitView"
             }
           },
           "wounded": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UnitResponse"
+              "$ref": "#/components/schemas/UnitView"
             }
           },
           "recoverable": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/RecoverableUnitResponse"
+              "$ref": "#/components/schemas/RecoverableUnitView"
             }
           },
           "trainingOrders": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TrainingOrderResponse"
+              "$ref": "#/components/schemas/TrainingOrderView"
             }
           },
           "levelUpOrders": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/LevelUpOrderResponse"
+              "$ref": "#/components/schemas/LevelUpOrderView"
             }
           }
         },
@@ -14441,11 +14865,10 @@
       },
       "HealPaymentMethod": {
         "enum": [
-          1,
-          2
+          "Resources",
+          "Gems"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "HealWoundedRequest": {
         "required": [
@@ -14740,7 +15163,7 @@
         },
         "additionalProperties": false
       },
-      "InventoryItemResponse": {
+      "InventoryItemView": {
         "required": [
           "count",
           "description",
@@ -14761,7 +15184,7 @@
             "type": "string"
           },
           "rarity": {
-            "type": "string"
+            "$ref": "#/components/schemas/Rarity"
           },
           "type": {
             "type": "string"
@@ -14773,7 +15196,7 @@
         },
         "additionalProperties": false
       },
-      "InventoryResponse": {
+      "InventoryView": {
         "required": [
           "activeEffects",
           "equipment",
@@ -14784,19 +15207,19 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/InventoryItemResponse"
+              "$ref": "#/components/schemas/InventoryItemView"
             }
           },
           "equipment": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EquipmentResponse"
+              "$ref": "#/components/schemas/EquipmentView"
             }
           },
           "activeEffects": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ActiveEffectResponse"
+              "$ref": "#/components/schemas/ActiveEffectView"
             }
           }
         },
@@ -14838,7 +15261,7 @@
         },
         "additionalProperties": false
       },
-      "LeaderboardEntryResponse": {
+      "LeaderboardEntry": {
         "required": [
           "playerId",
           "playerName",
@@ -14870,7 +15293,7 @@
         },
         "additionalProperties": false
       },
-      "LevelUpOrderResponse": {
+      "LevelUpOrderView": {
         "required": [
           "completesAt",
           "count",
@@ -15210,7 +15633,61 @@
         },
         "additionalProperties": false
       },
-      "MapAreaResponse": {
+      "MapAreaOccupant": {
+        "required": [
+          "occupantId",
+          "occupantType",
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "occupantType": {
+            "$ref": "#/components/schemas/MapOccupantType"
+          },
+          "occupantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "monsterType": {
+            "type": "string",
+            "nullable": true
+          },
+          "monsterLevel": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "clanId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "clanTag": {
+            "type": "string",
+            "nullable": true
+          },
+          "readyAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MapAreaView": {
         "required": [
           "camps",
           "maxX",
@@ -15241,66 +15718,25 @@
           "terrain": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MapTerrainCell"
+              "$ref": "#/components/schemas/MapTerrainTile"
             }
           },
           "occupants": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MapOccupantCell"
+              "$ref": "#/components/schemas/MapAreaOccupant"
             }
           },
           "camps": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MapCampResponse"
+              "$ref": "#/components/schemas/CampOnMap"
             }
           }
         },
         "additionalProperties": false
       },
-      "MapCampResponse": {
-        "required": [
-          "marchId",
-          "ownerName",
-          "ownerPlayerId",
-          "x",
-          "y"
-        ],
-        "type": "object",
-        "properties": {
-          "marchId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "x": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "y": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "ownerPlayerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "ownerName": {
-            "type": "string"
-          },
-          "ownerClanId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "ownerClanTag": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "MapCellDetailsResponse": {
+      "MapCellView": {
         "required": [
           "habitable",
           "moveCost",
@@ -15333,8 +15769,7 @@
             "format": "double"
           },
           "occupantType": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/MapOccupantType"
           },
           "occupantId": {
             "type": "string",
@@ -15375,57 +15810,15 @@
         },
         "additionalProperties": false
       },
-      "MapOccupantCell": {
-        "required": [
-          "occupantId",
-          "occupantType",
-          "x",
-          "y"
+      "MapOccupantType": {
+        "enum": [
+          "Village",
+          "Monster",
+          "ClanStructure"
         ],
-        "type": "object",
-        "properties": {
-          "x": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "y": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "occupantType": {
-            "type": "string"
-          },
-          "occupantId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "monsterType": {
-            "type": "string",
-            "nullable": true
-          },
-          "monsterLevel": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "clanId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "readyAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
+        "type": "string"
       },
-      "MapTerrainCell": {
+      "MapTerrainTile": {
         "required": [
           "habitable",
           "passable",
@@ -15457,15 +15850,54 @@
       },
       "MarchIntent": {
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Attack",
+          "Reinforce",
+          "Scout",
+          "Tame"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
-      "MarchResponse": {
+      "MarchState": {
+        "enum": [
+          "Outbound",
+          "Returning",
+          "Completed",
+          "Camping"
+        ],
+        "type": "string"
+      },
+      "MarchTargetType": {
+        "enum": [
+          "Monster",
+          "Village",
+          "ClanStructure",
+          "Camp"
+        ],
+        "type": "string"
+      },
+      "MarchUnitView": {
+        "required": [
+          "count",
+          "level",
+          "unitType"
+        ],
+        "type": "object",
+        "properties": {
+          "unitType": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarchView": {
         "required": [
           "arrivesAt",
           "departedAt",
@@ -15538,50 +15970,8 @@
           "units": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MarchUnitResponse"
+              "$ref": "#/components/schemas/MarchUnitView"
             }
-          }
-        },
-        "additionalProperties": false
-      },
-      "MarchState": {
-        "enum": [
-          1,
-          2,
-          3,
-          4
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
-      "MarchTargetType": {
-        "enum": [
-          1,
-          2,
-          3,
-          4
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
-      "MarchUnitResponse": {
-        "required": [
-          "count",
-          "level",
-          "unitType"
-        ],
-        "type": "object",
-        "properties": {
-          "unitType": {
-            "type": "string"
-          },
-          "level": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "count": {
-            "type": "integer",
-            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -15680,11 +16070,10 @@
       },
       "MarketListingKind": {
         "enum": [
-          1,
-          3
+          "Equipment",
+          "Item"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "MarketListingView": {
         "required": [
@@ -15829,7 +16218,7 @@
         },
         "additionalProperties": false
       },
-      "MyClanResponse": {
+      "MyClan": {
         "required": [
           "capacity",
           "createdAt",
@@ -15860,7 +16249,7 @@
             "type": "string"
           },
           "joinPolicy": {
-            "type": "string"
+            "$ref": "#/components/schemas/ClanJoinPolicy"
           },
           "memberCount": {
             "type": "integer",
@@ -15881,19 +16270,19 @@
           "myPermissions": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ClanPermission"
             }
           },
           "roles": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanRoleResponse"
+              "$ref": "#/components/schemas/ClanRoleView"
             }
           },
           "members": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ClanMemberResponse"
+              "$ref": "#/components/schemas/ClanMemberView"
             }
           }
         },
@@ -16026,7 +16415,50 @@
         },
         "additionalProperties": false
       },
-      "PlayerRankResponse": {
+      "PlayerPowerView": {
+        "required": [
+          "army",
+          "clanTechnology",
+          "equipment",
+          "hero",
+          "technology",
+          "total",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "army": {
+            "type": "number",
+            "format": "double"
+          },
+          "hero": {
+            "type": "number",
+            "format": "double"
+          },
+          "equipment": {
+            "type": "number",
+            "format": "double"
+          },
+          "technology": {
+            "type": "number",
+            "format": "double"
+          },
+          "clanTechnology": {
+            "type": "number",
+            "format": "double"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlayerRankView": {
         "required": [
           "activityScore",
           "battlesWon",
@@ -16094,49 +16526,6 @@
             "items": {
               "type": "string"
             }
-          }
-        },
-        "additionalProperties": false
-      },
-      "PowerResponse": {
-        "required": [
-          "army",
-          "clanTechnology",
-          "equipment",
-          "hero",
-          "technology",
-          "total",
-          "updatedAt"
-        ],
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number",
-            "format": "double"
-          },
-          "army": {
-            "type": "number",
-            "format": "double"
-          },
-          "hero": {
-            "type": "number",
-            "format": "double"
-          },
-          "equipment": {
-            "type": "number",
-            "format": "double"
-          },
-          "technology": {
-            "type": "number",
-            "format": "double"
-          },
-          "clanTechnology": {
-            "type": "number",
-            "format": "double"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -16225,21 +16614,19 @@
       },
       "QuestScope": {
         "enum": [
-          1,
-          2,
-          3
+          "Personal",
+          "Server",
+          "Clan"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "QuestState": {
         "enum": [
-          1,
-          2,
-          3
+          "InProgress",
+          "Completed",
+          "Claimed"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "QuestView": {
         "required": [
@@ -16285,21 +16672,19 @@
       },
       "QuestWindow": {
         "enum": [
-          1,
-          2,
-          3
+          "Chain",
+          "Daily",
+          "Event"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "Rarity": {
         "enum": [
-          1,
-          2,
-          3
+          "Common",
+          "Rare",
+          "Unique"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "RecoverUnitsRequest": {
         "required": [
@@ -16317,7 +16702,7 @@
         },
         "additionalProperties": false
       },
-      "RecoverableUnitResponse": {
+      "RecoverableUnitView": {
         "required": [
           "costGems",
           "count",
@@ -16397,7 +16782,7 @@
         },
         "additionalProperties": false
       },
-      "RepairCostResponse": {
+      "RepairCostView": {
         "required": [
           "amount",
           "resource"
@@ -16606,7 +16991,7 @@
         },
         "additionalProperties": false
       },
-      "ResourceResponse": {
+      "ResourceView": {
         "required": [
           "amount",
           "isUnlocked",
@@ -16661,64 +17046,6 @@
           "amount": {
             "type": "integer",
             "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ScoutReportResponse": {
-        "required": [
-          "createdAt",
-          "id",
-          "lootable",
-          "outcome",
-          "targetId",
-          "targetName",
-          "targetType",
-          "x",
-          "y"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "targetType": {
-            "$ref": "#/components/schemas/MarchTargetType"
-          },
-          "targetId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "targetName": {
-            "type": "string"
-          },
-          "x": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "y": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "outcome": {
-            "type": "string"
-          },
-          "defencePower": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "lootable": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -16856,7 +17183,7 @@
         },
         "additionalProperties": false
       },
-      "ServerQuestResponse": {
+      "ServerQuestView": {
         "required": [
           "displayName",
           "key",
@@ -16883,7 +17210,7 @@
             "format": "int64"
           },
           "state": {
-            "type": "string"
+            "$ref": "#/components/schemas/QuestState"
           },
           "completedAt": {
             "type": "string",
@@ -16985,14 +17312,13 @@
       },
       "SpeedUpTimer": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
+          "Construction",
+          "Training",
+          "UnitLevelUp",
+          "March",
+          "Research"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "SpeedUpWithItemsRequest": {
         "required": [
@@ -17227,34 +17553,55 @@
       },
       "TechnologyStat": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15,
-          16,
-          17,
-          18,
-          19,
-          20,
-          21,
-          22,
-          23,
-          24
+          "Attack",
+          "Defense",
+          "ConvoySize",
+          "MarchSpeed",
+          "Carry",
+          "Production",
+          "MealUpkeep",
+          "ConstructionSpeed",
+          "TrainingSpeed",
+          "UnitLevelUpSpeed",
+          "ResearchSpeed",
+          "WoundedCapacity",
+          "UnitCapacity",
+          "HeroExperience",
+          "TameChance",
+          "ProtectedStorage",
+          "HelpShareCap",
+          "OfferingAttempts",
+          "CoinBonus",
+          "TerritoryAttack",
+          "TerritoryDefense",
+          "StructureBuildSpeed",
+          "StructureGarrison",
+          "StructureCost",
+          "LootCashback"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
+      },
+      "TerritoryContributorView": {
+        "required": [
+          "contribution",
+          "name",
+          "playerId"
+        ],
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "contribution": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
       },
       "TowerEnemyView": {
         "required": [
@@ -17577,7 +17924,7 @@
         },
         "additionalProperties": false
       },
-      "TrainingOrderResponse": {
+      "TrainingOrderView": {
         "required": [
           "completesAt",
           "count",
@@ -17620,6 +17967,7 @@
           "critical",
           "damage",
           "died",
+          "extraStrike",
           "healed",
           "shieldAbsorbed",
           "shieldGained",
@@ -17662,6 +18010,9 @@
           "skillKey": {
             "type": "string",
             "nullable": true
+          },
+          "extraStrike": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -17709,7 +18060,7 @@
         },
         "additionalProperties": false
       },
-      "TutorialProgressResponse": {
+      "TutorialProgressView": {
         "required": [
           "seenSteps"
         ],
@@ -17729,7 +18080,7 @@
         },
         "additionalProperties": false
       },
-      "UnitResponse": {
+      "UnitView": {
         "required": [
           "count",
           "level",
@@ -17811,7 +18162,7 @@
         },
         "additionalProperties": false
       },
-      "VillageDamageResponse": {
+      "VillageDamageView": {
         "required": [
           "defeatsToEvict",
           "defeatStreak",
@@ -17830,13 +18181,13 @@
           "repairCost": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/RepairCostResponse"
+              "$ref": "#/components/schemas/RepairCostView"
             }
           }
         },
         "additionalProperties": false
       },
-      "VillageResponse": {
+      "VillageView": {
         "required": [
           "buildings",
           "id",
@@ -17867,13 +18218,13 @@
           "buildings": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BuildingResponse"
+              "$ref": "#/components/schemas/BuildingView"
             }
           },
           "resources": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ResourceResponse"
+              "$ref": "#/components/schemas/ResourceView"
             }
           },
           "shieldUntil": {
@@ -17882,7 +18233,7 @@
             "nullable": true
           },
           "damage": {
-            "$ref": "#/components/schemas/VillageDamageResponse"
+            "$ref": "#/components/schemas/VillageDamageView"
           },
           "isHungry": {
             "type": "boolean"
@@ -17894,7 +18245,7 @@
         },
         "additionalProperties": false
       },
-      "WalletResponse": {
+      "WalletView": {
         "required": [
           "gemBalance",
           "purchasedGems",

@@ -11,22 +11,13 @@ namespace EmpireIdle.Api.Tests.Inventory;
 /// видача мусить лягти в стек, а не зникнути разом із видаленим рядком.
 /// </summary>
 [Collection("postgres")]
-public class InventoryRepositoryTests : IAsyncLifetime
+public class InventoryRepositoryTests
 {
     private const string ItemKey = "test_key";
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public InventoryRepositoryTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public InventoryRepositoryTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task GetItemAsync_ShouldReviveAStackRemovedInTheSameUnitOfWork()

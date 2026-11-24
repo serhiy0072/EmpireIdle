@@ -13,8 +13,8 @@ namespace EmpireIdle.Domain.ValueObjects
 
         public BuildingLevel(int value)
         {
-            if (value <= 0)
-                throw new ArgumentException("Рівень будівлі має бути більше нуля.", nameof(value));
+            // Захисна перевірка, не відмова гравцю: рівень приходить із коду, а не з запиту
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
             Value = value;
         }
 

@@ -5,6 +5,7 @@ import { fetchDungeonRun, useAbandonDungeonRun, useDungeonTurn } from "../../lib
 import ErrorBanner from "../ErrorBanner";
 import CombatantCard from "./CombatantCard";
 import DungeonRewardCard from "./DungeonRewardCard";
+import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 import { Trans } from "react-i18next";
 
@@ -51,7 +52,9 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
   const [fast, setFast] = useState(false);
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [splashes, setSplashes] = useState<Record<number, Splash>>({});
-  const [log, setLog] = useState<string[]>([]);
+  // Нові рядки йдуть угору й старі обрізаються — ключ за номером рядка, не за позицією
+  const [log, setLog] = useState<{ id: number; text: string }[]>([]);
+  const nextLogId = useRef(0);
   const [finished, setFinished] = useState<DungeonRunView | null>(null);
 
   // Свіже посилання для таймера автобою: інакше він ганяв би застарілий стан
@@ -80,10 +83,13 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         const effects = entry.effects
           .map((effect) => {
             // Періодичне вміння спрацьовує саме — підписуємо, звідки взялась шкода
+            // Другий удар від швидкості атаки підписуємо так само: інакше гравець не побачить, що стат спрацював
             const source =
-              effect.skillKey === null || effect.skillKey === undefined
-                ? ""
-                : `${abilityNames.get(effect.skillKey) ?? effect.skillKey}: `;
+              effect.extraStrike === true
+                ? `${t("battle:log.extraStrike")}: `
+                : effect.skillKey === null || effect.skillKey === undefined
+                  ? ""
+                  : `${abilityNames.get(effect.skillKey) ?? effect.skillKey}: `;
             const name = `${source}${people[effect.targetIndex]?.displayName ?? "?"}`;
             if ((effect.healed ?? 0) > 0) return `${name} +${Math.round(effect.healed ?? 0)}`;
             if ((effect.shieldGained ?? 0) > 0) return t("battle:log.shield", { name, value: Math.round(effect.shieldGained ?? 0) });
@@ -141,7 +147,8 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         setTargetIndex(null);
         // Склад до ходу, а не після: коли відповідь уже перевела бій на
         // наступну хвилю, індекси ходів указують на попередній ростер
-        setLog((previous) => [...describe(result.turns, state.combatants), ...previous].slice(0, 40));
+        const lines = describe(result.turns, state.combatants).map((text) => ({ id: nextLogId.current++, text }));
+        setLog((previous) => [...lines, ...previous].slice(0, 40));
 
         const fresh: Record<number, Splash> = {};
         for (const entry of result.turns)
@@ -245,7 +252,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
     return true;
   };
 
-  const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
+  const button = "rounded-lg border border-[#4a72b0] px-3 py-1 text-sm text-slate-100 hover:bg-white/10 disabled:opacity-50";
 
   if (finished !== null) {
     const won = finished.state === "Won";
@@ -253,15 +260,15 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
     const reward = finished.reward;
 
     return (
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className={`text-lg font-medium ${won ? "text-emerald-700" : "text-rose-700"}`}>{t(`battle:outcome.${outcome}.title`)}</h2>
-        <p className="text-sm text-slate-600">{t(`battle:outcome.${outcome}.hint`)}</p>
+      <div className="space-y-4 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4">
+        <h2 className={`text-lg font-medium ${won ? "text-emerald-200" : "text-rose-200"}`}>{t(`battle:outcome.${outcome}.title`)}</h2>
+        <p className="text-sm text-slate-200">{t(`battle:outcome.${outcome}.hint`)}</p>
 
         {reward != null && <DungeonRewardCard reward={reward} />}
         <button
           type="button"
           onClick={onFinished}
-          className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900"
+          className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
         >
           {t("battle:run.backToList")}
         </button>
@@ -272,7 +279,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-slate-600">
+        <span className="text-sm text-slate-200">
           {t("battle:run.wave", { wave: state.wave, total: state.waveCount })}
         </span>
 
@@ -287,18 +294,18 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
             type="button"
             onClick={() => abandon.mutate(state.runId, { onSuccess: onFinished })}
             disabled={abandon.isPending}
-            className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+            className="rounded-lg border border-red-400/50 px-3 py-1 text-sm text-red-200 hover:bg-red-500/15 disabled:opacity-50"
           >
             {t("battle:run.leave")}
           </button>
         </div>
       </div>
 
-      <ErrorBanner error={turn.error ?? abandon.error} />
+      <ErrorBanner error={latestError([turn, abandon])} />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <section className="space-y-2">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">{t("battle:run.team")}</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-sky-100/70">{t("battle:run.team")}</h3>
           {heroes.map((combatant) => (
             <CombatantCard
               key={combatant.index}
@@ -313,7 +320,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
         </section>
 
         <section className="space-y-2">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">{t("battle:run.enemies")}</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-sky-100/70">{t("battle:run.enemies")}</h3>
           {enemies.map((combatant) => (
             <CombatantCard
               key={combatant.index}
@@ -329,8 +336,8 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
       </div>
 
       {!auto && heroTurn && actor !== null && (
-        <div className="space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
-          <p className="text-sm text-amber-900">
+        <div className="space-y-2 rounded-xl border border-amber-400/50 bg-amber-500/15 p-3">
+          <p className="text-sm text-amber-200">
             <Trans ns="battle" i18nKey="run.turn" values={{ name: actor.displayName }} components={{ b: <span className="font-medium" /> }} />
             {target === null ? ` — ${t("battle:run.pickTarget")}` : ""}
           </p>
@@ -339,7 +346,7 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
               type="button"
               onClick={() => void act(false, null, targetIndex)}
               disabled={turn.isPending || target === null || target.side !== "Enemies" || !reachable(target, false)}
-              className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-900 disabled:opacity-50"
+              className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
             >
               {t("battle:run.attack")}
             </button>
@@ -361,9 +368,9 @@ export default function DungeonBattle({ playerId, run, onFinished }: Props) {
       )}
 
       {log.length > 0 && (
-        <ol className="max-h-40 space-y-0.5 overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
-          {log.map((line, index) => (
-            <li key={index}>{line}</li>
+        <ol className="max-h-40 space-y-0.5 overflow-y-auto rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3 text-xs text-slate-200">
+          {log.map((line) => (
+            <li key={line.id}>{line.text}</li>
           ))}
         </ol>
       )}

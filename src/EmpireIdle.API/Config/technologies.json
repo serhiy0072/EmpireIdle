@@ -563,6 +563,7 @@
           "ResourceRates": { "food": 1, "wood": 1, "iron": 0.5, "gold": 0.25 },
           "CostRounding": 50,
           "GemPoints": 50,
+          "MarkedBonus": 0.5,
           "GemPriceBase": 10,
           "GemPriceBatch": 5,
           "GemPriceGrowth": 2,

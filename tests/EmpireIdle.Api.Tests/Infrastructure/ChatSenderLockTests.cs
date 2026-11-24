@@ -8,22 +8,13 @@ namespace EmpireIdle.Api.Tests.Infrastructure;
 /// чекає, поки перший закомітить своє повідомлення, і вже тоді рахує ліміт.
 /// </summary>
 [Collection("postgres")]
-public class ChatSenderLockTests : IAsyncLifetime
+public class ChatSenderLockTests
 {
     private const int ServerId = 1;
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public ChatSenderLockTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public ChatSenderLockTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AsyncServiceScope CreateScope(out IChatRepository chat, out IUnitOfWork unitOfWork)
     {

@@ -41,23 +41,23 @@ export default function RewardLetter({ letter, catalog, busy, onClaim, onOpen }:
 
   return (
     <li
-      className="space-y-2 rounded-xl border border-amber-200 bg-white p-3"
+      className="space-y-2 rounded-xl border border-amber-400/50 bg-[#1d3b6f] p-3"
       onMouseEnter={() => !letter.isRead && onOpen()}
       onClick={() => !letter.isRead && onOpen()}
     >
       <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span className="font-medium text-slate-800">
+        <span className="font-medium text-white">
           {!letter.isRead && (
             <span className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-label={t("social:mail.unread")} />
           )}
           🎁 {title}
         </span>
-        <span className="text-xs text-slate-400">{date(letter.createdAt)}</span>
+        <span className="text-xs text-sky-100/50">{date(letter.createdAt)}</span>
       </div>
 
       <ul className="flex flex-wrap gap-2 text-sm">
         {letter.rewards.map((reward) => (
-          <li key={`${reward.type}:${reward.key ?? ""}`} className="rounded-lg bg-amber-50 px-2 py-0.5 text-amber-900">
+          <li key={`${reward.type}:${reward.key ?? ""}`} className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-amber-200">
             {rewardLabel(reward, catalog)}
           </li>
         ))}
@@ -65,9 +65,9 @@ export default function RewardLetter({ letter, catalog, busy, onClaim, onOpen }:
 
       <div className="flex items-center justify-between gap-2">
         {letter.claimedAt != null ? (
-          <span className="text-xs text-slate-500">{t("social:reward.claimedAt", { date: date(letter.claimedAt) })}</span>
+          <span className="text-xs text-sky-100/70">{t("social:reward.claimedAt", { date: date(letter.claimedAt) })}</span>
         ) : (
-          <span className="text-xs text-slate-500">{t("social:reward.expiresAt", { date: date(letter.expiresAt) })}</span>
+          <span className="text-xs text-sky-100/70">{t("social:reward.expiresAt", { date: date(letter.expiresAt) })}</span>
         )}
 
         {letter.canClaim && (

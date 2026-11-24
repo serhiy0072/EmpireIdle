@@ -157,7 +157,7 @@ namespace EmpireIdle.Domain.Tests.Entities
                 TestKit.Entities.Now, ProductionBoost.None, 1.0);
 
             // Сканер прийшов на 20 хвилин пізніше за завершення
-            village.CompleteDueConstructions(TestKit.Entities.Now.AddMinutes(30), configs);
+            village.CompleteDueConstructions(TestKit.Entities.Now.AddMinutes(30), configs, ProductionBoost.None, locationMultiplier: 1.0);
 
             Assert.True(village.IsProducing(mine, configs));
             // 2 хвилини після відкриття × 10/хв; без скидання буфер стояв би на капі 60
@@ -271,6 +271,34 @@ namespace EmpireIdle.Domain.Tests.Entities
             Assert.Equal(40, farm.AccruedAmount);
         }
 
+        /// <summary>Скорочення таймера йде через село: воно позначає себе зміненим, і паралельний запис це помітить.</summary>
+        [Fact]
+        public void ReduceConstructionTime_ShouldCutTheTimer_AndTouchTheVillage()
+        {
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 10, resourceAmount: 1000);
+            var configs = TestKit.Entities.FarmConfigs();
+            var farm = village.Buildings.Single(b => b.Type == TestKit.TestKeys.Farm);
+            var startedAt = TestKit.Entities.Now;
+
+            village.BeginBuildingUpgrade(farm.Id, configs, startedAt, ProductionBoost.None,
+                mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0);
+            var completesAt = farm.ConstructionCompletesAt!.Value;
+
+            village.ReduceConstructionTime(farm.Id, TimeSpan.FromMinutes(5), startedAt.AddMinutes(1));
+
+            Assert.Equal(completesAt.AddMinutes(-5), farm.ConstructionCompletesAt);
+            Assert.Equal(startedAt.AddMinutes(1), village.UpdatedAt);
+        }
+
+        [Fact]
+        public void ReduceConstructionTime_ShouldRefuse_AnUnknownBuilding()
+        {
+            var village = TestKit.Entities.VillageWithTownhall(townhallLevel: 10, resourceAmount: 1000);
+
+            Assert.Throws<EntityNotFoundException>(() =>
+                village.ReduceConstructionTime(Guid.NewGuid(), TimeSpan.FromMinutes(5), TestKit.Entities.Now));
+        }
+
         /// <summary>Сканер завершує лише ті будівництва, чий час настав.</summary>
         [Fact]
         public void CompleteDueConstructions_ShouldRaiseLevelOnlyForDueBuildings()
@@ -283,11 +311,11 @@ namespace EmpireIdle.Domain.Tests.Entities
             village.BeginBuildingUpgrade(farm.Id, configs, startedAt, ProductionBoost.None,
                 mainBuildingKey: TestKit.TestKeys.Townhall, serverLevel: UngatedServerLevel, levelsPerTier: LevelsPerTier, maxBuildingLevel: MaxBuildingLevel, locationMultiplier: 1.0);
 
-            Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs));
+            Assert.Equal(0, village.CompleteDueConstructions(startedAt.AddMinutes(1), configs, ProductionBoost.None, locationMultiplier: 1.0));
             Assert.Equal(1, farm.Level.Value);
 
             // Рівень 1 несе "ранній податок" (×3): 5 базових хвилин стають 15
-            Assert.Equal(1, village.CompleteDueConstructions(startedAt.AddMinutes(16), configs));
+            Assert.Equal(1, village.CompleteDueConstructions(startedAt.AddMinutes(16), configs, ProductionBoost.None, locationMultiplier: 1.0));
             Assert.Equal(2, farm.Level.Value);
             Assert.False(farm.IsUnderConstruction);
         }

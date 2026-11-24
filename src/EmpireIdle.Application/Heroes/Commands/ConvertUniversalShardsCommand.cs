@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record ConvertUniversalShardsCommand(Guid PlayerId, string HeroKey, int Count)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class ConvertUniversalShardsCommandHandler : IRequestHandler<ConvertUniversalShardsCommand>
+    public sealed class ConvertUniversalShardsCommandHandler : IRequestHandler<ConvertUniversalShardsCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IInventoryRepository _inventoryRepository;

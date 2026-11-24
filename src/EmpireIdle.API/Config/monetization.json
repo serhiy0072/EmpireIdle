@@ -1,6 +1,7 @@
 {
   "GameConfig": {
     "Monetization": {
+      "HealResourceCostShare": 0.5,
       "SpeedUpFactor": 16.666666,
       "SpeedUpExponent": 1.0,
       "SpeedUpFloorSeconds": {

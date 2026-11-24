@@ -51,7 +51,7 @@ public class RecalculateAllRatingsCommandTests
             ["townhall"] = new() { Key = "townhall", IsMainBuilding = true }
         };
 
-        var village = new Village(Guid.NewGuid(), playerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), playerId, "Test", ["food"], 0, 0, serverId: 1);
         village.AddBuilding("townhall", configs, Now);
 
         var townhall = village.Buildings.Single();
@@ -60,7 +60,8 @@ public class RecalculateAllRatingsCommandTests
         {
             townhall.BeginUpgrade(configs["townhall"], TimeSpan.Zero, Now,
                 Domain.ValueObjects.ProductionBoost.None, locationMultiplier: 1.0);
-            townhall.CompleteConstruction(Now);
+            townhall.CompleteConstruction(configs["townhall"], Now,
+                Domain.ValueObjects.ProductionBoost.None, locationMultiplier: 1.0);
         }
 
         return village;

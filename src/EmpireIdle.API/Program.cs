@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -63,7 +64,7 @@ builder.Configuration
     .AddIndexedJsonFile("Config/locales.en.json");
 
 // Наповненість секцій і межі окремих полів. Узгодженість між секціями —
-// у GameCatalog.Validate: правило пошуку однозначне, і два списки не розійдуться.
+// у GameConfigValidator (кличе GameCatalog): правило пошуку однозначне, і два списки не розійдуться.
 builder.Services.AddOptions<GameConfig>()
     .Bind(builder.Configuration.GetSection("GameConfig"))
     .Validate(c => c.Resources.Count > 0, "GameConfig.Resources is empty — check Config/resources.json.")
@@ -128,6 +129,7 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Map.Geometry.RingMultipliers.Count > 0 && c.Map.Geometry.RingMultipliers.All(m => m > 0),
         "GameConfig.Map.Geometry.RingMultipliers must be non-empty and positive — every cell takes its production multiplier from a ring.")
     .Validate(c => c.Clan.Capacity > 0, "GameConfig.Clan.Capacity must be positive — nobody could join a clan.")
+    .Validate(c => c.Clan.MaxRoles >= 6, "GameConfig.Clan.MaxRoles must cover the six built-in roles every clan starts with.")
     .Validate(c => c.Clan.Territory.MaxTechnologyCostCut is >= 0 and < 1,
         "GameConfig.Clan.Territory.MaxTechnologyCostCut must be within 0..1 — a structure must keep some price.")
     .Validate(c => c.Clan.Territory.Radius > 0, "GameConfig.Clan.Territory.Radius must be positive — a structure would cover nothing.")
@@ -199,7 +201,8 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Dungeons.RefillPricesGems.All(p => p > 0) && c.Dungeons.RefillPricesGems.Zip(c.Dungeons.RefillPricesGems.Skip(1)).All(p => p.First <= p.Second),
         "GameConfig.Dungeons.RefillPricesGems must be positive and must not fall from one refill to the next.")
     .Validate(c => new[] { c.Dungeons.MaxCritChance, c.Dungeons.MaxLifesteal, c.Dungeons.MaxDamageReduction, c.Dungeons.MaxBlockChance,
-            c.Dungeons.BaseBlockPower, c.Dungeons.MaxBlockPower, c.Dungeons.MaxWard }.All(v => v is >= 0 and < 1),
+            c.Dungeons.BaseBlockPower, c.Dungeons.MaxBlockPower, c.Dungeons.MaxWard, c.Dungeons.MaxAttackSpeed,
+            c.Dungeons.MaxCooldownReduction }.All(v => v is >= 0 and < 1),
         "GameConfig.Dungeons stat caps and BaseBlockPower must be shares in [0, 1) — a cap of 1 would make a hero immortal or always critical.")
     .Validate(c => c.HeroSettings.GarrisonDefenders > 0, "GameConfig.HeroSettings.GarrisonDefenders must be positive — a village always has heroes to defend it.")
     .Validate(c => c.HeroSettings.MaxHeroesPerMarch is >= 1 and <= EmpireIdle.Application.Marches.Validators.SendMarchCommandValidator.MaxHeroIds,
@@ -271,7 +274,23 @@ builder.Services.AddOptions<GameConfig>()
     .Validate(c => c.Map.Terrains.All(t => t.MoveCost > 0), "GameConfig.Map.Terrains MoveCost must be positive — a march over it would take no time.")
     .Validate(c => c.Map.TravelSpeedMultiplier > 0, "GameConfig.Map.TravelSpeedMultiplier must be above zero.")
     .Validate(c => c.Beasts.TameTravelSpeedMultiplier > 0, "GameConfig.Beasts.TameTravelSpeedMultiplier must be above zero.")
-    .Validate(c => c.Map.ImpassableMoveMultiplier >= 1, "GameConfig.Map.ImpassableMoveMultiplier must be at least 1 — an impassable cell is never faster than a passable one.")
+    .Validate(c => c.MaxUnitLevel >= 1, "GameConfig.MaxUnitLevel must be at least 1 — no unit could be trained.")
+    .Validate(c => c.Map.Geometry.RingsAtFirstLevel is > 0 and <= 1,
+        "GameConfig.Map.Geometry.RingsAtFirstLevel must be within (0; 1] — it is the share of the full ring width on level 1.")
+    .Validate(c => c.Map.Evolution.DensityThreshold is > 0 and <= 1,
+        "GameConfig.Map.Evolution.DensityThreshold must be within (0; 1] — it is a share of the fog area.")
+    .Validate(c => c.Monsters.All(m => m.MinLevel >= 1 && m.MaxLevel >= m.MinLevel && m.UnitGrowth >= 1 && m.RewardGrowth >= 1),
+        "GameConfig.Monsters need 1 ≤ MinLevel ≤ MaxLevel and UnitGrowth/RewardGrowth of at least 1 — a stronger monster must not get weaker or poorer.")
+    .Validate(c => c.Dungeons.Dungeons.All(d => d.Waves.All(e => e.Wave >= 1)),
+        "GameConfig.Dungeons wave enemies need Wave of at least 1 — wave 1 is the first fight.")
+    .Validate(c => c.Heroes.All(h => h.StatGrowth.Values.All(g => g >= 0)),
+        "GameConfig.Heroes StatGrowth cannot be negative — a hero must not weaken with level.")
+    .Validate(c => c.Shop.GemPacks.All(p => !string.IsNullOrWhiteSpace(p.Key))
+            && c.Shop.GemPacks.Select(p => p.Key).Distinct().Count() == c.Shop.GemPacks.Count,
+        "GameConfig.Shop.GemPacks need unique non-empty keys — checkout finds a pack by its key.")
+    .Validate(c => c.Buildings.Where(b => b.Upgradable).All(b => b.UpgradeCostGrowth >= 1),
+        "GameConfig.Buildings: an upgradable building needs UpgradeCostGrowth of at least 1 — 0 makes upgrades free, below 1 cheaper with level.")
+    .Validate(c => c.Map.ImpassableMoveMultiplier >= 1,"GameConfig.Map.ImpassableMoveMultiplier must be at least 1 — an impassable cell is never faster than a passable one.")
     .Validate(c => c.Retention is { BattleReportDays: > 0, ScoutReportDays: > 0, FinishedDungeonRunDays: > 0, ClosedMarketListingDays: > 0, ResolvedClanRequestDays: > 0, ExpiredEffectHours: > 0 },
         "GameConfig.Retention days must all be positive — a zero would delete history the moment it is written.")
     .ValidateOnStart();
@@ -527,8 +546,14 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 
         return result;
     };
-});
-builder.Services.AddSignalR();
+})
+// Enum на дроті — іменем, а не числом (рішення 16.11.2026): клієнт отримує з OpenAPI перелік назв,
+// і значення, вставлене посеред enum, не зсуває чужі таблиці «число → назва»
+.AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+// Події хаба — тим самим форматом, що й відповіді API
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options => options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddScoped<IGameNotifier, SignalRGameNotifier>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

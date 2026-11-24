@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
@@ -53,8 +54,7 @@ namespace EmpireIdle.Application.Clans.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+            var player = await _playerRepository.RequireAsync(request.PlayerId, cancellationToken);
 
             if (player.ClanId is not null)
                 throw new InvalidStateException(RefusalReasons.ClanAlreadyInClan, "Leave your current clan before founding a new one.");
@@ -88,8 +88,7 @@ namespace EmpireIdle.Application.Clans.Commands
         /// </summary>
         private async Task EnsureEmbassyAsync(Guid playerId, CancellationToken cancellationToken)
         {
-            var village = await _villageRepository.GetByPlayerIdAsync(playerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", playerId);
+            var village = await _villageRepository.RequireByPlayerAsync(playerId, cancellationToken);
 
             var embassyKey = _catalog.Buildings.Values
                 .FirstOrDefault(b => b.ReinforcementSlotsPerLevel > 0)?.Key;

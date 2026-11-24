@@ -82,7 +82,7 @@ namespace EmpireIdle.Domain.Entities
         /// Перелік ресурсів приходить із конфіга — домен не знає конкретних назв.
         /// </summary>
         /// <param name="resourceKeys">Ключі ресурсів гри (з GameConfig.Resources).</param>
-        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int x, int y, int serverId = 1) : base(id)
+        public Village(Guid id, Guid playerId, string name, IEnumerable<string> resourceKeys, int x, int y, int serverId) : base(id)
         {
             PlayerId = playerId;
             Name = name;
@@ -100,9 +100,9 @@ namespace EmpireIdle.Domain.Entities
 
         #region Читання
 
-        /// <summary>Чи є в селі готова (не в процесі будівництва) будівля вказаного типу.</summary>
+        /// <summary>Чи є в селі будівля вказаного типу. Будівля на апгрейді працює на поточному рівні (рішення 16.11.2026).</summary>
         public bool HasBuilding(string buildingType)
-            => _buildings.Any(b => b.Type == buildingType && !b.IsUnderConstruction);
+            => _buildings.Any(b => b.Type == buildingType);
 
         /// <summary>
         /// Чи виробляє будівля. Під туманом — ні: інакше гравець відкривав би
@@ -226,10 +226,30 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
+        /// Скорочує таймер апгрейду будівлі: прискорення за gems чи предмети або допомога клану.
+        /// Іде через село, а не напряму в будівлю, щоб оновився рядок села: інакше допомога союзника, що
+        /// прочитала будівлю ще «на апгрейді», зберегла б свій таймер поверх уже завершеного будівництва —
+        /// і сканер підняв би рівень удруге. Тепер така гонка закінчується конфліктом версій.
+        /// </summary>
+        /// <exception cref="EntityNotFoundException">Будівлі з таким Id у селі немає.</exception>
+        /// <exception cref="InvalidStateException">Будівля не будується.</exception>
+        public void ReduceConstructionTime(Guid buildingId, TimeSpan reduction, DateTime utcNow)
+        {
+            var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
+                ?? throw new EntityNotFoundException("Building", buildingId);
+
+            building.ReduceConstructionTime(reduction);
+            Touch(utcNow);
+        }
+
+        /// <summary>
         /// Завершує всі будівництва, чий час настав. Викликається сканером.
         /// Повертає кількість завершених (для логування).
         /// </summary>
-        public int CompleteDueConstructions(DateTime utcNow, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs)
+        /// <param name="boost">Вікно дії буста виробництва: вироблене на апгрейді фіксується за старим рівнем.</param>
+        /// <param name="locationMultiplier">Множник від кільця карти.</param>
+        public int CompleteDueConstructions(DateTime utcNow, IReadOnlyDictionary<string, BuildingConfig> buildingConfigs,
+            ProductionBoost boost, double locationMultiplier)
         {
             var due = _buildings
                 .Where(b => b.IsUnderConstruction && b.ConstructionCompletesAt <= utcNow)
@@ -240,9 +260,13 @@ namespace EmpireIdle.Domain.Entities
                 var completedAt = building.ConstructionCompletesAt!.Value;
                 var levelBefore = MainBuildingLevel(buildingConfigs);
 
-                building.CompleteConstruction(utcNow);
+                // Не доменне правило: будівля стоїть, а конфіг її типу зник — битий конфіг, має бути 500
+                if (!buildingConfigs.TryGetValue(building.Type, out var config))
+                    throw new InvalidOperationException($"No config found for building type '{building.Type}'.");
 
-                if (buildingConfigs.TryGetValue(building.Type, out var config) && config.IsMainBuilding)
+                building.CompleteConstruction(config, utcNow, boost, locationMultiplier);
+
+                if (config.IsMainBuilding)
                     StartProductionUnlockedAbove(levelBefore, buildingConfigs, completedAt);
 
                 RaiseDomainEvent(new Events.BuildingUpgradeCompleted(Id, PlayerId, building.Id, building.Type, building.Level, utcNow));
@@ -344,8 +368,8 @@ namespace EmpireIdle.Domain.Entities
         }
 
         /// <summary>
-        /// Спільне ядро збору. Будівля під будівництвом віддає те, що встигла
-        /// накопичити до нього.
+        /// Спільне ядро збору. Будівля на апгрейді збирається як звичайна:
+        /// вона виробляє на поточному рівні.
         /// </summary>
         private int Collect(Building building, BuildingConfig config,
             DateTime utcNow, ProductionBoost boost, double locationMultiplier)

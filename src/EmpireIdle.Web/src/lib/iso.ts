@@ -8,9 +8,6 @@
 export const UNIT_X = 10;
 export const UNIT_Y = 5;
 
-/** Половина сторони будівлі в одиницях плану. Крок у конфізі 10, тож 4 лишає прохід між будівлями. */
-export const FOOTPRINT = 4;
-
 export interface Point {
   x: number;
   y: number;

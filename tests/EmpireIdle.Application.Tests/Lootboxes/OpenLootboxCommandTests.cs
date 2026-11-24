@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Lootboxes.Commands;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Lootboxes.Services;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Application.Rewards.Contracts;
@@ -171,9 +171,8 @@ public class OpenLootboxCommandTests
     {
         var stack = GivenChests(TestKeys.SmallChest, 1);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Open(TestKeys.SmallChest, count: 2));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Open(TestKeys.SmallChest, count: 2));
 
-        Assert.Equal(RefusalReasons.ItemNotEnough.Key, refusal.Reason);
         Assert.Equal(1, stack.Count);
         Assert.Empty(_granted);
     }

@@ -2,19 +2,19 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tan
 import { api } from "../api";
 import type { ClaimAllQuestsResponse, QuestState, QuestView, QuestWindow, ServerQuestResponse } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
-import { invalidatePlayer } from "./invalidate";
+import { invalidatePlayer, REWARD_SCOPES } from "./invalidate";
 
-/** Значення enum-ів з контракту: числа на дроті, імена — тут. */
+/** Значення enum-ів з контракту: на дроті — імена. */
 export const QUEST_STATE = {
-  inProgress: 1,
-  completed: 2,
-  claimed: 3,
+  inProgress: "InProgress",
+  completed: "Completed",
+  claimed: "Claimed",
 } as const satisfies Record<string, QuestState>;
 
 export const QUEST_WINDOW = {
-  chain: 1,
-  daily: 2,
-  event: 3,
+  chain: "Chain",
+  daily: "Daily",
+  event: "Event",
 } as const satisfies Record<string, QuestWindow>;
 
 /** Щоденні квести обнуляються о 00:00 UTC — так само їх скидає джоб на сервері. */
@@ -50,7 +50,7 @@ export function useClaimQuest(playerId: string) {
     mutationFn: (questKey: string) =>
       api<void>(`/api/quests/${playerId}/${questKey}/claim`, { method: "POST", idempotent: true }),
     // Предмети й спорядження з нагород лягають в інвентар
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes", "inventory"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", ...REWARD_SCOPES]),
   });
 }
 
@@ -61,6 +61,6 @@ export function useClaimAllQuests(playerId: string) {
   return useMutation({
     mutationFn: () =>
       api<ClaimAllQuestsResponse>(`/api/quests/${playerId}/claim-all`, { method: "POST", idempotent: true }),
-    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", "wallet", "village", "heroes", "inventory"]),
+    onSuccess: () => invalidatePlayer(queryClient, playerId, ["quests", ...REWARD_SCOPES]),
   });
 }

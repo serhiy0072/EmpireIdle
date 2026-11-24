@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
@@ -62,8 +63,7 @@ namespace EmpireIdle.Application.Research.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villages.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             var laboratory = _technologies.BuildingKey is { } key && _catalog.Buildings.TryGetValue(key, out var config)
                 ? config

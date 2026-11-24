@@ -94,7 +94,7 @@ public static class Entities
         for (var i = 0; i < times; i++)
         {
             building.BeginUpgrade(config, TimeSpan.Zero, utcNow, ProductionBoost.None, locationMultiplier: 1.0);
-            building.CompleteConstruction(utcNow);
+            building.CompleteConstruction(config, utcNow, ProductionBoost.None, locationMultiplier: 1.0);
         }
     }
 

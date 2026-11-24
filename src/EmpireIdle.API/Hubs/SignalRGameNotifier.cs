@@ -1,5 +1,5 @@
 using EmpireIdle.API.Hubs.Events;
-using EmpireIdle.Application.Chat.Contracts;
+using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.Application.Common.Events;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.ReadModels;

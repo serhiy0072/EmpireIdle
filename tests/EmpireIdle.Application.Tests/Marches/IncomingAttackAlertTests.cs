@@ -42,7 +42,7 @@ public class IncomingAttackAlertTests
 
     private Village GivenVillage(Guid ownerId, Guid? clanId)
     {
-        var village = new Village(Guid.NewGuid(), ownerId, "Ціль", [], 10, 10);
+        var village = new Village(Guid.NewGuid(), ownerId, "Ціль", [], 10, 10, serverId: 1);
 
         _villages.GetByIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(village);
         _clans.GetClanIdByMemberAsync(ownerId, Arg.Any<CancellationToken>()).Returns(clanId);

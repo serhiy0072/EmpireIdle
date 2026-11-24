@@ -1,5 +1,6 @@
 {
   "language": "Language",
+  "close": "Close",
   "shell": {
     "home": "To the village",
     "shield": "🛡 until {{until}}",
@@ -107,8 +108,8 @@
     "TroopsAttack": "Attack of the troops of the hero's class on marches and in defense",
     "TroopsDefense": "Defense of the troops of the hero's class on marches and in defense",
     "CooldownTurns": "How many turns sooner the active skill is ready again in dungeons",
-    "AttackSpeed": "More hits per second — takes effect with the new dungeon and arena combat",
-    "CooldownReduction": "Skills are ready more often — takes effect with the new dungeon and arena combat"
+    "AttackSpeed": "In the tower — more hits per second; in dungeons — a chance of a second basic strike each turn",
+    "CooldownReduction": "The active skill is ready more often: in the tower its cooldown is shorter by this share, in dungeons it takes turns off the cooldown"
   },
   "classTroops": {
     "attack": {

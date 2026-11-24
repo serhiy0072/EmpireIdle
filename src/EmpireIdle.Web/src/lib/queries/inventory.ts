@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { api, isApiError } from "../api";
 import type { ArtifactMasteryResponse, GiftItemRequest, InventoryResponse, UseItemRequest } from "../apiTypes";
+import type { components } from "../schema";
+import { useCatalog } from "./catalog";
 import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
@@ -19,10 +21,7 @@ export function useInventory(playerId: string): UseQueryResult<InventoryResponse
 /** Скільки разів пробуємо телепорт, клітину якому обирає гра, якщо її щойно зайняв інший гравець. */
 const GAME_PICKED_CELL_ATTEMPTS = 3;
 
-/** Сервер приймає до стількох штук за запит (UseItemCommand.MaxCount). */
-const MAX_USE_PER_REQUEST = 10_000;
-
-/** Один запит «використати»: щонайбільше MAX_USE_PER_REQUEST штук. */
+/** Один запит «використати»: щонайбільше стільки штук, скільки приймає сервер (каталог, limits.maxItemsPerUse). */
 async function applyOnce(playerId: string, input: UseItemRequest): Promise<void> {
   // Клітину обирає гра (випадковий, до лідера): двох одночасних гравців на одну клітину розводить
   // індекс мапи — другий отримує 409, а повтор із новим ключем дістане наступну вільну (GDD §8.9).
@@ -41,12 +40,13 @@ async function applyOnce(playerId: string, input: UseItemRequest): Promise<void>
 /** Ящик наливає ресурси в село, буст з'являється в інвентарі, телепорт рухає село мапою. */
 export function useUseItem(playerId: string) {
   const queryClient = useQueryClient();
+  const maxPerRequest = useCatalog().limits.maxItemsPerUse;
 
   return useMutation({
     mutationFn: async (input: UseItemRequest) => {
       // «Усі» — весь стек (рішення 22.10.2026): понад стелю сервера — кількома запитами поспіль
-      for (let left = input.count; left > 0; left -= MAX_USE_PER_REQUEST) {
-        await applyOnce(playerId, { ...input, count: Math.min(left, MAX_USE_PER_REQUEST) });
+      for (let left = input.count; left > 0; left -= maxPerRequest) {
+        await applyOnce(playerId, { ...input, count: Math.min(left, maxPerRequest) });
       }
     },
     onSuccess: () => {
@@ -163,18 +163,18 @@ export function useUnequipAll(playerId: string) {
   });
 }
 
-/** Таймер прискорення на сервері (SpeedUpTimer): число в запиті, назва — у межах каталогу. */
-export const SPEED_UP_TIMER_IDS = { Construction: 0, Training: 1, UnitLevelUp: 2, March: 3, Research: 4 } as const;
+/** Таймер прискорення на сервері — назвою, як enum SpeedUpTimer у контракті. */
+export type SpeedUpTimer = components["schemas"]["SpeedUpTimer"];
 
 /** Прискорити таймер предметами: хвилини складаються, надлишок понад залишок згорає. */
 export function useSpeedUpWithItems(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { timer: keyof typeof SPEED_UP_TIMER_IDS; targetId: string; items: Record<string, number> }) =>
+    mutationFn: (input: { timer: SpeedUpTimer; targetId: string; items: Record<string, number> }) =>
       api<void>(`/api/inventory/${playerId}/speedups`, {
         method: "POST",
-        body: { timer: SPEED_UP_TIMER_IDS[input.timer], targetId: input.targetId, items: input.items },
+        body: { timer: input.timer, targetId: input.targetId, items: input.items },
         idempotent: true,
       }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory", "village", "garrison", "marches", "power", "research"]),

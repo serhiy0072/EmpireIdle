@@ -19,7 +19,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.Property(s => s.Level).IsRequired();
             builder.Property(s => s.State).HasConversion<int>().IsRequired();
 
-            builder.Property(s => s.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
         }
     }
 }

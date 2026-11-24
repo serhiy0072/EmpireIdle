@@ -14,10 +14,6 @@ const TERRAIN: Record<string, { fill: string; label: TerrainKey }> = {
 
 type TerrainKey = "plain" | "forest" | "mountain" | "water" | "peaks" | "swamp";
 
-export function terrainFill(type: string): string {
-  return TERRAIN[type]?.fill ?? "#e2e8f0";
-}
-
 export function terrainLabel(type: string): string {
   const label = TERRAIN[type]?.label;
 

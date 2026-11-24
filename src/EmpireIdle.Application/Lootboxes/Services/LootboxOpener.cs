@@ -1,5 +1,6 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;
@@ -174,8 +175,7 @@ namespace EmpireIdle.Application.Lootboxes.Services
 
             if (session.MainLevel is null)
             {
-                var village = await _villages.GetByPlayerIdReadOnlyAsync(session.PlayerId, cancellationToken)
-                    ?? throw new EntityNotFoundException("Village for player", session.PlayerId);
+                var village = await _villages.RequireByPlayerReadOnlyAsync(session.PlayerId, cancellationToken);
 
                 session.MainLevel = village.Buildings.FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)?.Level.Value ?? 0;
             }

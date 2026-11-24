@@ -32,7 +32,14 @@
     "energy": "Dungeon energy",
     "heroxp": "Hero XP",
     "chestkey": "Chest key",
-    "shield": "Village shield"
+    "shield": "Village shield",
+    "universalshard": "Universal shard",
+    "wrench": "Chisel",
+    "repairkit": "Gear repair",
+    "whetstone": "Sharpening",
+    "speedup": "Speed-up",
+    "skillbook": "Skill book",
+    "weaponchest": "Weapon chest"
   },
   "item": {
     "all": "all",
@@ -163,10 +170,8 @@
   },
   "banner": {
     "kind": {
-      "1": "Heroes · event",
-      "2": "Weapons · event",
-      "3": "Standard · permanent",
-      "other": "Banner"
+      "Hero": "Heroes · event",
+      "Standard": "Standard · permanent"
     },
     "endsIn": "ends in {{remaining}}",
     "featured": "Featured: <b>{{name}}</b>",
@@ -223,6 +228,7 @@
   },
   "sell": {
     "equipped": "(equipped)",
+    "unequipWarning": "A hero is wearing this artifact. Listing it on the market takes it off the hero.",
     "full": "All listing slots are taken. Wait for a sale, withdraw a listing or upgrade the market.",
     "nothing": "Nothing to sell: gear and tradeable items (boosts, essences) will show up here.",
     "what": "What to sell",

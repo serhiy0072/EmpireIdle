@@ -128,9 +128,8 @@ namespace EmpireIdle.Application.Clans.Services
 
             if (marked)
             {
-                var multiplier = 1 + Math.Max(_technologies.Offering.MarkedBonus, 0);
-                coins = (int)Math.Round(coins * multiplier, MidpointRounding.AwayFromZero);
-                dailyPoints = (int)Math.Round(points * multiplier, MidpointRounding.AwayFromZero);
+                coins = _technologies.Offering.WithMarkBonus(coins);
+                dailyPoints = _technologies.Offering.WithMarkBonus(points);
             }
 
             // Сотні сіл в одній транзакції, але рівень виробітку закривається рідко. Ставку ще віддає БД,

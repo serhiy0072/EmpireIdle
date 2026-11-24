@@ -22,7 +22,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             builder.Property(r => r.MarkedTechnology).HasMaxLength(100);
 
-            builder.Property(r => r.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             builder.Ignore(r => r.DomainEvents);
         }

@@ -1,4 +1,4 @@
-﻿using EmpireIdle.Application.Dungeons.Contracts;
+﻿using EmpireIdle.Application.Dungeons.ReadModels;
 using EmpireIdle.Domain.Dungeons;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;

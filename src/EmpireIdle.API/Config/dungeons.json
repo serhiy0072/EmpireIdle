@@ -1,6 +1,15 @@
 ﻿{
   "GameConfig": {
     "Dungeons": {
+      "MaxCritChance": 0.6,
+      "MaxLifesteal": 0.3,
+      "MaxDamageReduction": 0.8,
+      "MaxBlockChance": 0.4,
+      "BaseBlockPower": 0.3,
+      "MaxBlockPower": 0.8,
+      "MaxWard": 0.5,
+      "WardTurns": 2,
+      "AutoHealBelowShare": 0.9,
       "MaxEnergy": 100,
       "RegenHours": 20,
       "EnergyPerRun": 10,
@@ -26,6 +35,8 @@
       "DefenseSoftening": 120,
       "MinDamageShare": 0.1,
       "MaxRoundsPerWave": 30,
+      "MaxAttackSpeed": 0.5,
+      "MaxCooldownReduction": 0.35,
       "BaseCritChance": 0.1,
       "CritMultiplier": 1.6,
       "Dungeons": [

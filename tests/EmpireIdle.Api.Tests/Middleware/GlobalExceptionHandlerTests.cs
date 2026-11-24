@@ -106,11 +106,21 @@ public class GlobalExceptionHandlerTests
         Assert.Equal("Internal", body.GetProperty("errorCode").GetString());
     }
 
-    /// <summary>Звичайний ArgumentException — хибний вхід: лишається 400.</summary>
+    /// <summary>Звичайний ArgumentException — захисна перевірка коду: 500.</summary>
     [Fact]
-    public async Task Handle_ShouldKeepAPlainArgumentException_AsBadRequest()
+    public async Task Handle_ShouldTreatAPlainArgumentException_AsInternal()
     {
-        var (status, body) = await HandleAsync(new ArgumentException("Unknown resource 'x'."));
+        var (status, body) = await HandleAsync(new ArgumentException("A chat message cannot be empty."));
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, status);
+        Assert.Equal("Internal", body.GetProperty("errorCode").GetString());
+    }
+
+    /// <summary>Кривий запит клієнта — 400 InvalidArgument.</summary>
+    [Fact]
+    public async Task Handle_ShouldAnswerBadRequest_ForAMalformedRequest()
+    {
+        var (status, body) = await HandleAsync(new MalformedRequestException("Invalid unit stack key 'x'."));
 
         Assert.Equal(StatusCodes.Status400BadRequest, status);
         Assert.Equal("InvalidArgument", body.GetProperty("errorCode").GetString());

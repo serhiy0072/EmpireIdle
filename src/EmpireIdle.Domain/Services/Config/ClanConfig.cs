@@ -27,6 +27,12 @@ namespace EmpireIdle.Domain.Services.Config
         /// </summary>
         public int RejectedCooldownHours { get; set; } = 12;
 
+        /// <summary>
+        /// Скільки ролей може мати клан разом із шістьма вбудованими. Технічна стеля, не баланс:
+        /// ролі читаються з кланом на кожній дії.
+        /// </summary>
+        public int MaxRoles { get; set; } = 12;
+
         /// <summary>Скільки днів неактивності лідера запускає автопередачу.</summary>
         public int LeaderInactivityDays { get; set; } = 7;
 

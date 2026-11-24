@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Map.ReadModels;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -8,22 +9,6 @@ namespace EmpireIdle.Application.Map.Queries
     /// <summary>Ділянка карти поточного світу навколо центру: місцевість і зайняті клітини.</summary>
     public record GetMapAreaQuery(int CenterX, int CenterY, int Radius) : IRequest<MapAreaView>;
 
-    /// <summary>Вікно карти з межами: місцевість лише в межах світу, окупанти — з бази.</summary>
-    public record MapAreaView(int MinX, int MinY, int MaxX, int MaxY, List<MapTerrainTile> Terrain, List<MapAreaOccupant> Occupants);
-
-    /// <summary>Клітина місцевості — обчислюється з сіду світу, у БД не зберігається.</summary>
-    public record MapTerrainTile(int X, int Y, string Type, bool Passable, bool Habitable);
-
-    /// <summary>
-    /// Окупант клітини для огляду мапи. Для монстра — тип і рівень:
-    /// клієнт малює різних істот, не ходячи за деталями кожної клітини.
-    /// Для кланової споруди — клан, його тег і коли вона запрацює: клієнт
-    /// малює радіус і відрізняє свою територію від чужої. Name — ім'я монстра з каталогу
-    /// або тег клану споруди.
-    /// </summary>
-    public record MapAreaOccupant(int X, int Y, MapOccupantType OccupantType, Guid OccupantId, string? Name,
-        string? MonsterType, int? MonsterLevel, Guid? ClanId, string? ClanTag, DateTime? ReadyAt);
-
     public sealed class GetMapAreaQueryHandler : IRequestHandler<GetMapAreaQuery, MapAreaView>
     {
         public const int MaxRadius = 40; // 81×81 клітин: мапу можна віддалити, але не вивантажити пів світу
@@ -32,13 +17,14 @@ namespace EmpireIdle.Application.Map.Queries
         private readonly IMonsterRepository _monsterRepository;
         private readonly IClanStructureRepository _structureRepository;
         private readonly IClanRepository _clanRepository;
+        private readonly IMarchRepository _marchRepository;
         private readonly TerrainGenerator _terrain;
         private readonly GameCatalog _catalog;
         private readonly IServerContext _serverContext;
         private readonly LocaleTexts _texts;
 
         public GetMapAreaQueryHandler(IMapRepository mapRepository, IMonsterRepository monsterRepository,
-            IClanStructureRepository structureRepository, IClanRepository clanRepository,
+            IClanStructureRepository structureRepository, IClanRepository clanRepository, IMarchRepository marchRepository,
             TerrainGenerator terrain, GameCatalog catalog, IServerContext serverContext, LocaleTexts texts)
         {
             _texts = texts;
@@ -47,6 +33,7 @@ namespace EmpireIdle.Application.Map.Queries
             _monsterRepository = monsterRepository;
             _structureRepository = structureRepository;
             _clanRepository = clanRepository;
+            _marchRepository = marchRepository;
             _terrain = terrain;
             _catalog = catalog;
         }
@@ -61,8 +48,9 @@ namespace EmpireIdle.Application.Map.Queries
 
             var serverId = _serverContext.ServerId;
             var occupants = await OccupantsAsync(serverId, minX, minY, maxX, maxY, cancellationToken);
+            var camps = await _marchRepository.GetCampsInAreaAsync(minX, minY, maxX, maxY, cancellationToken);
 
-            return new MapAreaView(minX, minY, maxX, maxY, Terrain(serverId, minX, minY, maxX, maxY), occupants);
+            return new MapAreaView(minX, minY, maxX, maxY, Terrain(serverId, minX, minY, maxX, maxY), occupants, camps);
         }
 
         private List<MapTerrainTile> Terrain(int serverId, int minX, int minY, int maxX, int maxY)

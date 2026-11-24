@@ -18,7 +18,7 @@ namespace EmpireIdle.Application.Dev.Commands
     /// </summary>
     public record SeedDevAccountCommand(Guid PlayerId) : IRequest, IPlayerScopedRequest;
 
-    internal sealed class SeedDevAccountCommandHandler : IRequestHandler<SeedDevAccountCommand>
+    public sealed class SeedDevAccountCommandHandler : IRequestHandler<SeedDevAccountCommand>
     {
         private const int Gems = 5_000;
         private const int ResourceAmount = 100_000;

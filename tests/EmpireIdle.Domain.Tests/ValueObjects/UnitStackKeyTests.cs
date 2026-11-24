@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Exceptions;
 using EmpireIdle.Domain.ValueObjects;
 
 namespace EmpireIdle.Domain.Tests.ValueObjects;
@@ -22,6 +23,6 @@ public class UnitStackKeyTests
     [InlineData("")]
     public void Parse_ShouldThrowArgumentException_ForMalformedKey(string key)
     {
-        Assert.Throws<ArgumentException>(() => UnitStackKey.Parse(key));
+        Assert.Throws<MalformedRequestException>(() => UnitStackKey.Parse(key));
     }
 }

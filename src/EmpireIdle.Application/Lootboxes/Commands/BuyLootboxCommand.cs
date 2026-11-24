@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Lootboxes.Services;
 using EmpireIdle.Application.Shop.Services;
 using EmpireIdle.Domain.Exceptions;
@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Lootboxes.Commands
     public record BuyLootboxCommand(Guid PlayerId, string ItemKey, int Count = 1)
         : IRequest<LootboxPurchase>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class BuyLootboxCommandHandler : IRequestHandler<BuyLootboxCommand, LootboxPurchase>
+    public sealed class BuyLootboxCommandHandler : IRequestHandler<BuyLootboxCommand, LootboxPurchase>
     {
         private readonly ShopCheckout _checkout;
         private readonly LootboxOpener _opener;

@@ -198,7 +198,7 @@ export default function HeroGearTab({
                       onEquip(candidate.id);
                       done();
                     }}
-                    dimmed={busy}
+                    disabled={busy}
                     title={t("heroes:gear.equipCandidate", { item: catalog.itemName(candidate.itemKey), power: Math.round(candidate.power) })}
                     top={candidate.level > 0 ? t("heroes:gear.level", { level: candidate.level }) : undefined}
                     bottomRight={candidate.mastery > 0 ? `+${candidate.mastery}` : undefined}
@@ -258,7 +258,7 @@ function SlotDetails({
               <Tile
                 rarity={piece.rarity}
                 onClick={() => onEquip(piece.id)}
-                dimmed={disabled}
+                disabled={disabled}
                 top={piece.level > 0 ? t("heroes:gear.level", { level: piece.level }) : undefined}
                 bottomRight={piece.mastery > 0 ? `+${piece.mastery}` : undefined}
               >

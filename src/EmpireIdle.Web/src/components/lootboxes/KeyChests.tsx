@@ -29,10 +29,10 @@ function KeyChestCard({ chest, since, busy, onOpen }: CardProps) {
   const batch = Math.min(chest.keys, KEY_BATCH);
 
   return (
-    <div id={chest.chestKey} className="rounded-xl border border-amber-300 bg-gradient-to-b from-amber-50 to-white p-3">
+    <div id={chest.chestKey} className="rounded-xl border border-amber-400/50 bg-gradient-to-b from-amber-500/25 to-[#1d3b6f] p-3">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="font-medium text-slate-800">{catalog.itemName(chest.chestKey)}</span>
-        <span className="text-xs text-slate-500">
+        <span className="font-medium text-white">{catalog.itemName(chest.chestKey)}</span>
+        <span className="text-xs text-sky-100/70">
           {t("items:keyChests.free", { left: chest.freeLeftToday, perDay: chest.freePerDay, keys: formatNumber(chest.keys) })}
         </span>
       </div>
@@ -54,7 +54,7 @@ function KeyChestCard({ chest, since, busy, onOpen }: CardProps) {
           type="button"
           onClick={() => onOpen(false, 1)}
           disabled={busy || chest.keys < 1}
-          className="rounded-lg border border-amber-400 px-3 py-1 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+          className="rounded-lg border border-amber-400 px-3 py-1 text-sm font-medium text-amber-200 hover:bg-amber-500/15 disabled:opacity-50"
         >
           {t("items:keyChests.withKey")}
         </button>
@@ -63,12 +63,12 @@ function KeyChestCard({ chest, since, busy, onOpen }: CardProps) {
             type="button"
             onClick={() => onOpen(false, batch)}
             disabled={busy}
-            className="rounded-lg border border-amber-400 px-3 py-1 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+            className="rounded-lg border border-amber-400 px-3 py-1 text-sm font-medium text-amber-200 hover:bg-amber-500/15 disabled:opacity-50"
           >
             {t("items:keyChests.withKeys", { count: batch })}
           </button>
         )}
-        <a href={`#${chest.keyItemKey}`} className="text-sm text-sky-700 hover:underline">
+        <a href={`#${chest.keyItemKey}`} className="text-sm text-sky-200 hover:underline">
           {t("items:keyChests.keyInShop", { key: catalog.itemName(chest.keyItemKey) })}
         </a>
       </div>
@@ -108,7 +108,7 @@ export default function KeyChests({ playerId }: { playerId: string }) {
 
   return (
     <section className="space-y-2">
-      <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("items:keyChests.title")}</h2>
+      <h2 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("items:keyChests.title")}</h2>
 
       <ErrorBanner error={open.error} />
       {drops !== null && (
@@ -116,6 +116,7 @@ export default function KeyChests({ playerId }: { playerId: string }) {
           drops={drops}
           onClose={() => setDrops(null)}
           pending={open.isPending}
+          error={open.error}
           again={
             lastChest === undefined
               ? undefined

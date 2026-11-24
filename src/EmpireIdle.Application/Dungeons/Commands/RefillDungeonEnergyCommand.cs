@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -68,18 +69,12 @@ namespace EmpireIdle.Application.Dungeons.Commands
 
         private async Task PayAsync(Guid playerId, int price, DateTime now, CancellationToken cancellationToken)
         {
-            var player = await _playerRepository.GetByIdAsync(playerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", playerId);
+            var player = await _playerRepository.RequireAsync(playerId, cancellationToken);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new EntityNotFoundException("Wallet", player.UserId);
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
-            // Перевірка до списання: гравцю потрібна відмова з цифрами, а не виняток value object
-            if (wallet.GemBalance.Value < price)
-                throw new NotEnoughResourcesException("gems", price, wallet.GemBalance.Value);
-
-            wallet.SpendGems(new GemAmount(price), "dungeon-energy-refill", playerId, now);
+            wallet.SpendGems(new GemAmount(price), "dungeon:energy", playerId, now);
         }
     }
 }

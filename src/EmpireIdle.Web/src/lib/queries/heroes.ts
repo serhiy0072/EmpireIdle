@@ -89,8 +89,9 @@ export function useResetHeroLevel(playerId: string) {
   return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/reset-level`, ["heroes", "power"]);
 }
 
+/** Еволюція тіру списує предмет із рюкзака. */
 export function useEvolveHero(playerId: string) {
-  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/evolve`, ["heroes", "power"]);
+  return useHeroAction(playerId, (heroId) => `/api/heroes/${playerId}/${heroId}/evolve`, ["heroes", "power", "inventory"]);
 }
 
 /** Лікування героя списує ресурси села. */
@@ -159,20 +160,14 @@ export function useConvertUniversalShards(playerId: string) {
 }
 
 /** Обмін універсальних на рідкість вищу: 100 звичайних → 1 рідкісний, 300 рідкісних → 1 унікальний. */
-/** Значення Rarity з контракту: на дроті — числа, імена — тут (рядок сервер не розбирає й відповідає 400). */
-const SHARD_RARITY = {
-  Common: 1,
-  Rare: 2,
-} as const satisfies Record<string, components["schemas"]["Rarity"]>;
-
 export function useUpgradeUniversalShards(playerId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { from: keyof typeof SHARD_RARITY; count: number }) =>
+    mutationFn: (input: { from: Exclude<components["schemas"]["Rarity"], "Unique">; count: number }) =>
       api<void>(`/api/heroes/${playerId}/shards/upgrade`, {
         method: "POST",
-        body: { from: SHARD_RARITY[input.from], count: input.count },
+        body: { from: input.from, count: input.count },
         idempotent: true,
       }),
     onSuccess: () => invalidatePlayer(queryClient, playerId, ["inventory"]),

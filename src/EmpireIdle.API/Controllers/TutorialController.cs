@@ -1,6 +1,6 @@
-using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Tutorial.Commands;
 using EmpireIdle.Application.Tutorial.Queries;
+using EmpireIdle.Application.Tutorial.ReadModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,13 +21,11 @@ namespace EmpireIdle.API.Controllers
         public TutorialController(IMediator mediator) => _mediator = mediator;
 
         [HttpGet("{playerId:guid}")]
-        [ProducesResponseType(typeof(TutorialProgressResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(TutorialProgressView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<TutorialProgressResponse>> GetProgress(Guid playerId, CancellationToken cancellationToken)
+        public async Task<ActionResult<TutorialProgressView>> GetProgress(Guid playerId, CancellationToken cancellationToken)
         {
-            var progress = await _mediator.Send(new GetTutorialProgressQuery(playerId), cancellationToken);
-
-            return Ok(new TutorialProgressResponse(progress.SeenSteps.ToList(), progress.SkippedAt));
+            return Ok(await _mediator.Send(new GetTutorialProgressQuery(playerId), cancellationToken));
         }
 
         /// <summary>Позначити крок побаченим. Повтор безпечний.</summary>

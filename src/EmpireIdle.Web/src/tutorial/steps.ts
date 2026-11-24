@@ -107,8 +107,6 @@ function onItsScreen(step: TutorialStep, route: string): boolean {
 }
 
 const MAIN_BUILDING = "townhall";
-/** Захист новачка діє, поки ратуша нижче цього рівня (Combat.NewbieShieldTownHallLevel). */
-const NEWBIE_SHIELD_LEVEL = 3;
 const GOLD_MINE = "goldmine";
 const FIRST_UNIT = "infantry";
 
@@ -481,7 +479,7 @@ export function hintSteps(s: TutorialSnapshot): TutorialStep[] {
       title: t("tutorial:hint.shield-end.title"),
       text: t("tutorial:hint.shield-end.text"),
       targets: ["building:warehouse", "building:bank", "nav:/"],
-      available: (st) => townHallLevel(st) >= NEWBIE_SHIELD_LEVEL,
+      available: (st) => townHallLevel(st) >= st.catalog.limits.newbieShieldTownHallLevel,
     },
     {
       key: "hint.city-damage",

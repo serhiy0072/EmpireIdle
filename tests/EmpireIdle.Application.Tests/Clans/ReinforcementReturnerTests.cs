@@ -66,8 +66,8 @@ public class ReinforcementReturnerTests
     /// <summary>Село господаря з гарнізоном, у якому стоять війська власника.</summary>
     private (Garrison Host, Garrison Owner) Deployed(int infantry = 10)
     {
-        var hostVillage = new Village(Guid.NewGuid(), HostId, "Host", ["food"], 50, 50);
-        var ownerVillage = new Village(Guid.NewGuid(), OwnerId, "Owner", ["food"], 60, 50);
+        var hostVillage = new Village(Guid.NewGuid(), HostId, "Host", ["food"], 50, 50, serverId: 1);
+        var ownerVillage = new Village(Guid.NewGuid(), OwnerId, "Owner", ["food"], 60, 50, serverId: 1);
 
         var host = new Garrison(Guid.NewGuid(), hostVillage.Id, 1);
         var owner = new Garrison(Guid.NewGuid(), ownerVillage.Id, 1);
@@ -169,7 +169,7 @@ public class ReinforcementReturnerTests
     [Fact]
     public async Task ReturnAllFromVillage_evicts_every_guest()
     {
-        var hostVillage = new Village(Guid.NewGuid(), HostId, "Host", ["food"], 50, 50);
+        var hostVillage = new Village(Guid.NewGuid(), HostId, "Host", ["food"], 50, 50, serverId: 1);
         var host = new Garrison(Guid.NewGuid(), hostVillage.Id, 1);
 
         var firstOwner = Guid.NewGuid();
@@ -177,7 +177,7 @@ public class ReinforcementReturnerTests
 
         foreach (var (ownerId, count) in new[] { (firstOwner, 8), (secondOwner, 4) })
         {
-            var ownerVillage = new Village(Guid.NewGuid(), ownerId, "Ally", ["food"], 55, 50);
+            var ownerVillage = new Village(Guid.NewGuid(), ownerId, "Ally", ["food"], 55, 50, serverId: 1);
             var ownerGarrison = new Garrison(Guid.NewGuid(), ownerVillage.Id, 1);
 
             host.AddReinforcements(ownerId, ownerGarrison.Id,

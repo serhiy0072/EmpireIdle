@@ -72,7 +72,7 @@ public class LeaveClanCommandTests
     private Clan GivenClan(params (Guid Id, string Role, DateTime LastSeen)[] members)
     {
         var clan = new Clan(Guid.NewGuid(), 1, "Вовки", "WLF", LeaderId, Now.AddDays(-30));
-        var leader = new Player(LeaderId, "leader", "leader@test.local", "u-leader", Now.AddDays(-30));
+        var leader = new Player(LeaderId, "leader", "leader@test.local", "u-leader", Now.AddDays(-30), serverId: 1);
         leader.JoinClan(clan.Id);
 
         foreach (var (id, role, _) in members)

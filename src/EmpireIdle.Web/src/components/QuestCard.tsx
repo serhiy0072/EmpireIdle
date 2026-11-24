@@ -21,12 +21,12 @@ export default function QuestCard({ quest, busy, onClaim }: Props) {
   return (
     <div
       className={`space-y-3 rounded-xl border p-4 ${
-        completed ? "border-amber-300 bg-amber-50" : claimed ? "border-slate-200 bg-slate-50 opacity-60" : "border-slate-200 bg-white"
+        completed ? "border-amber-400/50 bg-amber-500/15" : claimed ? "border-[#335c9a] bg-white/5 opacity-60" : "border-[#335c9a] bg-[#1d3b6f]"
       }`}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <h3 className="font-medium text-slate-800">{quest.displayName}</h3>
-        {claimed && <span className="text-xs text-slate-500">{t("social:quests.claimed")}</span>}
+        <h3 className="font-medium text-white">{quest.displayName}</h3>
+        {claimed && <span className="text-xs text-sky-100/70">{t("social:quests.claimed")}</span>}
       </div>
 
       <ul className="space-y-2">
@@ -37,19 +37,19 @@ export default function QuestCard({ quest, busy, onClaim }: Props) {
           return (
             <li key={index} className="text-sm">
               <div className="flex items-baseline justify-between gap-2">
-                <span className={done ? "text-emerald-700" : "text-slate-700"}>
+                <span className={done ? "text-emerald-200" : "text-slate-100"}>
                   {done && "✓ "}
                   {objectiveLabel(objective, catalog)}
                 </span>
                 {!objectiveIsThreshold(objective) && (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-sky-100/70">
                     {formatNumber(Math.min(objective.amount, objective.required))} /{" "}
                     {formatNumber(objective.required)}
                   </span>
                 )}
               </div>
               {!objectiveIsThreshold(objective) && (
-                <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                   <div className={`h-full ${done ? "bg-emerald-500" : "bg-sky-500"}`} style={{ width: `${ratio * 100}%` }} />
                 </div>
               )}
@@ -60,7 +60,7 @@ export default function QuestCard({ quest, busy, onClaim }: Props) {
 
       <div className="flex flex-wrap items-center gap-1">
         {quest.rewards.map((reward, index) => (
-          <span key={index} className="rounded bg-violet-100 px-2 py-0.5 text-xs text-violet-800">
+          <span key={index} className="rounded bg-violet-500/25 px-2 py-0.5 text-xs text-violet-200">
             {rewardLabel(reward, catalog)}
           </span>
         ))}

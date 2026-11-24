@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Heroes.Services;
 using EmpireIdle.Application.Interfaces;
@@ -25,7 +26,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     /// <summary>Докуповує слот табору понад безкоштовні.</summary>
     public record BuyCampSlotCommand(Guid PlayerId) : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class PlaceHeroInCampCommandHandler : IRequestHandler<PlaceHeroInCampCommand>
+    public sealed class PlaceHeroInCampCommandHandler : IRequestHandler<PlaceHeroInCampCommand>
     {
         private readonly IHeroRepository _heroes;
         private readonly IVillageRepository _villages;
@@ -81,8 +82,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                     $"Hero {hero.Id} is one of the {_rules.ReferenceSize} strongest heroes outside the camp.",
                     _rules.ReferenceSize);
 
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
             var camp = await _camps.GetOrCreateCampAsync(request.PlayerId, now, cancellationToken);
             var totalSlots = _rules.TotalSlots(_status.MainBuildingLevel(village), camp.PurchasedSlots);
@@ -101,7 +101,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         }
     }
 
-    internal sealed class RemoveHeroFromCampCommandHandler : IRequestHandler<RemoveHeroFromCampCommand>
+    public sealed class RemoveHeroFromCampCommandHandler : IRequestHandler<RemoveHeroFromCampCommand>
     {
         private readonly IHeroRepository _heroes;
         private readonly TrainingCampRules _rules;
@@ -148,7 +148,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         }
     }
 
-    internal sealed class SkipCampCooldownCommandHandler : IRequestHandler<SkipCampCooldownCommand>
+    public sealed class SkipCampCooldownCommandHandler : IRequestHandler<SkipCampCooldownCommand>
     {
         private readonly TrainingCampRules _rules;
         private readonly TrainingCampService _camps;
@@ -174,7 +174,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 throw new RequirementNotMetException(RefusalReasons.CampSlotReady,
                     $"Camp slot {request.Slot} is not cooling down.", request.Slot + 1);
 
-            await _camps.ChargeGemsAsync(request.PlayerId, _rules.SkipCooldownGems, $"camp-cooldown:{request.Slot}", now,
+            await _camps.ChargeGemsAsync(request.PlayerId, _rules.SkipCooldownGems, $"camp:cooldown:{request.Slot}", now,
                 cancellationToken);
             camp.SkipCooldown(request.Slot, now);
 
@@ -182,7 +182,7 @@ namespace EmpireIdle.Application.Heroes.Commands
         }
     }
 
-    internal sealed class BuyCampSlotCommandHandler : IRequestHandler<BuyCampSlotCommand>
+    public sealed class BuyCampSlotCommandHandler : IRequestHandler<BuyCampSlotCommand>
     {
         private readonly TrainingCampRules _rules;
         private readonly TrainingCampService _camps;
@@ -207,7 +207,7 @@ namespace EmpireIdle.Application.Heroes.Commands
                 ?? throw new RequirementNotMetException(RefusalReasons.CampAllSlotsBought,
                     "Every extra camp slot is already bought.", _rules.MaxPurchasableSlots);
 
-            await _camps.ChargeGemsAsync(request.PlayerId, price, $"camp-slot:{camp.PurchasedSlots + 1}", now, cancellationToken);
+            await _camps.ChargeGemsAsync(request.PlayerId, price, $"camp:slot:{camp.PurchasedSlots + 1}", now, cancellationToken);
             camp.AddPurchasedSlot(_rules.MaxPurchasableSlots, now);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

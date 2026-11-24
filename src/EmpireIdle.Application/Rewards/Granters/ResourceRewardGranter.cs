@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards.Contracts;
 using EmpireIdle.Domain.Services;
@@ -32,8 +33,7 @@ namespace EmpireIdle.Application.Rewards.Granters
             if (!_catalog.Resources.ContainsKey(key))
                 throw new InvalidOperationException($"Reward references unknown resource '{key}'.");
 
-            var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {context.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(context.PlayerId, cancellationToken);
 
             village.GrantResource(key, context.Reward.Amount, now);
         }

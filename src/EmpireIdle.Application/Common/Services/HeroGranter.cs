@@ -52,11 +52,9 @@ namespace EmpireIdle.Application.Common.Services
             {
                 // Герой оселяється в гарнізоні одразу. Інакше новачок отримує
                 // нагороду, бачить нуль ефекту й мусить сам знайти кнопку
-                var village = await _villageRepository.GetByPlayerIdAsync(playerId, cancellationToken)
-                    ?? throw new InvalidOperationException($"Village not found for player {playerId}.");
+                var village = await _villageRepository.RequireByPlayerAsync(playerId, cancellationToken);
 
-                var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                    ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+                var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
                 var hero = new Hero(Guid.NewGuid(), playerId, _serverContext.ServerId, heroKey, garrison.Id,
                     utcNow, config.NativeTier);

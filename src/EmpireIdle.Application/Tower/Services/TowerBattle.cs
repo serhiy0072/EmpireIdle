@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Battles.Services;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Battles;
 using EmpireIdle.Domain.Entities;
@@ -35,8 +36,7 @@ namespace EmpireIdle.Application.Tower.Services
         {
             var settings = _catalog.Config.Tower;
 
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(playerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", playerId);
+            var village = await _villages.RequireByPlayerReadOnlyAsync(playerId, cancellationToken);
 
             var mainLevel = village.Buildings.FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)?.Level.Value ?? 0;
 

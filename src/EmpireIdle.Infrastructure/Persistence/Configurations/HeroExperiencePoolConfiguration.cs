@@ -13,7 +13,7 @@ public class HeroExperiencePoolConfiguration : IEntityTypeConfiguration<HeroExpe
         builder.Property(p => p.Id).ValueGeneratedNever();
 
         // Нагороди й підняття рівня пишуть той самий рядок паралельно
-        builder.Property(p => p.Version).IsRowVersion();
+        builder.Property<uint>("Version").IsRowVersion();
 
         // Один пул на гравця. Індексом: дві перші нагороди одночасно інакше створили б два пули
         builder.HasIndex(p => p.PlayerId).IsUnique();

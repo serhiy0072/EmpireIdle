@@ -13,20 +13,11 @@ namespace EmpireIdle.Api.Tests.Players;
 /// тож без цього тесту всі три помилки жили б непоміченими.
 /// </summary>
 [Collection("postgres")]
-public class PlayerKeysetPagingTests : IAsyncLifetime
+public class PlayerKeysetPagingTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public PlayerKeysetPagingTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public PlayerKeysetPagingTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AsyncServiceScope CreateScope(int serverId, out IPlayerRepository players, out AppDbContext context)
     {

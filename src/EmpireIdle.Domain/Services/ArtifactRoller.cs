@@ -67,18 +67,7 @@ namespace EmpireIdle.Domain.Services
             if (pool.Count == 0)
                 throw new InvalidOperationException($"Artifact slot '{slot.Key}' has no random bonus left to roll.");
 
-            var roll = random.NextDouble() * pool.Sum(entry => entry.Weight);
-
-            foreach (var entry in pool)
-            {
-                roll -= entry.Weight;
-
-                if (roll < 0)
-                    return entry.Stat;
-            }
-
-            // Похибка double на останньому кроці — беремо останній
-            return pool[^1].Stat;
+            return WeightedPick.ByFraction(pool, entry => entry.Weight, random, pool[^1]).Stat;
         }
 
         /// <summary>Індекс ступеня 0–3 за шансами.</summary>

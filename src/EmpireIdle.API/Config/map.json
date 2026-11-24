@@ -1,6 +1,7 @@
 {
   "GameConfig": {
     "Map": {
+      "ImpassableMoveMultiplier": 3.0,
       "Width": 500,
       "Height": 500,
       "TerrainSeed": 20260922,

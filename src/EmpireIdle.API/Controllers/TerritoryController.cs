@@ -1,6 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Territory.Commands;
 using EmpireIdle.Application.Territory.Queries;
+using EmpireIdle.Application.Territory.ReadModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,24 +23,12 @@ namespace EmpireIdle.API.Controllers
         /// це нормальний стан екрана, а не помилка.
         /// </summary>
         [HttpGet("{playerId:guid}")]
-        [ProducesResponseType(typeof(ClanTerritoryResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClanTerritoryView), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Get(Guid playerId, CancellationToken cancellationToken)
         {
-            var view = await _mediator.Send(new GetClanTerritoryQuery(playerId), cancellationToken);
-
-            if (view is null)
-                return Ok(null);
-
-            return Ok(new ClanTerritoryResponse(
-                view.Enabled, view.Points, view.StructureCost, view.Radius, view.BuildMinutes, view.GarrisonCapacity,
-                view.SlotsOpen, view.SlotsMax, view.CanBuild,
-                view.SlotUnlocks.Select(u => new ClanSlotUnlockResponse(u.MinMembers, u.QuestKey, u.Unlocked)).ToList(),
-                view.Structures.Select(s => new ClanStructureResponse(s.Id, s.X, s.Y, s.ReadyAt, s.AcceleratedShare,
-                    s.GarrisonUnits, s.MyUnits)).ToList(),
-                view.Quests.Select(q => new ClanQuestResponse(q.Key, q.DisplayName, q.ObjectiveType, q.ObjectiveTarget,
-                    q.Amount, q.Target, q.Completed, q.ClanPoints, q.OpensSlot)).ToList(),
-                view.Contributors.Select(c => new ClanContributorResponse(c.PlayerId, c.Name, c.Contribution)).ToList()));
+            // null — гравець без клану: Ok(null) віддає 204, клієнт зводить його до порожнього стану
+            return Ok(await _mediator.Send(new GetClanTerritoryQuery(playerId), cancellationToken));
         }
 
         /// <summary>Закласти споруду на вільній клітині. Платить клан очками вкладу; повертає id споруди.</summary>

@@ -16,7 +16,7 @@ namespace EmpireIdle.Application.Tests;
 internal static class TestCombatants
 {
     public static HeroCombatants WithoutGear(GameCatalog catalog)
-        => new(EmptyInventory(), Stats(catalog), catalog);
+        => new(EmptyInventory(), Stats(catalog), catalog, TestTechnologies.For(catalog));
 
     /// <summary>
     /// Бонуси війська: вміння героїв без спорядження плюс технології з цього репозиторію

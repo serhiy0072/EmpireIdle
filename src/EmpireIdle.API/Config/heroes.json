@@ -1,6 +1,9 @@
 {
   "GameConfig": {
     "HeroSettings": {
+      "DefaultMarchSpeed": 6.0,
+      "GarrisonDefenders": 3,
+      "MaxHeroesPerMarch": 3,
       "MaxLevel": 80,
       "ExperienceBase": 8,
       "ExperienceExponent": 2.6,
@@ -306,6 +309,7 @@
     "Heroes": [
       {
         "Key": "warrior_bran",
+        "NativeTier": 1,
         "DisplayName": "Бран Щитоносець",
         "Class": "warrior",
         "Rank": "common",
@@ -440,6 +444,7 @@
       },
       {
         "Key": "archer_lyra",
+        "NativeTier": 1,
         "DisplayName": "Ліра Далекозора",
         "Class": "archer",
         "Rank": "common",
@@ -574,6 +579,7 @@
       },
       {
         "Key": "knight_ordwin",
+        "NativeTier": 1,
         "DisplayName": "Ордвін Непохитний",
         "Class": "knight",
         "Rank": "rare",
@@ -727,6 +733,7 @@
       },
       {
         "Key": "mage_iselle",
+        "NativeTier": 1,
         "DisplayName": "Ізелла Дев'ятого Полум'я",
         "Class": "archer",
         "Rank": "unique",
@@ -900,6 +907,7 @@
       },
       {
         "Key": "warrior_hedda",
+        "NativeTier": 1,
         "DisplayName": "Гедда Щитоносиця",
         "Class": "warrior",
         "Rank": "rare",
@@ -1055,6 +1063,7 @@
       },
       {
         "Key": "warrior_torvald",
+        "NativeTier": 1,
         "DisplayName": "Торвальд Незламний",
         "Class": "warrior",
         "Rank": "rare",
@@ -1210,6 +1219,7 @@
       },
       {
         "Key": "warrior_maren",
+        "NativeTier": 1,
         "DisplayName": "Марен Сокирниця",
         "Class": "warrior",
         "Rank": "rare",
@@ -1365,6 +1375,7 @@
       },
       {
         "Key": "knight_aldric",
+        "NativeTier": 1,
         "DisplayName": "Альдрік Списоносець",
         "Class": "knight",
         "Rank": "rare",
@@ -1515,6 +1526,7 @@
       },
       {
         "Key": "knight_serah",
+        "NativeTier": 1,
         "DisplayName": "Сера Вартова",
         "Class": "knight",
         "Rank": "rare",
@@ -1665,6 +1677,7 @@
       },
       {
         "Key": "archer_finn",
+        "NativeTier": 1,
         "DisplayName": "Фінн Далекоокий",
         "Class": "archer",
         "Rank": "rare",
@@ -1820,6 +1833,7 @@
       },
       {
         "Key": "archer_ysolde",
+        "NativeTier": 1,
         "DisplayName": "Ізольда Тихоструна",
         "Class": "archer",
         "Rank": "rare",
@@ -1975,6 +1989,7 @@
       },
       {
         "Key": "archer_rook",
+        "NativeTier": 1,
         "DisplayName": "Рук Строкатий",
         "Class": "archer",
         "Rank": "rare",
@@ -2130,6 +2145,7 @@
       },
       {
         "Key": "mage_calder",
+        "NativeTier": 1,
         "DisplayName": "Кальдер Громовий",
         "Class": "knight",
         "Rank": "rare",
@@ -2283,6 +2299,7 @@
       },
       {
         "Key": "mage_nerys",
+        "NativeTier": 1,
         "DisplayName": "Неріс Дзеркальна",
         "Class": "archer",
         "Rank": "rare",
@@ -2434,6 +2451,7 @@
       },
       {
         "Key": "warrior_gunnar",
+        "NativeTier": 1,
         "DisplayName": "Гуннар Скеля",
         "Class": "warrior",
         "Rank": "unique",
@@ -2609,6 +2627,7 @@
       },
       {
         "Key": "knight_elowen",
+        "NativeTier": 1,
         "DisplayName": "Еловен Світанкова",
         "Class": "knight",
         "Rank": "unique",
@@ -2780,6 +2799,7 @@
       },
       {
         "Key": "archer_kestrel",
+        "NativeTier": 1,
         "DisplayName": "Кестрель Соколиця",
         "Class": "archer",
         "Rank": "unique",
@@ -2952,6 +2972,7 @@
       },
       {
         "Key": "mage_vael",
+        "NativeTier": 1,
         "DisplayName": "Ваель Безмовний",
         "Class": "knight",
         "Rank": "unique",
@@ -3125,6 +3146,7 @@
       },
       {
         "Key": "mage_sabine",
+        "NativeTier": 1,
         "DisplayName": "Сабіна Морозна",
         "Class": "warrior",
         "Rank": "unique",

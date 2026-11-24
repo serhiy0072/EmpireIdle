@@ -30,6 +30,8 @@ public class GameConfigFieldValidationTests : IClassFixture<GameConfigFieldValid
         { "NoLossShareThreshold", c => c.Combat.NoLossShareThreshold = 1 },
         { "RecoveryWindowHours", c => c.Combat.RecoveryWindowHours = 0 },
         { "loss bands", c => c.Combat.DefenderLossLosses.Max = 1.2 },
+        { "loss bands", c => c.Combat.AttackerWinLosses.Min = c.Combat.AttackerWinLosses.Max + 0.1 },
+        { "loss bands", c => c.Combat.DefenderWinLosses.Min = -0.1 },
         { "CityFall", c => c.Combat.CityFall.DefeatsToEvict = 0 },
         { "CityFall", c => c.Combat.CityFall.DamagedProductionMultiplier = 2 },
         { "HelpSharePerPlayer", c => c.Clan.HelpSharePerPlayer = 0 },
@@ -43,7 +45,16 @@ public class GameConfigFieldValidationTests : IClassFixture<GameConfigFieldValid
         { "PriceCents", c => c.Shop.GemPacks[0].PriceCents = 0 },
         { "HealGemsPerUnit", c => c.Monetization.HealGemsPerUnit = -1 },
         { "activity points", c => c.Rating.PointsPerQuest = -5 },
-        { "MoveCost", c => c.Map.Terrains[0].MoveCost = 0 }
+        { "MoveCost", c => c.Map.Terrains[0].MoveCost = 0 },
+        { "MaxUnitLevel", c => c.MaxUnitLevel = 0 },
+        { "RingsAtFirstLevel", c => c.Map.Geometry.RingsAtFirstLevel = 0 },
+        { "DensityThreshold", c => c.Map.Evolution.DensityThreshold = 1.5 },
+        { "Monsters", c => c.Monsters[0].MaxLevel = c.Monsters[0].MinLevel - 1 },
+        { "Monsters", c => c.Monsters[0].RewardGrowth = 0.5 },
+        { "Wave", c => c.Dungeons.Dungeons[0].Waves[0].Wave = 0 },
+        { "StatGrowth", c => c.Heroes[0].StatGrowth[c.Heroes[0].StatGrowth.Keys.First()] = -1 },
+        { "GemPacks", c => c.Shop.GemPacks.Add(new() { Key = c.Shop.GemPacks[0].Key, PriceCents = 100, Gems = 10 }) },
+        { "UpgradeCostGrowth", c => c.Buildings.First(b => b.Upgradable).UpgradeCostGrowth = 0 }
     };
 
     [Theory]

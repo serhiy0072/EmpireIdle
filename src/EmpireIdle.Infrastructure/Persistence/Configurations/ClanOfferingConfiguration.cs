@@ -17,7 +17,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
 
             ClanResearchConfiguration.ConfigureLevels(builder.Property(l => l.ShopPurchases));
 
-            builder.Property(l => l.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
 
             builder.Ignore(l => l.DomainEvents);
         }

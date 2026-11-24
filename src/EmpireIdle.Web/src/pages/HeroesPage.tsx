@@ -19,6 +19,7 @@ import {
 import { useInventory } from "../lib/queries/inventory";
 import { parseRosterSort, ROSTER_SORTS, sortRoster } from "../lib/heroOrder";
 import { formatNumber } from "../lib/format";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
 
 type Tab = "heroes" | "camp";
@@ -65,7 +66,7 @@ export default function HeroesPage() {
     buyCampSlot.isPending ||
     resetLevel.isPending;
   const failure =
-    summon.error ?? upgradeShards.error ?? placeInCamp.error ?? removeFromCamp.error ?? skipCampCooldown.error ?? buyCampSlot.error ?? resetLevel.error;
+    latestError([summon, upgradeShards, placeInCamp, removeFromCamp, skipCampCooldown, buyCampSlot, resetLevel]);
 
   const roster = sortRoster(heroes.data.heroes, (key) => catalog.hero(key)?.rank, sort);
   const free = roster.filter((hero) => hero.state === "Idle").length;
@@ -75,6 +76,9 @@ export default function HeroesPage() {
     inventory.data?.items.find(
       (item) => catalog.item(item.itemKey)?.type === "universalshard" && item.rarity.toLowerCase() === rarity.toLowerCase(),
     )?.count ?? 0;
+
+  // Курс обміну — з каталогу; поки його немає, обмін недоступний
+  const shardUpgrade = (rarity: string) => catalog.universalShardUpgrade[rarity] ?? Number.POSITIVE_INFINITY;
 
   const tabs: GameTab<Tab>[] = [
     { key: "heroes", label: t("heroes:list.tabHeroes", { count: roster.length }) },
@@ -189,18 +193,18 @@ export default function HeroesPage() {
               <button
                 type="button"
                 onClick={() => upgradeShards.mutate({ from: "Common", count: 1 })}
-                disabled={busy || universal("Common") < 100}
+                disabled={busy || universal("Common") < shardUpgrade("Common")}
                 className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                {t("heroes:list.upgradeCommon")}
+                {t("heroes:list.upgradeCommon", { count: shardUpgrade("Common") })}
               </button>
               <button
                 type="button"
                 onClick={() => upgradeShards.mutate({ from: "Rare", count: 1 })}
-                disabled={busy || universal("Rare") < 300}
+                disabled={busy || universal("Rare") < shardUpgrade("Rare")}
                 className="rounded-lg border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
-                {t("heroes:list.upgradeRare")}
+                {t("heroes:list.upgradeRare", { count: shardUpgrade("Rare") })}
               </button>
             </div>
           </section>

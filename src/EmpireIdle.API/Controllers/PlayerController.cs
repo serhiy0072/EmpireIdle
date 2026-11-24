@@ -1,8 +1,9 @@
+using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Chat.Commands;
 using EmpireIdle.Application.Chat.Queries;
 using EmpireIdle.Application.LoginRewards.Commands;
-using EmpireIdle.Application.LoginRewards.Contracts;
+using EmpireIdle.Application.LoginRewards.ReadModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

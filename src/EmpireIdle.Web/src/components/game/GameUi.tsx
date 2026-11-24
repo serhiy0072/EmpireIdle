@@ -1,12 +1,13 @@
-import type { ReactNode } from "react";
-import { useTabHotkeys } from "../../hooks/useHotkeys";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useHotkeys, useTabHotkeys } from "../../hooks/useHotkeys";
 import { rarityKey } from "../../lib/rarity";
 import { formatNumber } from "../../lib/format";
+import { progressShare } from "../../lib/progress";
 import { t } from "i18next";
 
 /**
  * Ігрова «шкірка» екранів героя, рюкзака й табору (рішення 08.10.2026): темно-синє тло,
- * плитки з рамкою рідкості, великі вкладки. Решта застосунку поки світла — переходить поступово.
+ * плитки з рамкою рідкості, великі вкладки, спільні вікно, смуга поступу й кнопка з підтвердженням.
  */
 
 /** Темно-синій екран із заголовком; дії праворуч від назви. */
@@ -29,29 +30,44 @@ export interface GameTab<T extends string> {
   alert?: boolean;
 }
 
-/** Вкладки «картками», як у грі: активна світла й трохи вища. */
+/** Прокручує лише смугу вкладок (не сторінку), щоб активна вкладка була в полі зору на вузькому екрані. */
+function revealTab(node: HTMLButtonElement | null) {
+  const strip = node?.parentElement;
+  if (!node || !strip) return;
+  const left = node.offsetLeft - strip.offsetLeft;
+  if (left < strip.scrollLeft || left + node.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = left - 8;
+}
+
+/**
+ * Вкладки «картками», як у грі: активна світла й трохи вища.
+ * Стрілки перемикають вкладки; вкладена група (друга на сторінці) вимикає їх — інакше дві групи
+ * ловили б ту саму клавішу.
+ */
 export function GameTabs<T extends string>({
   tabs,
   value,
   onChange,
+  hotkeys = true,
 }: {
   tabs: GameTab<T>[];
   value: T;
   onChange: (next: T) => void;
+  hotkeys?: boolean;
 }) {
-  useTabHotkeys(tabs.map((tab) => tab.key), value, onChange);
+  useTabHotkeys(tabs.map((tab) => tab.key), value, onChange, hotkeys);
 
   return (
-    <nav className="flex gap-1">
+    <nav className="flex gap-1 overflow-x-auto [scrollbar-width:none]">
       {tabs.map((tab) => {
         const active = tab.key === value;
 
         return (
           <button
             key={tab.key}
+            ref={active ? revealTab : undefined}
             type="button"
             onClick={() => onChange(tab.key)}
-            className={`relative flex-1 rounded-t-xl px-2 text-sm font-semibold transition ${
+            className={`relative flex-1 shrink-0 whitespace-nowrap rounded-t-xl px-2 text-sm font-semibold transition ${
               active
                 ? "bg-[#e8eef8] py-2.5 text-[#1d3b6f]"
                 : "mt-1 bg-[#5b85c4] py-2 text-white hover:bg-[#6a93d0]"
@@ -78,7 +94,7 @@ const TILE_FRAMES: Record<string, string> = {
 };
 
 interface TileProps {
-  rarity: string | number | undefined;
+  rarity: string | undefined;
   children: ReactNode;
   /** Число в правому нижньому куті — кількість у стеку. */
   count?: number;
@@ -93,7 +109,10 @@ interface TileProps {
   /** Правий нижній кут замість кількості (рівень). */
   bottomRight?: ReactNode;
   selected?: boolean;
+  /** Лише вигляд: приглушена плитка лишається клікабельною (поранений герой, невивчене вміння). */
   dimmed?: boolean;
+  /** Плитка недоступна: приглушена й не приймає кліків — інакше дія йшла б удруге, поки триває перша. */
+  disabled?: boolean;
   onClick?: () => void;
   title?: string;
   /** Якір навчання (data-tutorial): туторіал підсвічує саме цю плитку. */
@@ -101,18 +120,19 @@ interface TileProps {
 }
 
 /** Квадратна плитка предмета чи героя з рамкою кольору рідкості. */
-export function Tile({ rarity, children, count, top, corner, bottom, bottomLeft, bottomRight, selected, dimmed, onClick, title, tutorial }: TileProps) {
+export function Tile({ rarity, children, count, top, corner, bottom, bottomLeft, bottomRight, selected, dimmed, disabled, onClick, title, tutorial }: TileProps) {
   const frame = TILE_FRAMES[rarityKey(rarity)] ?? TILE_FRAMES.Common;
 
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       title={title}
       data-tutorial={tutorial}
       className={`relative aspect-square w-full overflow-hidden rounded-xl bg-gradient-to-b p-1 ring-2 transition ${frame} ${
         selected === true ? "outline outline-3 outline-offset-2 outline-yellow-300" : ""
-      } ${dimmed === true ? "opacity-50" : "hover:brightness-110"}`}
+      } ${dimmed === true || disabled === true ? "opacity-50" : "hover:brightness-110"}`}
     >
       <span className="flex h-full w-full items-center justify-center">{children}</span>
       {top !== undefined && (
@@ -221,6 +241,136 @@ export function StarRow({ starParts, partsPerStar, maxStars, size = 28 }: { star
           size={size}
         />
       ))}
+    </div>
+  );
+}
+
+/** Смуга поступу; колір — класи заливки (градієнт чи суцільний), тло — темне. */
+export function ProgressBar({
+  value,
+  max,
+  fill = "bg-gradient-to-r from-green-500 to-lime-400",
+  track = "bg-black/30",
+  className = "h-2",
+  label,
+}: {
+  value: number;
+  max: number;
+  fill?: string;
+  /** Колір доріжки під заливкою. */
+  track?: string;
+  className?: string;
+  /** Підпис для зчитувачів екрана. */
+  label?: string;
+}) {
+  const share = progressShare(value, max);
+
+  return (
+    <div
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(share * 100)}
+      className={`overflow-hidden rounded-full ${track} ${className}`}
+    >
+      <div className={`h-full ${fill}`} style={{ width: `${share * 100}%` }} />
+    </div>
+  );
+}
+
+/**
+ * Кнопка з підтвердженням другим кліком: перший клік міняє напис на confirmLabel,
+ * другий виконує дію; втрата фокусу скасовує підтвердження.
+ */
+export function ConfirmButton({
+  label,
+  confirmLabel,
+  onConfirm,
+  disabled,
+  className = "",
+  confirmClassName = "",
+}: {
+  label: ReactNode;
+  confirmLabel: ReactNode;
+  onConfirm: () => void;
+  disabled?: boolean;
+  className?: string;
+  /** Додаткові класи, поки кнопка чекає другого кліку. */
+  confirmClassName?: string;
+}) {
+  const [armed, setArmed] = useState(false);
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => {
+        if (armed) {
+          setArmed(false);
+          onConfirm();
+        } else {
+          setArmed(true);
+        }
+      }}
+      onBlur={() => setArmed(false)}
+      className={`${className} ${armed ? confirmClassName : ""}`}
+    >
+      {armed ? confirmLabel : label}
+    </button>
+  );
+}
+
+const DIALOG_WIDTHS = { sm: "max-w-sm", md: "max-w-md", lg: "max-w-2xl" } as const;
+
+/**
+ * Модальне вікно гри: Esc (шар гарячих клавіш modal — екран під вікном їх не чує)
+ * і клік поза вікном закривають; фокус переходить на вікно.
+ */
+export function GameDialog({
+  title,
+  subtitle,
+  label,
+  onClose,
+  children,
+  size = "md",
+}: {
+  title: ReactNode;
+  /** Рядок під заголовком: рівень, стан. */
+  subtitle?: ReactNode;
+  /** Назва для зчитувачів екрана, коли заголовок — не просто текст. */
+  label?: string;
+  onClose: () => void;
+  children: ReactNode;
+  size?: keyof typeof DIALOG_WIDTHS;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useHotkeys({ Escape: onClose }, { modal: true });
+  useEffect(() => ref.current?.focus(), []);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" onClick={onClose}>
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        tabIndex={-1}
+        onClick={(event) => event.stopPropagation()}
+        className={`max-h-[90vh] w-full space-y-3 overflow-y-auto rounded-2xl bg-gradient-to-b from-[#24467f] to-[#16305e] p-4 text-white shadow-2xl ring-2 ring-sky-300 outline-none ${DIALOG_WIDTHS[size]}`}
+      >
+        <div className="flex items-start gap-2">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            {subtitle !== undefined && <p className="text-sm text-white/70">{subtitle}</p>}
+          </div>
+          <button type="button" aria-label={t("common:close")} onClick={onClose} className="text-xl font-bold text-white/60 hover:text-white">
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
     </div>
   );
 }

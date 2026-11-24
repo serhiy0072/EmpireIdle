@@ -17,9 +17,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Скільки досвіду ще не витрачено.</summary>
         public long Amount { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin).</summary>
-        public uint Version { get; private set; }
-
         public HeroExperiencePool(Guid id, Guid playerId, int serverId) : base(id)
         {
             PlayerId = playerId;

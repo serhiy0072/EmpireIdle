@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -81,8 +82,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             var stack = await _inventoryRepository.GetItemAsync(playerId, key, cancellationToken);
 
             if (stack is null || stack.Count < 1)
-                throw new RequirementNotMetException(RefusalReasons.ItemNotEnough, $"No '{key}' to repair with.",
-                    key, 1, 0);
+                throw new NotEnoughResourcesException(key, 1, 0);
 
             stack.Consume(1);
 
@@ -93,16 +93,10 @@ namespace EmpireIdle.Application.Heroes.Commands
         private async Task PayWithGemsAsync(Guid playerId, int price, Guid equipmentId, DateTime now,
             CancellationToken cancellationToken)
         {
-            var player = await _playerRepository.GetByIdAsync(playerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", playerId);
+            var player = await _playerRepository.RequireAsync(playerId, cancellationToken);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new EntityNotFoundException("Wallet", player.UserId);
-
-            // Перевірка до списання: гравцю потрібна відмова з цифрами, а не виняток value object
-            if (wallet.GemBalance.Value < price)
-                throw new NotEnoughResourcesException("gems", price, wallet.GemBalance.Value);
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
             wallet.SpendGems(new GemAmount(price), $"repair:{equipmentId}", playerId, now);
         }

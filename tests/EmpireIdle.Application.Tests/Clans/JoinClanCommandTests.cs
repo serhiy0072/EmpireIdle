@@ -44,7 +44,7 @@ public class JoinClanCommandTests
         TestTechnologies.Settlement(new GameCatalog(Config()), Substitute.For<IVillageRepository>()),
         NullLogger<JoinClanCommandHandler>.Instance);
 
-    private static Player NewPlayer() => new(PlayerId, "tester", "tester@test.local", "user-1", Now);
+    private static Player NewPlayer() => new(PlayerId, "tester", "tester@test.local", "user-1", Now, serverId: 1);
 
     private static Clan NewClan(ClanJoinPolicy policy)
     {

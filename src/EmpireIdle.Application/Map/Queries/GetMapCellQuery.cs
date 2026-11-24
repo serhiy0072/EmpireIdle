@@ -59,7 +59,7 @@ namespace EmpireIdle.Application.Map.Queries
             var terrain = _terrain.GetTerrain(serverId, request.X, request.Y);
             var occupant = await OccupantAsync(serverId, request.X, request.Y, terrain.Type, cancellationToken);
 
-            return new MapCellView(request.X, request.Y, terrain.Type, terrain.Passable, terrain.Habitable, terrain.MoveCost,
+            return MapCellView.Of(request.X, request.Y, terrain.Type, terrain.Passable, terrain.Habitable, terrain.MoveCost,
                 occupant);
         }
 
@@ -85,7 +85,7 @@ namespace EmpireIdle.Application.Map.Queries
                     DefenceStacks.FromArmy(army.ToDictionary(kv => new UnitStackKey(kv.Key, 1), kv => kv.Value)), terrain);
 
                 // Ім'я — з довідника, як у звіті й поході; ключ іде окремим полем
-                return new MapCellOccupant("Monster", monster.Id, _texts.Name("monster", monster.Type, _catalog.MonsterName(monster.Type)), monster.Level,
+                return new MapCellOccupant(MapOccupantType.Monster, monster.Id, _texts.Name("monster", monster.Type, _catalog.MonsterName(monster.Type)), monster.Level,
                     army, MonsterType: monster.Type, MonsterPower: Math.Round(power));
             }
 
@@ -98,13 +98,13 @@ namespace EmpireIdle.Application.Map.Queries
                 // Назва споруди для гравця — тег її клану
                 var clan = await _clanRepository.GetCardAsync(structure.ClanId, cancellationToken);
 
-                return new MapCellOccupant("ClanStructure", structure.Id, clan?.Tag, null, null);
+                return new MapCellOccupant(MapOccupantType.ClanStructure, structure.Id, clan?.Tag, null, null);
             }
 
             var village = await _villageRepository.GetByIdReadOnlyAsync(cell.OccupantId, cancellationToken);
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            return new MapCellOccupant("Village", cell.OccupantId, village?.Name, null, null,
+            return new MapCellOccupant(MapOccupantType.Village, cell.OccupantId, village?.Name, null, null,
                 village is not null && village.IsShieldedAt(now) ? village.ShieldUntil : null);
         }
     }

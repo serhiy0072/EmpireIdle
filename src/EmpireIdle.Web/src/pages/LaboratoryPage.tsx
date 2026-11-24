@@ -12,10 +12,8 @@ import { useResearch, useSpeedUpResearch, useStartResearch } from "../lib/querie
 import { speedUpLabel } from "../lib/speedUp";
 import { effectLabel, effectValue, technologyName, tierNumeral } from "../lib/technologies";
 import { formatRemaining } from "../lib/time";
+import { latestError } from "../lib/latestError";
 import { t } from "i18next";
-
-/** ClanHelpTarget.Research на дроті. */
-const HELP_TARGET_RESEARCH = 2;
 
 /**
  * Лабораторія (рішення 28.10.2026): особисті технології вкладками Битва / Економіка / Розвиток.
@@ -57,7 +55,7 @@ export default function LaboratoryPage() {
   const helpAsked =
     view.researchId != null && (help.data ?? []).some((item) => item.isMine && item.targetId === view.researchId);
   const gems = active === null ? 0 : catalog.speedUpCost("Research", active.completesAt, now, 0);
-  const failure = start.error ?? speedUp.error ?? requestHelp.error;
+  const failure = latestError([start, speedUp, requestHelp]);
   const selected = picked === null ? null : (view.nodes.find((node) => node.tier === picked.tier && node.node === picked.node) ?? null);
 
   return (
@@ -86,7 +84,7 @@ export default function LaboratoryPage() {
                   <GameButton
                     variant="secondary"
                     disabled={helpAsked || requestHelp.isPending}
-                    onClick={() => requestHelp.mutate({ targetType: HELP_TARGET_RESEARCH, targetId: view.researchId! })}
+                    onClick={() => requestHelp.mutate({ targetType: "Research", targetId: view.researchId! })}
                   >
                     {helpAsked ? t("technologies:page.helpAsked") : t("technologies:page.askHelp")}
                   </GameButton>

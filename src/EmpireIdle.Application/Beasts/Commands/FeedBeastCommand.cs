@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Beasts.Commands
     public record FeedBeastCommand(Guid PlayerId, string BeastKey, int Count)
         : IRequest<BeastFedView>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class FeedBeastCommandHandler : IRequestHandler<FeedBeastCommand, BeastFedView>
+    public sealed class FeedBeastCommandHandler : IRequestHandler<FeedBeastCommand, BeastFedView>
     {
         private readonly IBeastPenRepository _pens;
         private readonly IInventoryRepository _inventory;
@@ -49,8 +49,7 @@ namespace EmpireIdle.Application.Beasts.Commands
             var have = feed?.Count ?? 0;
 
             if (have < request.Count)
-                throw new RequirementNotMetException(RefusalReasons.BeastNotEnoughFeed,
-                    $"Not enough feed: need {request.Count}, have {have}.", request.Count, have);
+                throw new NotEnoughResourcesException(settings.FeedItemKey, request.Count, have);
 
             var eaten = pen.Feed(request.BeastKey, request.Count, _progression.ExperienceToNext, settings.LevelsPerRank, now);
 

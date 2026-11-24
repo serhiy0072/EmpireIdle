@@ -12,7 +12,7 @@ interface Props {
   onInvite: (targetPlayerId: string) => void;
 }
 
-const button = "rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50";
+const button = "rounded-lg border border-[#4a72b0] px-3 py-1 text-sm text-slate-100 hover:bg-white/10 disabled:opacity-50";
 
 /** Набір: заявки на вступ і запрошення за ідентифікатором гравця. Видно лише з правом Recruit. */
 export default function ClanRequestsPanel({ applications, now, busy, onResolve, onInvite }: Props) {
@@ -22,15 +22,15 @@ export default function ClanRequestsPanel({ applications, now, busy, onResolve, 
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <section className="space-y-2">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:requests.title", { count: applications.length })}</h3>
+        <h3 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:requests.title", { count: applications.length })}</h3>
         {applications.length === 0 ? (
-          <p className="text-sm text-slate-500">{t("social:requests.none")}</p>
+          <p className="text-sm text-sky-100/70">{t("social:requests.none")}</p>
         ) : (
           applications.map((application) => (
-            <div key={application.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3">
+            <div key={application.requestId} className="flex flex-wrap items-center gap-2 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3">
               <div className="flex-1 text-sm">
-                <span className="font-medium text-slate-800">{application.playerName}</span>
-                <span className="ml-2 text-xs text-slate-500">
+                <span className="font-medium text-white">{application.playerName}</span>
+                <span className="ml-2 text-xs text-sky-100/70">
                   {t("social:requests.info", { power: formatNumber(Math.round(application.power)), remaining: formatRemaining(application.expiresAt, now) })}
                 </span>
               </div>
@@ -51,13 +51,13 @@ export default function ClanRequestsPanel({ applications, now, busy, onResolve, 
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-slate-500">{t("social:requests.invite")}</h3>
+        <h3 className="text-sm font-medium uppercase tracking-wide text-sky-100/70">{t("social:requests.invite")}</h3>
         <div className="flex gap-2">
           <input
             value={target}
             onChange={(event) => setTarget(event.target.value)}
             placeholder={t("social:requests.playerId")}
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 font-mono text-sm text-slate-800"
+            className="flex-1 rounded-lg border border-[#4a72b0] px-3 py-1.5 font-mono text-sm text-white"
           />
           <button
             type="button"
@@ -71,7 +71,7 @@ export default function ClanRequestsPanel({ applications, now, busy, onResolve, 
             {t("social:requests.send")}
           </button>
         </div>
-        <p className="text-xs text-slate-500">{t("social:requests.idHint")}</p>
+        <p className="text-xs text-sky-100/70">{t("social:requests.idHint")}</p>
       </section>
     </div>
   );

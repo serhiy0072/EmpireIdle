@@ -27,7 +27,7 @@ public class TrainingCampConfiguration : IEntityTypeConfiguration<TrainingCamp>
                     cooldowns => new Dictionary<int, DateTime>(cooldowns)));
 
         // Купівля слота й вихід героя пишуть той самий рядок паралельно
-        builder.Property(c => c.Version).IsRowVersion();
+        builder.Property<uint>("Version").IsRowVersion();
 
         // Один табір на гравця. Індексом: два перші звернення одночасно інакше створили б два табори
         builder.HasIndex(c => c.PlayerId).IsUnique();

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Beasts.Commands;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
@@ -24,8 +25,8 @@ public class ActivateBeastCommandTests
     private readonly IActiveEffectRepository _effects = Substitute.For<IActiveEffectRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
-    private ActivateBeastCommandHandler Handler(GameCatalog catalog) => new(_pens, _villages, _servers, _unitOfWork,
-        TestEffects.Resolver(_effects, _pens, catalog), new WorldGeometry(catalog.Config.Map), catalog,
+    private ActivateBeastCommandHandler Handler(GameCatalog catalog) => new(_pens, _villages, _unitOfWork,
+        new VillageProductionRates(_servers, TestEffects.Resolver(_effects, _pens, catalog), new WorldGeometry(catalog.Config.Map)), catalog,
         new FakeTimeProvider(Now), NullLogger<ActivateBeastCommandHandler>.Instance);
 
     private static GameCatalog Catalog(EffectTarget effect = EffectTarget.Attack)
@@ -43,7 +44,7 @@ public class ActivateBeastCommandTests
 
     private Village GivenVillage(GameCatalog catalog, int food)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [.. TestKeys.AllResources], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [.. TestKeys.AllResources], 0, 0, serverId: 1);
         village.GrantStartingResources(new Dictionary<string, int> { [TestKeys.Food] = food }, Now);
         village.AddBuilding(catalog.MainBuildingKey, catalog.Buildings, Now);
 

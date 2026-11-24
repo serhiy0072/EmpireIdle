@@ -80,13 +80,14 @@ public class GetBattlePreviewQueryTests
             new CombatCalculator(config.Combat, catalog), terrain, new MarchCalculator(terrain, catalog),
             TestEffects.Resolver(_effects), new FakeTimeProvider(Now), targets, TestCombatants.Buffs(catalog), catalog,
             new HeroProgression(config.HeroSettings),
-            new HeroCombatants(EmptyInventory(), new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog));
+            new HeroCombatants(EmptyInventory(), new HeroStats(new HeroProgression(config.HeroSettings), catalog), catalog,
+                TestTechnologies.For(catalog)));
     }
 
     /// <summary>Село з піхотою, монстр поруч; повертає монстра й героя з заданим власником.</summary>
     private (Monster Monster, Hero Hero) GivenState(Guid heroOwnerId)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 50, 50);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 50, 50, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
         garrison.ReceiveUnits(new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, Now);
 

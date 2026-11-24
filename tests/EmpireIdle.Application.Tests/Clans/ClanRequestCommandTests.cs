@@ -43,7 +43,7 @@ public class ClanRequestCommandTests
         new FakeTimeProvider(Now),
         NullLogger<CancelClanRequestCommandHandler>.Instance);
 
-    private static Player NewPlayer(Guid id) => new(id, "tester", $"{id:N}@test.local", $"user-{id:N}", Now);
+    private static Player NewPlayer(Guid id) => new(id, "tester", $"{id:N}@test.local", $"user-{id:N}", Now, serverId: 1);
 
     /// <summary>Клан із засновником-лідером і рядовим учасником без права Recruit.</summary>
     private static Clan NewClan()

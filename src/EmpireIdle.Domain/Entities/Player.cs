@@ -44,7 +44,7 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public string Language { get; private set; } = null!;
 
-        public Player(Guid id, string username, string email, string userId, DateTime utcNow, int serverId = 1,
+        public Player(Guid id, string username, string email, string userId, DateTime utcNow, int serverId,
             string language = "uk") : base(id)
         {
             UserId = userId;

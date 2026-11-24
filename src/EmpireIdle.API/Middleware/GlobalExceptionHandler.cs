@@ -66,10 +66,10 @@ namespace EmpireIdle.API.Middleware
                 AlreadyExistsException => (StatusCodes.Status400BadRequest, "Already Exists", "AlreadyExists"),
                 DomainException => (StatusCodes.Status400BadRequest, "Domain Rule Violated", "DomainRuleViolated"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden", "Forbidden"),
-                // Вихід за межі й null — захисні перевірки коду, а не відмова гравцю: до них
+                MalformedRequestException => (StatusCodes.Status400BadRequest, "Invalid Argument", "InvalidArgument"),
+                // ArgumentException і похідні — захисні перевірки коду, а не відмова гравцю: до них
                 // доходить лише баг (вхід мав відсіяти валідатор), тож це 500 з LogError
-                ArgumentOutOfRangeException or ArgumentNullException => (StatusCodes.Status500InternalServerError, "Internal Server Error", "Internal"),
-                ArgumentException => (StatusCodes.Status400BadRequest, "Invalid Argument", "InvalidArgument"),
+                ArgumentException => (StatusCodes.Status500InternalServerError, "Internal Server Error", "Internal"),
                 DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "The resource was modified by another request. Retry with the current state.", "ConcurrencyConflict"),
                 // Унікальний індекс — арбітр гонки (уламки, замовлення, дублікат героя).
                 // Його вердикт — конфлікт, а не інцидент: 409, без LogError

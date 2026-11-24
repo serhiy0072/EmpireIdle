@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -16,7 +17,7 @@ namespace EmpireIdle.Application.Shop.Commands
     public record BuyHeroWeaponShardsCommand(Guid PlayerId, Guid HeroId, int Count)
         : IRequest<int>, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class BuyHeroWeaponShardsCommandHandler : IRequestHandler<BuyHeroWeaponShardsCommand, int>
+    public sealed class BuyHeroWeaponShardsCommandHandler : IRequestHandler<BuyHeroWeaponShardsCommand, int>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IPlayerRepository _playerRepository;
@@ -68,18 +69,19 @@ namespace EmpireIdle.Application.Shop.Commands
                 throw new RequirementNotMetException(RefusalReasons.HeroWeaponMaxed,
                     $"Hero {hero.Id} weapon is already +{hero.WeaponLevel}.", maxWeapon);
 
-            var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+            // Понад решту до стелі шматки нікуди вкласти. Без причини для клієнта: він пропонує купити
+            // рівно стільки, скільки бракує на наступний рівень, тож більше можна лише підробленим запитом
+            var toMax = _catalog.Config.HeroSettings.WeaponShardCosts.Skip(hero.WeaponLevel).Sum() - hero.WeaponShards;
+            if (request.Count > toMax)
+                throw new RequirementNotMetException(
+                    $"Hero {hero.Id} needs only {Math.Max(0, toMax)} more weapon shards to reach the top level, {request.Count} requested.");
+
+            var player = await _playerRepository.RequireAsync(request.PlayerId, cancellationToken);
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new EntityNotFoundException("Wallet", player.UserId);
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
             var total = price * request.Count;
-
-            // Перевірка до списання: гравцю потрібна відмова з цифрами, а не виняток value object
-            if (wallet.GemBalance.Value < total)
-                throw new NotEnoughResourcesException("gems", total, wallet.GemBalance.Value);
 
             wallet.SpendGems(new GemAmount(total), $"shop:weapon:{hero.HeroKey}", request.PlayerId, now);
             hero.AddWeaponShards(request.Count, now);

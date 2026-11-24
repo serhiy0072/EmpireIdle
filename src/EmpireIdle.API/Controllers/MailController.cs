@@ -1,5 +1,5 @@
 using EmpireIdle.Application.Mail.Commands;
-using EmpireIdle.Application.Mail.Contracts;
+using EmpireIdle.Application.Mail.ReadModels;
 using EmpireIdle.Application.Mail.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

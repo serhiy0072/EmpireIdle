@@ -34,9 +34,6 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime? FinishedAt { get; private set; }
 
-        /// <summary>Токен паралелізму: два ходи з двох вкладок не мають розійтись.</summary>
-        public uint Version { get; private set; }
-
         public DungeonRun(Guid id, Guid playerId, int serverId, string dungeonKey, int level, string battle, DateTime utcNow)
             : base(id)
         {

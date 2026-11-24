@@ -21,7 +21,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
                 .HasColumnName("SeenSteps")
                 .IsRequired();
 
-            builder.Property(t => t.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
         }
     }
 }

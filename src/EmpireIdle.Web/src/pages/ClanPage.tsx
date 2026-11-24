@@ -4,6 +4,7 @@ import ClanBrowser from "../components/clan/ClanBrowser";
 import ClanHelpPanel from "../components/clan/ClanHelpPanel";
 import ClanMembers from "../components/clan/ClanMembers";
 import ClanRequestsPanel from "../components/clan/ClanRequestsPanel";
+import ClanRoles from "../components/clan/ClanRoles";
 import ClanSettings from "../components/clan/ClanSettings";
 import ClanShopPanel from "../components/clan/ClanShopPanel";
 import ClanTechnologiesPanel from "../components/clan/ClanTechnologiesPanel";
@@ -28,6 +29,9 @@ import {
   useRequestHelp,
   useResolveRequest,
   useTransferLeadership,
+  useCreateClanRole,
+  useDeleteClanRole,
+  useUpdateClanRole,
   useUpdateClanSettings,
 } from "../lib/queries/clans";
 import { clanRoleName } from "../lib/clanRoles";
@@ -36,7 +40,8 @@ import { useGarrison } from "../lib/queries/garrison";
 import { compactPower, usePower } from "../lib/queries/rating";
 import { useClanTerritory } from "../lib/queries/territory";
 import { useVillage } from "../lib/queries/village";
-import TabHotkeys from "../components/shell/TabHotkeys";
+import { latestError } from "../lib/latestError";
+import { GameScreen, GameTabs } from "../components/game/GameUi";
 import { t } from "i18next";
 
 type Tab = "help" | "members" | "territory" | "technologies" | "shop" | "requests" | "settings";
@@ -74,6 +79,9 @@ export default function ClanPage() {
   const assignRole = useAssignRole(playerId);
   const transferLeadership = useTransferLeadership(playerId);
   const settings = useUpdateClanSettings(playerId);
+  const createRole = useCreateClanRole(playerId);
+  const updateRole = useUpdateClanRole(playerId);
+  const deleteRole = useDeleteClanRole(playerId);
   const requestHelp = useRequestHelp(playerId);
   const giveHelp = useGiveHelp(playerId);
   const recall = useRecallReinforcements(playerId);
@@ -95,12 +103,25 @@ export default function ClanPage() {
     return <ErrorBanner error={clan.error} />;
   }
 
-  const mutations = [create, join, leave, kick, assignRole, transferLeadership, settings, requestHelp, giveHelp, recall, invite, resolve];
+  const mutations = [
+    create,
+    join,
+    leave,
+    kick,
+    assignRole,
+    transferLeadership,
+    settings,
+    createRole,
+    updateRole,
+    deleteRole,
+    requestHelp,
+    giveHelp,
+    recall,
+    invite,
+    resolve,
+  ];
   const busy = mutations.some((mutation) => mutation.isPending);
-  // Помилка лише останньої дії: інакше стара відмова однієї кнопки
-  // (скажімо, створення клану) перекривала б свіжу відмову іншої
-  const latest = mutations.reduce((last, mutation) => (mutation.submittedAt > last.submittedAt ? mutation : last));
-  const failure = latest.error;
+  const failure = latestError(mutations);
 
   const copyId = () => {
     void navigator.clipboard.writeText(playerId).then(() => {
@@ -112,47 +133,51 @@ export default function ClanPage() {
   // Поза кланом магазин відкривається окремим екраном замість каталогу кланів
   if (clan.data === null && tab === "shop") {
     return (
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="text-xl font-medium text-slate-800">{t("technologies:shop.title")}</h1>
-          <button type="button" onClick={() => setTab("help")} className="text-sm text-sky-700 hover:underline">
+      <GameScreen
+        title={t("technologies:shop.title")}
+        actions={
+          <button type="button" onClick={() => setTab("help")} className="text-sm text-sky-200 hover:underline">
             {t("technologies:shop.back")}
           </button>
-        </div>
+        }
+      >
         <ClanShopPanel playerId={playerId} now={now} />
-      </div>
+      </GameScreen>
     );
   }
 
   if (clan.data === null) {
     return (
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="text-xl font-medium text-slate-800">{t("social:page.title")}</h1>
+      <GameScreen
+        title={t("social:page.title")}
+        actions={
           <div className="flex items-baseline gap-3">
             <button
               type="button"
               onClick={() => setTab("shop")}
-              className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-800 hover:bg-amber-100"
+              className="rounded-lg border border-amber-400/50 bg-amber-500/15 px-3 py-1 text-sm text-amber-200 hover:bg-amber-500/25"
             >
               🪙 {t("technologies:shop.title")}
             </button>
-            <button type="button" onClick={copyId} className="font-mono text-xs text-slate-500 hover:text-slate-800">
+            <button type="button" onClick={copyId} className="font-mono text-xs text-sky-100/70 hover:text-white">
               {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
             </button>
           </div>
+        }
+      >
+        <div className="space-y-4">
+          <ErrorBanner error={failure} />
+          <ClanBrowser
+            invites={invites.data ?? []}
+            now={now}
+            busy={busy}
+            joinOutcome={typeof join.data === "string" ? join.data : null}
+            onJoin={(clanId) => join.mutate(clanId)}
+            onCreate={(name, tag) => create.mutate({ name, tag })}
+            onResolveInvite={(requestId, approve) => resolve.mutate({ requestId, approve })}
+          />
         </div>
-        <ErrorBanner error={failure} />
-        <ClanBrowser
-          invites={invites.data ?? []}
-          now={now}
-          busy={busy}
-          joinOutcome={typeof join.data === "string" ? join.data : null}
-          onJoin={(clanId) => join.mutate(clanId)}
-          onCreate={(name, tag) => create.mutate({ name, tag })}
-          onResolveInvite={(requestId, approve) => resolve.mutate({ requestId, approve })}
-        />
-      </div>
+      </GameScreen>
     );
   }
 
@@ -180,166 +205,170 @@ export default function ClanPage() {
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl font-medium text-slate-800">
-          [{clan.data.tag}] {clan.data.name}
-        </h1>
-        <p className="text-sm text-slate-500">
+    <GameScreen
+      title={`[${clan.data.tag}] ${clan.data.name}`}
+      actions={
+        <p className="text-sm text-sky-100/70">
           {me === undefined ? "—" : clanRoleName(me.roleKey, me.roleName)}
           {permissions.size > 0 && ` · ${[...permissions].map(permissionLabel).join(", ")}`}
         </p>
-      </div>
+      }
+    >
+      <div className="space-y-4">
+        <ErrorBanner error={failure} />
 
-      <ErrorBanner error={failure} />
-
-      <TabHotkeys keys={tabs.filter((item) => item.visible).map((item) => item.key)} value={tab} onChange={setTab} />
-      <nav className="flex gap-1">
-        {tabs
-          .filter((item) => item.visible)
-          .map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setTab(item.key)}
-              className={`rounded-lg px-3 py-1 text-sm ${
-                tab === item.key ? "bg-slate-800 text-white" : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-      </nav>
-
-      {tab === "help" && (
-        <ClanHelpPanel
-          items={helpItems}
-          constructions={constructions}
-          trainings={trainings}
-          now={now}
-          busy={busy}
-          onGive={(requestId) => giveHelp.mutate(requestId)}
-          onRequest={(targetType, targetId) => requestHelp.mutate({ targetType, targetId })}
+        {/* Вкладки й панель — одна картка, як на екранах героя й рюкзака */}
+        <GameTabs
+          tabs={tabs.filter((item) => item.visible).map((item) => ({ key: item.key, label: item.label }))}
+          value={tab}
+          onChange={setTab}
         />
-      )}
 
-      {tab === "members" && (
-        <ClanMembers
-          members={clan.data.members}
-          roles={clan.data.roles}
-          myPlayerId={playerId}
-          myRank={myRank}
-          now={now}
-          canKick={permissions.has("Kick")}
-          canAssignRoles={permissions.has("AssignRoles")}
-          isLeader={isLeader}
-          busy={busy}
-          onKick={(targetPlayerId) => kick.mutate(targetPlayerId)}
-          onAssignRole={(targetPlayerId, roleId) => assignRole.mutate({ targetPlayerId, roleId })}
-          onTransferLeadership={(targetPlayerId) => transferLeadership.mutate(targetPlayerId)}
-        />
-      )}
-
-      {tab === "territory" &&
-        (territory.isError ? (
-          <ErrorBanner error={territory.error} />
-        ) : territory.data == null ? (
-          <p className="text-sm text-slate-500">{t("social:page.loadingShort")}</p>
-        ) : (
-          <ClanTerritoryPanel territory={territory.data} myPlayerId={playerId} />
-        ))}
-
-      {tab === "technologies" &&
-        (technologies.isError ? (
-          <ErrorBanner error={technologies.error} />
-        ) : technologies.data == null ? (
-          <p className="text-sm text-slate-500">{t("social:page.loadingShort")}</p>
-        ) : (
-          <ClanTechnologiesPanel
-            playerId={playerId}
-            view={technologies.data}
+        {tab === "help" && (
+          <ClanHelpPanel
+            items={helpItems}
+            constructions={constructions}
+            trainings={trainings}
             now={now}
-            canMark={permissions.has("ManageTechnologies")}
+            busy={busy}
+            onGive={(requestId) => giveHelp.mutate(requestId)}
+            onRequest={(targetType, targetId) => requestHelp.mutate({ targetType, targetId })}
           />
-        ))}
+        )}
 
-      {tab === "shop" && <ClanShopPanel playerId={playerId} now={now} />}
+        {tab === "members" && (
+          <ClanMembers
+            members={clan.data.members}
+            roles={clan.data.roles}
+            myPlayerId={playerId}
+            myRank={myRank}
+            now={now}
+            canKick={permissions.has("Kick")}
+            canAssignRoles={permissions.has("AssignRoles")}
+            isLeader={isLeader}
+            busy={busy}
+            onKick={(targetPlayerId) => kick.mutate(targetPlayerId)}
+            onAssignRole={(targetPlayerId, roleId) => assignRole.mutate({ targetPlayerId, roleId })}
+            onTransferLeadership={(targetPlayerId) => transferLeadership.mutate(targetPlayerId)}
+          />
+        )}
 
-      {tab === "requests" && canRecruit && (
-        <ClanRequestsPanel
-          applications={applications.data ?? []}
-          now={now}
-          busy={busy}
-          onResolve={(requestId, approve) => resolve.mutate({ requestId, approve })}
-          onInvite={(targetPlayerId) => invite.mutate(targetPlayerId)}
-        />
-      )}
+        {tab === "territory" &&
+          (territory.isError ? (
+            <ErrorBanner error={territory.error} />
+          ) : territory.data == null ? (
+            <p className="text-sm text-sky-100/70">{t("social:page.loadingShort")}</p>
+          ) : (
+            <ClanTerritoryPanel territory={territory.data} myPlayerId={playerId} />
+          ))}
 
-      {tab === "settings" && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-            <h3 className="font-medium text-slate-800">{t("social:page.profile")}</h3>
-            <ClanSettings
-              clan={clan.data}
-              canEdit={permissions.has("EditProfile")}
-              busy={busy}
-              onSave={(description, joinPolicy) => settings.mutate({ description, joinPolicy })}
+        {tab === "technologies" &&
+          (technologies.isError ? (
+            <ErrorBanner error={technologies.error} />
+          ) : technologies.data == null ? (
+            <p className="text-sm text-sky-100/70">{t("social:page.loadingShort")}</p>
+          ) : (
+            <ClanTechnologiesPanel
+              playerId={playerId}
+              view={technologies.data}
+              now={now}
+              canMark={permissions.has("ManageTechnologies")}
             />
-          </section>
+          ))}
 
-          <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-            <h3 className="font-medium text-slate-800">{t("social:page.mine")}</h3>
-            <button type="button" onClick={copyId} className="font-mono text-xs text-slate-500 hover:text-slate-800">
-              {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
-            </button>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => recall.mutate()}
-                disabled={busy}
-                className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-              >
-                {t("social:page.recall")}
+        {tab === "shop" && <ClanShopPanel playerId={playerId} now={now} />}
+
+        {tab === "requests" && canRecruit && (
+          <ClanRequestsPanel
+            applications={applications.data ?? []}
+            now={now}
+            busy={busy}
+            onResolve={(requestId, approve) => resolve.mutate({ requestId, approve })}
+            onInvite={(targetPlayerId) => invite.mutate(targetPlayerId)}
+          />
+        )}
+
+        {tab === "settings" && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Ролі бачать усі учасники; редактор усередині з'являється лише для ролей, якими можна керувати */}
+            {clan.data !== null && (
+              <section className="space-y-3 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4 md:col-span-2">
+                <h3 className="font-medium text-white">{t("social:roles.title")}</h3>
+                <ClanRoles
+                  clan={clan.data}
+                  canManage={permissions.has("ManageRoles")}
+                  busy={busy}
+                  onCreate={(role, done) => createRole.mutate(role, { onSuccess: done })}
+                  onUpdate={(roleId, role, done) => updateRole.mutate({ roleId, role }, { onSuccess: done })}
+                  onDelete={(roleId) => deleteRole.mutate(roleId)}
+                />
+              </section>
+            )}
+
+            <section className="space-y-3 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4">
+              <h3 className="font-medium text-white">{t("social:page.profile")}</h3>
+              <ClanSettings
+                clan={clan.data}
+                canEdit={permissions.has("EditProfile")}
+                busy={busy}
+                onSave={(description, joinPolicy) => settings.mutate({ description, joinPolicy })}
+              />
+            </section>
+
+            <section className="space-y-3 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4">
+              <h3 className="font-medium text-white">{t("social:page.mine")}</h3>
+              <button type="button" onClick={copyId} className="font-mono text-xs text-sky-100/70 hover:text-white">
+                {copied ? t("social:page.copied") : t("social:page.myId", { id: playerId })}
               </button>
-              {/* Лідер теж може вийти: лідерство перейде найвищому за рангом, а сам-один — розпускає клан */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirmLeave) {
-                    setConfirmLeave(false);
-                    leave.mutate();
-                  } else {
-                    setConfirmLeave(true);
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => recall.mutate()}
+                  disabled={busy}
+                  className="rounded-lg border border-[#4a72b0] px-3 py-1 text-sm text-slate-100 hover:bg-white/10 disabled:opacity-50"
+                >
+                  {t("social:page.recall")}
+                </button>
+                {/* Лідер теж може вийти: лідерство перейде найвищому за рангом, а сам-один — розпускає клан */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirmLeave) {
+                      setConfirmLeave(false);
+                      leave.mutate();
+                    } else {
+                      setConfirmLeave(true);
+                    }
+                  }}
+                  onBlur={() => setConfirmLeave(false)}
+                  disabled={busy}
+                  title={
+                    isLeader && clan.data.memberCount > 1
+                      ? t("social:page.leaderLeaves")
+                      : undefined
                   }
-                }}
-                onBlur={() => setConfirmLeave(false)}
-                disabled={busy}
-                title={
-                  isLeader && clan.data.memberCount > 1
-                    ? t("social:page.leaderLeaves")
-                    : undefined
-                }
-                className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
-              >
-                {confirmLeave
-                  ? t("social:page.confirmLeave")
-                  : isLeader && clan.data.memberCount <= 1
-                    ? t("social:page.disband")
-                    : t("social:page.leave")}
-              </button>
-            </div>
-            {/* Бонуси кланових технологій діють лише в клані: вихід забирає і їх, і силу, яку вони дають */}
-            {confirmLeave && (power.data?.clanTechnology ?? 0) > 0 && (
-              <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                {t("social:page.leaveLosesPower", { power: compactPower(power.data?.clanTechnology ?? 0) })}
-              </p>
-            )}
-            {typeof recall.data === "number" && (
-              <p className="text-xs text-slate-500">{t("social:page.recalled", { count: recall.data })}</p>
-            )}
-          </section>
-        </div>
-      )}
-    </div>
+                  className="rounded-lg border border-red-400/50 px-3 py-1 text-sm text-red-200 hover:bg-red-500/15 disabled:opacity-50"
+                >
+                  {confirmLeave
+                    ? t("social:page.confirmLeave")
+                    : isLeader && clan.data.memberCount <= 1
+                      ? t("social:page.disband")
+                      : t("social:page.leave")}
+                </button>
+              </div>
+              {/* Бонуси кланових технологій діють лише в клані: вихід забирає і їх, і силу, яку вони дають */}
+              {confirmLeave && (power.data?.clanTechnology ?? 0) > 0 && (
+                <p className="rounded-lg bg-amber-500/15 px-3 py-2 text-xs text-amber-200">
+                  {t("social:page.leaveLosesPower", { power: compactPower(power.data?.clanTechnology ?? 0) })}
+                </p>
+              )}
+              {typeof recall.data === "number" && (
+                <p className="text-xs text-sky-100/70">{t("social:page.recalled", { count: recall.data })}</p>
+              )}
+            </section>
+          </div>
+        )}
+      </div>
+    </GameScreen>
   );
 }

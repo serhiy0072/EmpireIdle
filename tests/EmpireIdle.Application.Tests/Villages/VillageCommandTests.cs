@@ -73,14 +73,17 @@ public class VillageCommandTests
     private static GameCatalog Catalog() => new(Config());
     private static WorldGeometry Geometry() => new(Config().Map);
 
+    /// <summary>Множники виробітку з тих самих підставних бустів і рівня світу, що й решта тесту.</summary>
+    private VillageProductionRates Rates() => new(_servers, TestEffects.Resolver(_effects), Geometry());
+
     private CollectBuildingCommandHandler CollectHandler() => new(
-        _villages, _unitOfWork, _servers, TestEffects.Resolver(_effects),
-        Catalog(), new FakeTimeProvider(Now), Geometry(),
+        _villages, _unitOfWork, Rates(),
+        Catalog(), new FakeTimeProvider(Now),
         NullLogger<CollectBuildingCommandHandler>.Instance);
 
     private CollectAllBuildingsCommandHandler CollectAllHandler() => new(
-        _villages, _unitOfWork, _servers, TestEffects.Resolver(_effects),
-        Catalog(), new FakeTimeProvider(Now), Geometry(),
+        _villages, _unitOfWork, Rates(),
+        Catalog(), new FakeTimeProvider(Now),
         NullLogger<CollectAllBuildingsCommandHandler>.Instance);
 
     private UpgradeBuildingCommandHandler UpgradeHandler() => new(
@@ -102,7 +105,7 @@ public class VillageCommandTests
         var (cx, cy) = geometry.Centre;
 
         var x = atCentre ? cx : cx + geometry.Radius - 1;
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], x, cy);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], x, cy, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now.AddMinutes(-accruedMinutes));
@@ -115,7 +118,7 @@ public class VillageCommandTests
         {
             townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now,
                 ProductionBoost.None, locationMultiplier: 1.0);
-            townhall.CompleteConstruction(Now);
+            townhall.CompleteConstruction(catalog.Buildings["townhall"], Now, ProductionBoost.None, locationMultiplier: 1.0);
         }
 
         _villages.GetByPlayerIdAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
@@ -192,8 +195,8 @@ public class VillageCommandTests
     }
 
     /// <summary>
-    /// Будівля під будівництвом не виробляє, але накопичене до апгрейду
-    /// забанковане — «зібрати все» віддає його так само, як одиночний збір.
+    /// Накопичене до апгрейду забанковане на його старті — «зібрати все» віддає його
+    /// так само, як одиночний збір, і будівля на апгрейді для збору не особлива.
     /// </summary>
     [Fact]
     public async Task CollectAll_ShouldCollectTheBankedBuffer_OfBuildingsUnderConstruction()

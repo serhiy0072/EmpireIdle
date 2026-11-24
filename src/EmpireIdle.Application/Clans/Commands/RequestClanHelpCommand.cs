@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
@@ -114,8 +115,7 @@ namespace EmpireIdle.Application.Clans.Commands
         private async Task<(TimeSpan FullDuration, DateTime CompletesAt)> ResolveTimerAsync(
             RequestClanHelpCommand request, DateTime now, CancellationToken cancellationToken)
         {
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", request.PlayerId);
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             switch (request.TargetType)
             {
@@ -133,8 +133,7 @@ namespace EmpireIdle.Application.Clans.Commands
                         building.ConstructionCompletesAt!.Value);
 
                 case ClanHelpTarget.Training:
-                    var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                        ?? throw new EntityNotFoundException("Garrison for village", village.Id);
+                    var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
                     var order = garrison.TrainingOrders.FirstOrDefault(o => o.Id == request.TargetId)
                         ?? throw new EntityNotFoundException("Training order", request.TargetId);

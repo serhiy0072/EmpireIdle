@@ -5,7 +5,8 @@ namespace EmpireIdle.Domain.Dungeons
     /// <summary>
     /// Данжові властивості героя з його підсумкових статів (рішення 15.10.2026): їх дають бонуси наборів
     /// і заточка, а не окремий стат унікального предмета. Стати героя — у відсотках («CritChance» 4 = +4%),
-    /// рушій бою рахує частками, тож тут ділимо на 100; перезарядка — цілі ходи, без ділення.
+    /// рушій бою рахує частками, тож тут ділимо на 100. Перезарядку скорочують два стати: набірний
+    /// «CooldownTurns» — цілі ходи, без ділення, і відсотковий «CooldownReduction» — частка перезарядки вміння.
     /// </summary>
     public static class DungeonStats
     {
@@ -22,6 +23,8 @@ namespace EmpireIdle.Domain.Dungeons
             ["BlockChance"] = DungeonStat.BlockChance,
             ["BlockPower"] = DungeonStat.BlockPower,
             ["Ward"] = DungeonStat.Ward,
+            ["AttackSpeed"] = DungeonStat.AttackSpeed,
+            ["CooldownReduction"] = DungeonStat.CooldownReductionShare,
         };
 
         /// <summary>Лише ненульові властивості: у бою відсутня й нульова означають одне.</summary>

@@ -85,7 +85,7 @@ public class TeleportItemEffectTests
     private Village GivenVillage()
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Home", ["food"], 100, 100);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Home", ["food"], 100, 100, serverId: 1);
         village.AddBuilding("townhall", catalog.Buildings, Now.AddHours(-1));
 
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
@@ -186,7 +186,7 @@ public class TeleportItemEffectTests
 
         clan.Join(PlayerId, 50, Now.AddHours(-1));
 
-        var leaderVillage = new Village(Guid.NewGuid(), leaderId, "Hall", ["food"], leaderX, leaderY);
+        var leaderVillage = new Village(Guid.NewGuid(), leaderId, "Hall", ["food"], leaderX, leaderY, serverId: 1);
         _villages.GetByPlayerIdAsync(leaderId, Arg.Any<CancellationToken>()).Returns(leaderVillage);
         _map.GetAreaAsync(1, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(new List<MapCell> { new(Guid.NewGuid(), 1, leaderX, leaderY, MapOccupantType.Village, leaderVillage.Id) });

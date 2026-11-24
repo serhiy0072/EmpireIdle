@@ -73,10 +73,10 @@ public class BattleAftermathTests
     /// </summary>
     private (Garrison Host, Hero AllyHero) GivenAlliedContingent(int reinforcements = 50)
     {
-        var hostVillage = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50);
+        var hostVillage = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50, serverId: 1);
         var hostGarrison = new Garrison(Guid.NewGuid(), hostVillage.Id, 1);
 
-        var allyVillage = new Village(Guid.NewGuid(), AllyPlayerId, "Ally", ["food"], 60, 60);
+        var allyVillage = new Village(Guid.NewGuid(), AllyPlayerId, "Ally", ["food"], 60, 60, serverId: 1);
         _allyVillage = allyVillage;
         var allyGarrison = new Garrison(Guid.NewGuid(), allyVillage.Id, 1);
 
@@ -113,7 +113,7 @@ public class BattleAftermathTests
     /// <summary>Атака героїв маршу: бій уже порахував, кого поранила частка шкоди.</summary>
     private async Task<(Hero Wounded, Hero Spared)> RecordAttackWith(bool attackerWon)
     {
-        var village = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50);
+        var village = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
         var army = new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 };
         var march = new March(Guid.NewGuid(), 1, garrison.Id, 50, 50, 55, 55, MarchTargetType.Monster, Guid.NewGuid(),
@@ -162,9 +162,9 @@ public class BattleAftermathTests
     [Fact]
     public async Task RecordDefender_ShouldWoundTheDefendersTheBattleWounded_EvenOnAMarch()
     {
-        var village = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50);
+        var village = new Village(Guid.NewGuid(), HostPlayerId, "Host", ["food"], 50, 50, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
-        var attackerVillage = new Village(Guid.NewGuid(), AllyPlayerId, "Raider", ["food"], 60, 60);
+        var attackerVillage = new Village(Guid.NewGuid(), AllyPlayerId, "Raider", ["food"], 60, 60, serverId: 1);
         var march = new March(Guid.NewGuid(), 1, Guid.NewGuid(), 60, 60, 50, 50, MarchTargetType.Village, village.Id,
             new Dictionary<UnitStackKey, int> { [new UnitStackKey("infantry", 1)] = 10 }, Now, Now.AddMinutes(-30));
 

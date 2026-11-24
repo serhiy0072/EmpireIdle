@@ -35,7 +35,8 @@
     "stunned": "оглушений",
     "hit": "удар",
     "shield": "{{name}} щит {{value}}",
-    "blocked": "(блок)"
+    "blocked": "(блок)",
+    "extraStrike": "другий удар"
   },
   "run": {
     "backToList": "До списку данжів",

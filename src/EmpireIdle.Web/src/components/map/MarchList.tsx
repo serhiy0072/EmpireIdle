@@ -6,6 +6,7 @@ import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 import SpeedUpItemsButton from "../SpeedUpItemsButton";
 import { formatNumber } from "../../lib/format";
+import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 
 interface Props {
@@ -26,7 +27,7 @@ export default function MarchList({ playerId, marches }: Props) {
 
   return (
     <div className="space-y-2">
-      <ErrorBanner error={speedUp.error ?? recall.error} />
+      <ErrorBanner error={latestError([speedUp, recall])} />
 
       {marches.map((march) => {
         const returning = march.state === MARCH_STATE.returning;

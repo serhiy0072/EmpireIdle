@@ -92,10 +92,9 @@ public class HeroSkillUpgradeTests
         var hero = GivenHero(stars: 1);
         GivenBooks(AttackBook, 2);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Upgrade(hero, "fury"));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Upgrade(hero, "fury"));
 
-        Assert.Equal(RefusalReasons.HeroSkillNoBook.Key, refusal.Reason);
-        Assert.Equal((3, 2), ((int)refusal.Args["need"]!, (int)refusal.Args["have"]!));
+        Assert.Equal((3, 2), ((int)refusal.Need, (int)refusal.Have));
         Assert.Equal(1, hero.SkillLevel("fury"));
         Assert.Equal(2, _items[AttackBook].Count);
     }
@@ -119,9 +118,8 @@ public class HeroSkillUpgradeTests
         var hero = GivenHero(level: 20, stars: 1);
         GivenBooks(AttackBook, 3);
 
-        var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() => Upgrade(hero, "wall"));
+        var refusal = await Assert.ThrowsAsync<NotEnoughResourcesException>(() => Upgrade(hero, "wall"));
 
-        Assert.Equal(RefusalReasons.HeroSkillNoBook.Key, refusal.Reason);
         Assert.Equal(1, hero.SkillLevel("wall"));
         Assert.Equal(3, _items[AttackBook].Count);
     }

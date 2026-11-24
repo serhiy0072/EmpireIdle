@@ -5,9 +5,9 @@ import { queryKeys } from "../queryKeys";
 import { invalidatePlayer } from "./invalidate";
 import { refetchAtDue } from "./polling";
 
-export type BeastPenResponse = components["schemas"]["BeastPenResponse"];
-export type BeastResponse = components["schemas"]["BeastResponse"];
-export type BeastTamingResponse = components["schemas"]["BeastTamingResponse"];
+export type BeastPenResponse = components["schemas"]["BeastPenView"];
+export type BeastResponse = components["schemas"]["BeastView"];
+export type BeastTamingResponse = components["schemas"]["BeastTamingView"];
 export type TameTargetResponse = components["schemas"]["TameTargetResponse"];
 type NearestTameTargetResponse = components["schemas"]["NearestTameTargetResponse"];
 

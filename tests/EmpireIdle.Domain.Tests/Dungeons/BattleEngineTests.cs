@@ -605,6 +605,103 @@ public class BattleEngineTests
 
     private static Dictionary<DungeonStat, double> With(DungeonStat stat, double value) => new() { [stat] = value };
 
+    /// <summary>
+    /// Відсотковий стат знімає частку власної перезарядки вміння (рішення 16.11.2026): 25% від 4 ходів —
+    /// рівно один хід, без кидка. Стеля ріже стат: 90% за стелі 25% — той самий один хід.
+    /// </summary>
+    [Theory]
+    [InlineData(0.25)]
+    [InlineData(0.9)]
+    public void Execute_CooldownReductionShare_ShouldCutAShareOfTheSkillsOwnCooldown(double share)
+    {
+        var config = Config();
+        config.MaxCooldownReduction = 0.25;
+        var hero = Hero(0, unique: With(DungeonStat.CooldownReductionShare, share), skills: Strike(cooldown: 4));
+
+        var result = Engine(config).Execute(State(hero, Enemy(1, health: 5000)), 0, new BattleAction("strike", 1));
+
+        // Повна перезарядка 4 — це 3 ходи очікування; мінус один
+        Assert.Equal(2, SkillOf(result.State, 0, "strike").CooldownLeft);
+    }
+
+    /// <summary>Відсоток і цілі ходи з набору складаються, але між застосуваннями лишається звичайний удар.</summary>
+    [Fact]
+    public void Execute_CooldownReductionShare_ShouldAddToTheSetTurns_ButKeepOneBasicStrikeBetween()
+    {
+        var config = Config();
+        config.MaxCooldownReduction = 0.25;
+        var unique = new Dictionary<DungeonStat, double>
+        {
+            [DungeonStat.CooldownReduction] = 2,
+            [DungeonStat.CooldownReductionShare] = 0.25,
+        };
+        var hero = Hero(0, unique: unique, skills: Strike(cooldown: 4));
+
+        var result = Engine(config).Execute(State(hero, Enemy(1, health: 5000)), 0, new BattleAction("strike", 1));
+
+        Assert.Equal(1, SkillOf(result.State, 0, "strike").CooldownLeft);
+    }
+
+    /// <summary>Конфіг, у якому швидкість атаки спрацьовує завжди: кидок не заважає рахувати.</summary>
+    private static DungeonsConfig SureSecondStrike()
+    {
+        var config = Config();
+        config.MaxAttackSpeed = 0.999;
+
+        return config;
+    }
+
+    /// <summary>
+    /// Швидкість атаки (рішення 16.11.2026) — другий звичайний удар у той самий хід, позначений у журналі;
+    /// без стату удар один.
+    /// </summary>
+    [Fact]
+    public void Execute_AttackSpeed_ShouldStrikeTwice_AndMarkTheSecondStrike()
+    {
+        var engine = Engine(SureSecondStrike());
+
+        var plain = engine.Execute(State(Hero(0), Enemy(1, health: 5000)), 0, new BattleAction(null, 1));
+        var fast = engine.Execute(State(Hero(0, unique: With(DungeonStat.AttackSpeed, 5)), Enemy(1, health: 5000)), 0, new BattleAction(null, 1));
+
+        Assert.False(Assert.Single(plain.Log.Effects).ExtraStrike);
+        Assert.Equal([false, true], fast.Log.Effects.Select(e => e.ExtraStrike));
+        Assert.Equal(plain.Log.Effects[0].Damage * 2, fast.Log.Effects.Sum(e => e.Damage), 1);
+    }
+
+    /// <summary>Перший удар убив ціль — другий іде в найслабшу досяжну, а не в порожнечу.</summary>
+    [Fact]
+    public void Execute_AttackSpeed_ShouldMoveToAnotherTarget_WhenTheFirstStrikeKills()
+    {
+        var state = State(Hero(0, unique: With(DungeonStat.AttackSpeed, 5)), Enemy(1, health: 1), Enemy(2, health: 5000));
+
+        var result = Engine(SureSecondStrike()).Execute(state, 0, new BattleAction(null, 1));
+
+        Assert.Equal([1, 2], result.Log.Effects.Select(e => e.TargetIndex));
+        Assert.True(result.Log.Effects[1].ExtraStrike);
+    }
+
+    /// <summary>Останній ворог упав від першого удару — другому бити нікого.</summary>
+    [Fact]
+    public void Execute_AttackSpeed_ShouldNotStrikeAgain_WhenNobodyIsLeft()
+    {
+        var state = State(Hero(0, unique: With(DungeonStat.AttackSpeed, 5)), Enemy(1, health: 1));
+
+        var result = Engine(SureSecondStrike()).Execute(state, 0, new BattleAction(null, 1));
+
+        Assert.Single(result.Log.Effects);
+    }
+
+    /// <summary>Вміння другого удару не дає: швидкість атаки — про звичайні удари.</summary>
+    [Fact]
+    public void Execute_AttackSpeed_ShouldNotFollowASkill()
+    {
+        var hero = Hero(0, unique: With(DungeonStat.AttackSpeed, 5), skills: Strike());
+
+        var result = Engine(SureSecondStrike()).Execute(State(hero, Enemy(1, health: 5000)), 0, new BattleAction("strike", 1));
+
+        Assert.DoesNotContain(result.Log.Effects, e => e.ExtraStrike);
+    }
+
     /// <summary>Сила криту додається до множника: 1.6 + 0.4 = 2.0 замість 1.6.</summary>
     [Fact]
     public void Execute_CritPower_ShouldRaiseTheCriticalMultiplier()

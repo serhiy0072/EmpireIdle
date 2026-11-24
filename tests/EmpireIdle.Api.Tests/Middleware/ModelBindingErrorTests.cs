@@ -11,20 +11,11 @@ namespace EmpireIdle.Api.Tests.Middleware;
 /// інакше клієнт не має за чим розгалужуватись.
 /// </summary>
 [Collection("postgres")]
-public class ModelBindingErrorTests : IAsyncLifetime
+public class ModelBindingErrorTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public ModelBindingErrorTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        return Task.CompletedTask;
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public ModelBindingErrorTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task MalformedBody_ShouldCarryTheValidationErrorCode()

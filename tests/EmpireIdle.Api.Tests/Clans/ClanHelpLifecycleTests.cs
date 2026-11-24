@@ -13,22 +13,13 @@ namespace EmpireIdle.Api.Tests.Clans;
 /// а індекс на TargetId унікальний — старий запит, що лишився, блокував би будівлю назавжди.
 /// </summary>
 [Collection("postgres")]
-public class ClanHelpLifecycleTests : IAsyncLifetime
+public class ClanHelpLifecycleTests
 {
     private const int ServerId = 1;
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public ClanHelpLifecycleTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public ClanHelpLifecycleTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AsyncServiceScope CreateScope(out IClanHelpRepository help, out AppDbContext context)
     {

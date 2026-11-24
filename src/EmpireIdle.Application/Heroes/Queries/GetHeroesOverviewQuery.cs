@@ -1,5 +1,5 @@
 using EmpireIdle.Application.Common.Security;
-using EmpireIdle.Application.Heroes.Contracts;
+using EmpireIdle.Application.Heroes.ReadModels;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Wallets.Services;
@@ -14,7 +14,7 @@ namespace EmpireIdle.Application.Heroes.Queries
     /// </summary>
     public record GetHeroesOverviewQuery(Guid PlayerId) : IRequest<HeroesOverview>, IPlayerScopedRequest;
 
-    internal sealed class GetHeroesOverviewQueryHandler : IRequestHandler<GetHeroesOverviewQuery, HeroesOverview>
+    public sealed class GetHeroesOverviewQueryHandler : IRequestHandler<GetHeroesOverviewQuery, HeroesOverview>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IInventoryRepository _inventory;

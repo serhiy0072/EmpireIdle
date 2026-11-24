@@ -13,15 +13,15 @@ namespace EmpireIdle.Api.Tests.Schema;
 /// на нові ступені (16.10.2026), а набір чужого класу знімається з героя в рюкзак.
 /// Окрема база в тому самому контейнері — решта колекції не пережила б відкату міграцій.
 /// </summary>
-[Collection("postgres")]
+[Collection("postgres-migrations")]
 public class ClassLockedArtifactSetsMigrationTests
 {
     private const string Before = "20261015231421_DropGarrisonLeader";
     private const string Migration = "20261015232942_ClassLockedArtifactSets";
 
-    private readonly PostgresFixture _postgres;
+    private readonly MigrationPostgresFixture _postgres;
 
-    public ClassLockedArtifactSetsMigrationTests(PostgresFixture postgres) => _postgres = postgres;
+    public ClassLockedArtifactSetsMigrationTests(MigrationPostgresFixture postgres) => _postgres = postgres;
 
     private sealed record ItemRow(Guid Id, Guid? EquippedByHeroId, int SlotIndex);
 

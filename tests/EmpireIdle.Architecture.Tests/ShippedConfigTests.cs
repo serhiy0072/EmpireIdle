@@ -110,8 +110,14 @@ public class ShippedConfigTests
                 .GetValue(RuntimeHelpers.GetUninitializedObject(t))!)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var used = config.Quests
-            .SelectMany(q => q.Rewards)
+        // Усі нагороди конфігу, де б вони не лежали: квести, банери, вежа, вхід, клан, данжі.
+        // Обхід рефлексією — новий список нагород потрапляє під перевірку сам
+        // Вміст скрині має три власні типи: їх розгортає сама скриня ще до диспетчера
+        string[] unpackedByLootbox =
+            [LootboxEntryConfig.LootboxType, LootboxEntryConfig.RandomHeroType, LootboxEntryConfig.RandomHeroShardsType];
+
+        var used = Collect<RewardConfig>(config)
+            .Where(r => r is not LootboxEntryConfig || !unpackedByLootbox.Contains(r.Type))
             .Select(r => r.Type)
             .Distinct()
             .ToList();
@@ -120,6 +126,72 @@ public class ShippedConfigTests
 
         used.Should().OnlyContain(type => supported.Contains(type),
             $"кожен тип нагороди потребує грантера; зареєстровані: {string.Join(", ", supported)}");
+    }
+
+    /// <summary>
+    /// Ціль квесту — ім'я доменної події, і рахує її лише мапер цієї події. Опечатка в Type
+    /// не падає ніде: квест просто ніколи не зрушить і назавжди заблокує свій ланцюжок.
+    /// </summary>
+    [Fact]
+    public void ShippedConfig_ShouldOnlyUseQuestObjectives_ThatSomeMapperCounts()
+    {
+        var config = Bind(RepositoryRoot.Find());
+
+        var counted = typeof(IQuestSignalMapper).Assembly
+            .GetTypes()
+            .Where(t => t is { IsAbstract: false, IsInterface: false } && t.IsAssignableTo(typeof(IQuestSignalMapper)))
+            .Select(t => ((IQuestSignalMapper)RuntimeHelpers.GetUninitializedObject(t)).EventType.Name)
+            .ToHashSet();
+
+        var used = Collect<QuestObjectiveConfig>(config).Select(o => o.Type).Distinct().ToList();
+
+        used.Should().NotBeEmpty("інакше тест проходить на порожньому списку й нічого не перевіряє");
+
+        used.Should().OnlyContain(type => counted.Contains(type),
+            $"кожну ціль квесту має рахувати мапер події; є мапери для: {string.Join(", ", counted.Order())}");
+    }
+
+    /// <summary>Усі екземпляри типу в графі конфігу: властивості, списки й словники на будь-якій глибині.</summary>
+    private static List<T> Collect<T>(object root) where T : class
+    {
+        var found = new List<T>();
+        var seen = new HashSet<object>(ReferenceEqualityComparer.Instance);
+
+        Walk(root);
+
+        return found;
+
+        void Walk(object? node)
+        {
+            if (node is null or string || node.GetType().IsPrimitive || node.GetType().IsEnum || !seen.Add(node))
+                return;
+
+            if (node is T match)
+                found.Add(match);
+
+            if (node is System.Collections.IDictionary dictionary)
+            {
+                foreach (var value in dictionary.Values)
+                    Walk(value);
+
+                return;
+            }
+
+            if (node is System.Collections.IEnumerable sequence)
+            {
+                foreach (var item in sequence)
+                    Walk(item);
+
+                return;
+            }
+
+            // Лише типи конфігу: у системні (DateTime, TimeSpan) заходити нічого
+            if (node.GetType().Namespace?.StartsWith("EmpireIdle", StringComparison.Ordinal) != true)
+                return;
+
+            foreach (var property in node.GetType().GetProperties().Where(p => p.CanRead && p.GetIndexParameters().Length == 0))
+                Walk(property.GetValue(node));
+        }
     }
 
     /// <summary>

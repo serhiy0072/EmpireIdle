@@ -36,10 +36,10 @@ namespace EmpireIdle.Application.Interfaces
         Task NotifyAnnouncementAsync(int serverId, CancellationToken cancellationToken = default);
 
         /// <summary>Нове повідомлення серверного чату — усім гравцям світу, що зараз онлайн.</summary>
-        Task NotifyChatToServerAsync(int serverId, Chat.Contracts.ChatMessageNotice notice, CancellationToken cancellationToken = default);
+        Task NotifyChatToServerAsync(int serverId, Chat.ReadModels.ChatMessageNotice notice, CancellationToken cancellationToken = default);
 
         /// <summary>Нове повідомлення кланового чи приватного чату — переліченим гравцям.</summary>
-        Task NotifyChatToPlayersAsync(IReadOnlyCollection<Guid> playerIds, Chat.Contracts.ChatMessageNotice notice, CancellationToken cancellationToken = default);
+        Task NotifyChatToPlayersAsync(IReadOnlyCollection<Guid> playerIds, Chat.ReadModels.ChatMessageNotice notice, CancellationToken cancellationToken = default);
 
         /// <summary>Ворожий марш іде на село чи споруду — тривога захисникам із маршрутом і часом прибуття.</summary>
         Task NotifyAttackIncomingAsync(IReadOnlyCollection<Guid> playerIds, Marches.ReadModels.IncomingAttack attack,

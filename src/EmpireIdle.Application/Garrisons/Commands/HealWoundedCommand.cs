@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -59,15 +60,13 @@ namespace EmpireIdle.Application.Garrisons.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
             var healed = garrison.HealWounded(request.Units, now);
             if (healed.Count == 0)
-                throw new InvalidStateException("Nothing to heal.");
+                throw new InvalidStateException(RefusalReasons.GarrisonNothingToHeal, "Nothing to heal.");
 
             if (request.Payment == HealPaymentMethod.Gems)
                 await ChargeGemsAsync(healed, request.PlayerId, now, cancellationToken);
@@ -89,10 +88,9 @@ namespace EmpireIdle.Application.Garrisons.Commands
             var userId = _currentPlayer.UserId
                 ?? throw new UnauthorizedAccessException("This operation requires an authenticated account.");
 
-            var wallet = await _walletRepository.GetByUserIdAsync(userId, cancellationToken)
-                ?? throw new InvalidOperationException("Wallet not found.");
+            var wallet = await _walletRepository.RequireByUserAsync(userId, cancellationToken);
 
-            wallet.SpendGems(new GemAmount(cost), $"Heal {total} wounded units", playerId, utcNow);
+            wallet.SpendGems(new GemAmount(cost), $"heal:{total}", playerId, utcNow);
         }
 
         /// <summary>Списує ресурси: половина вартості створення юніта.</summary>

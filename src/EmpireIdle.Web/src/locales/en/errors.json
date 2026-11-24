@@ -45,7 +45,9 @@
       "levelUpBusy": "The barracks is already levelling a batch — wait for it to finish or speed it up",
       "unitLevelCeiling": "Troops can't outrank the Town Hall: the cap is {{ceiling}} for now",
       "armyCapacity": "The army is full: {{occupied}} of {{capacity}}, and you're adding {{requested}}. Upgrade the barracks",
-      "notEnoughUnits": "This squad has fewer troops than needed: {{need}} required, {{have}} available"
+      "notEnoughUnits": "This squad has fewer troops than needed: {{need}} required, {{have}} available",
+      "nothingToRecover": "Nothing left to recover: the time for these troops has run out",
+      "nothingToHeal": "Nobody left to heal: these wounded are gone"
     },
     "village": {
       "alreadyThere": "Your settlement already stands on this cell",
@@ -75,8 +77,7 @@
       "strongerBoostActive": "A stronger ×{{multiplier}} boost is active until {{until}} — this one won't work",
       "notGiftable": "This item can't be given away",
       "giftNotClanmate": "You can only give gifts to members of your clan",
-      "giftToSelf": "You can't give a gift to yourself",
-      "notEnough": "Not enough {{item}}: {{need}} needed, {{have}} available"
+      "giftToSelf": "You can't give a gift to yourself"
     },
     "lootbox": {
       "freeNotReady": "The free opening will be available {{at}}"
@@ -119,6 +120,7 @@
       "leaderOnly": "Only the leader can hand over leadership",
       "roleProtected": "The leader and newcomer roles can't be changed or deleted",
       "roleNameTaken": "The clan already has a \"{{name}}\" role",
+      "rolesLimit": "The clan already has the most roles it can have ({{max}})",
       "permissionsExceedOwn": "The \"{{role}}\" role can't grant permissions it doesn't have",
       "requestResolved": "This application has already been handled",
       "requestExpired": "The application has expired",
@@ -159,7 +161,6 @@
       "skillLocked": "{{skill}} unlocks at hero level {{level}}",
       "skillStarCapped": "The next skill level unlocks at the hero's star {{stars}}",
       "skillMaxed": "The skill is already at its top level, {{level}}",
-      "skillNoBook": "Not enough {{book}}: {{need}} needed, {{have}} available",
       "notOwned": "Universal shards only go to an unlocked hero, and {{hero}} hasn't been summoned yet",
       "shardUpgradeLocked": "The exchange opens once every hero of this rarity has all their stars"
     },
@@ -222,7 +223,6 @@
       "penMissing": "Nowhere to keep a tamed beast: open the Beast Pen first",
       "penFull": "The Beast Pen is full: all {{capacity}} places are taken. Upgrade the Beast Pen",
       "notTameable": "This monster can't be tamed",
-      "notEnoughFeed": "Not enough treats: {{need}} needed, {{have}} available",
       "levelCapped": "The beast has hit the level {{level}} cap for its rank — raise the rank by taming another beast of its kind",
       "onCooldown": "The beast is still resting — the passive can be activated {{readyAt}}",
       "effectActive": "Another beast already gives the same bonus — wait until its effect ends"
@@ -241,7 +241,6 @@
     },
     "clantech": {
       "noAttempts": "No offering attempts left — a new one recharges soon",
-      "resourceRejected": "Offerings don't accept {{resource}} right now",
       "gemLimit": "You've reached today's limit of gem offerings ({{limit}})",
       "gemPriceChanged": "The offering price changed: it's {{price}} gems now",
       "noCoins": "Not enough clan coins: {{need}} needed, you have {{have}}",
@@ -260,6 +259,7 @@
   "alreadyExists": "This already exists",
   "notFound": "Not found",
   "badCredentials": "Wrong email or password",
+  "tooManyRequests": "Too many requests. Wait a minute and try again",
   "unknown": "Something went wrong. Try again",
   "boundary": {
     "title": "This screen couldn't be shown.",

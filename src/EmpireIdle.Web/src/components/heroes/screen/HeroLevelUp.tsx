@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import ErrorBanner from "../../ErrorBanner";
 import type { InventoryItemResponse } from "../../../lib/apiTypes";
 import { useCatalog } from "../../../lib/queries/catalog";
 import type { HeroSummary } from "../../../lib/queries/heroes";
@@ -90,7 +91,7 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
                 <GameButton
                   variant="secondary"
                   onClick={() =>
-                    drinkJar.mutate({ itemKey: item.itemKey, count: Math.min(item.count, 10_000), targetX: null, targetY: null })
+                    drinkJar.mutate({ itemKey: item.itemKey, count: Math.min(item.count, catalog.limits.maxItemsPerUse), targetX: null, targetY: null })
                   }
                   disabled={busy || drinkJar.isPending}
                 >
@@ -103,6 +104,8 @@ export default function HeroLevelUp({ playerId, hero, pool, items, busy, onLevel
           <Link to={`/shop#${JAR_CHEST}`} className="inline-block text-sm text-sky-300 hover:underline">
             {t("heroes:levelUp.shopLink", { chest: catalog.itemName(JAR_CHEST) })}
           </Link>
+
+          <ErrorBanner error={drinkJar.error} />
         </div>
       )}
     </div>

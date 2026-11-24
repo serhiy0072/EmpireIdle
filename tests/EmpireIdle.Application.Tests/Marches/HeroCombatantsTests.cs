@@ -4,6 +4,8 @@ using EmpireIdle.Application.Tests.Heroes;
 using EmpireIdle.Domain.Combat;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services;
+using EmpireIdle.Domain.Services.Config;
+using EmpireIdle.Domain.Technologies;
 using NSubstitute;
 
 namespace EmpireIdle.Application.Tests.Marches;
@@ -14,6 +16,7 @@ public class HeroCombatantsTests
     private static readonly DateTime Now = new(2026, 10, 12, 12, 0, 0, DateTimeKind.Utc);
 
     private readonly IInventoryRepository _inventory = Substitute.For<IInventoryRepository>();
+    private readonly IPlayerResearchRepository _research = Substitute.For<IPlayerResearchRepository>();
     private readonly GameCatalog _catalog = HeroTestConfig.Catalog();
     private readonly HeroStats _stats;
     private readonly List<EquipmentItem> _equipped = [];
@@ -27,7 +30,9 @@ public class HeroCombatantsTests
             .Returns(call => _equipped.Where(e => call.Arg<IReadOnlyCollection<Guid>>().Contains(e.EquippedByHeroId!.Value)).ToList());
     }
 
-    private HeroCombatants Combatants() => new(_inventory, _stats, _catalog);
+    // Дерево фікстури: attack_infantry додатково дає +25% захисту всім за рівень
+    private HeroCombatants Combatants() => new(_inventory, _stats, _catalog,
+        TestTechnologies.For(TestTechnologies.TreeWith(TechnologyStat.Defense, 0.25), _research));
 
     private void Equip(Hero hero, EquipmentItem item)
     {
@@ -56,6 +61,24 @@ public class HeroCombatantsTests
         Assert.Equal((hero.Id, stats.GetValueOrDefault("Health")), (attacking.HeroId, attacking.Health));
         Assert.Equal(stats.GetValueOrDefault("Attack") * crit, attacking.Power, 6);
         Assert.Equal(stats.GetValueOrDefault("Defense"), defending.Power);
+    }
+
+    /// <summary>
+    /// Бойові технології власника множать силу героя в марші й обороні, як у вежі та данжі
+    /// (рішення 03.11.2026); герой гравця без досліджень лишається при своїх статах.
+    /// </summary>
+    [Fact]
+    public async Task ForAsync_ShouldStrengthenTheHero_WithTheOwnersTechnologies()
+    {
+        var hero = Hero();
+        var stranger = Hero();
+        var stats = _stats.Compute(hero, _catalog.Hero(hero.HeroKey), []);
+        _research.Researched(hero.PlayerId, "attack_infantry", 1);
+
+        var defending = await Combatants().ForAsync([hero, stranger], attacking: false, CancellationToken.None);
+
+        Assert.Equal(stats.GetValueOrDefault("Defense") * 1.25, defending.Single(c => c.HeroId == hero.Id).Power, 6);
+        Assert.Equal(stats.GetValueOrDefault("Defense"), defending.Single(c => c.HeroId == stranger.Id).Power, 6);
     }
 
     /// <summary>Крит зі спорядження підсилює атаку героя в марші понад приховану базу.</summary>

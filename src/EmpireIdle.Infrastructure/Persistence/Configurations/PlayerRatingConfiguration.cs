@@ -17,7 +17,7 @@ namespace EmpireIdle.Infrastructure.Persistence.Configurations
             builder.HasIndex(r => new { r.ServerId, r.TotalRating })
                 .IsDescending(false, true);
 
-            builder.Property(r => r.Version).IsRowVersion();
+            builder.Property<uint>("Version").IsRowVersion();
         }
     }
 }

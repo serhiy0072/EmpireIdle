@@ -81,7 +81,7 @@ public class VillageRelocatorTests
     private (Village Village, Garrison Garrison) GivenVillage(params March[] marches)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Home", ["food"], 10, 10);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Home", ["food"], 10, 10, serverId: 1);
         village.AddBuilding("townhall", catalog.Buildings, Now.AddHours(-1));
 
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);

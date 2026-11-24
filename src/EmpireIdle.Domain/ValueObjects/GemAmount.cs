@@ -15,8 +15,8 @@ namespace EmpireIdle.Domain.ValueObjects
         /// <param name="value">Кількість gems. Не може бути від'ємною.</param>
         public GemAmount(int value)
         {
-            if (value < 0)
-                throw new ArgumentException("Кількість gems не може бути від'ємною.", nameof(value));
+            // Захисна перевірка, не відмова гравцю: від'ємну кількість мав відсіяти валідатор запиту
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
             Value = value;
         }
 

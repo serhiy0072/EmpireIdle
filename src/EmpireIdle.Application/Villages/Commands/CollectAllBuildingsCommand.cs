@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -15,30 +16,24 @@ namespace EmpireIdle.Application.Villages.Commands
     {
         private readonly IVillageRepository _villageRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IServerRepository _serverRepository;
-        private readonly EffectResolver _effectResolver;
+        private readonly VillageProductionRates _rates;
         private readonly GameCatalog _catalog;
         private readonly TimeProvider _timeProvider;
-        private readonly WorldGeometry _geometry;
         private readonly ILogger<CollectAllBuildingsCommandHandler> _logger;
 
         public CollectAllBuildingsCommandHandler(
             IVillageRepository villageRepository,
             IUnitOfWork unitOfWork,
-            IServerRepository serverRepository,
-            EffectResolver effectResolver,
+            VillageProductionRates rates,
             GameCatalog catalog,
             TimeProvider timeProvider,
-            WorldGeometry geometry,
             ILogger<CollectAllBuildingsCommandHandler> logger)
         {
             _villageRepository = villageRepository;
             _unitOfWork = unitOfWork;
-            _serverRepository = serverRepository;
-            _effectResolver = effectResolver;
+            _rates = rates;
             _catalog = catalog;
             _timeProvider = timeProvider;
-            _geometry = geometry;
             _logger = logger;
         }
 
@@ -46,14 +41,11 @@ namespace EmpireIdle.Application.Villages.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
-            var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
-            var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
-            var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
+            var rates = await _rates.ForAsync(village, now, cancellationToken);
 
-            var summary = village.CollectAll(_catalog.Buildings, now, boost, locationMultiplier);
+            var summary = village.CollectAll(_catalog.Buildings, now, rates.Boost, rates.LocationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

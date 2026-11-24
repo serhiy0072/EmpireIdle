@@ -47,7 +47,7 @@ public class HealWoundedCommandTests
     private (Village Village, Garrison Garrison, PlayerWallet Wallet) GivenState(
         int woundedInfantry = 10, int gems = 100, int food = 1000)
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
 
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);

@@ -14,7 +14,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record UpgradeHeroWeaponCommand(Guid PlayerId, Guid HeroId)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class UpgradeHeroWeaponCommandHandler : IRequestHandler<UpgradeHeroWeaponCommand>
+    public sealed class UpgradeHeroWeaponCommandHandler : IRequestHandler<UpgradeHeroWeaponCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IUnitOfWork _unitOfWork;

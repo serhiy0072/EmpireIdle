@@ -25,9 +25,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Перше число місяця, за який уже видано щомісячну нагороду.</summary>
         public DateOnly? RewardedMonth { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin): дві вкладки не видадуть день двічі.</summary>
-        public uint Version { get; private set; }
-
         public LoginRewardProgress(Guid id, Guid playerId, int serverId) : base(id)
         {
             PlayerId = playerId;

@@ -13,22 +13,13 @@ namespace EmpireIdle.Api.Tests.Infrastructure;
 /// На InMemory цього не видно — там немає унікальних індексів, тож тест на Postgres.
 /// </summary>
 [Collection("postgres")]
-public class UnitOfWorkLookupTests : IAsyncLifetime
+public class UnitOfWorkLookupTests
 {
     private const int ServerId = 1;
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public UnitOfWorkLookupTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public UnitOfWorkLookupTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AsyncServiceScope CreateScope(out AppDbContext context)
     {

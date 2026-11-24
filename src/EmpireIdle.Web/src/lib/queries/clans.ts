@@ -7,7 +7,8 @@ import type {
   ClanInviteResponse,
   ClanJoinPolicy,
   ClanListResponse,
-  ClanProfileResponse,
+  ClanPermission,
+  ClanRoleRequest,
   MyClanResponse,
 } from "../apiTypes";
 import { queryKeys } from "../queryKeys";
@@ -42,6 +43,8 @@ export function useClanApplications(playerId: string, enabled: boolean): UseQuer
     queryKey: queryKeys.clanApplications(playerId),
     queryFn: () => api<ClanApplicationResponse[]>(`/api/clans/${playerId}/requests`),
     enabled,
+    // Про нову заявку рекрутерам подія не приходить: без опитування вона з'являлась лише після перезавантаження
+    refetchInterval: 30_000,
   });
 }
 
@@ -65,18 +68,10 @@ export function useClanBrowse(search: string, page: number): UseQueryResult<Clan
   });
 }
 
-export function useClanProfile(clanId: string | null): UseQueryResult<ClanProfileResponse> {
-  return useQuery({
-    queryKey: queryKeys.clanProfile(clanId ?? ""),
-    queryFn: () => api<ClanProfileResponse>(`/api/clans/profile/${clanId}`),
-    enabled: clanId !== null,
-  });
-}
-
 /** Усі кланові команди без тіла: усе потрібне серверу — в маршруті. */
 function useClanCommand<TInput>(
   playerId: string,
-  request: (input: TInput) => { path: string; method?: "POST" | "PUT"; body?: unknown },
+  request: (input: TInput) => { path: string; method?: "POST" | "PUT" | "DELETE"; body?: unknown },
   scopes: readonly PlayerScope[],
 ) {
   const queryClient = useQueryClient();
@@ -94,11 +89,17 @@ function useClanCommand<TInput>(
   });
 }
 
+/**
+ * Усе, що змінює сам факт членства — створення, вступ, прийняте запрошення: клан відкриває бонус території,
+ * кланові квести, дерево технологій і полиці кланового магазину.
+ */
+const CLAN_MEMBERSHIP_SCOPES: readonly PlayerScope[] = ["clan", "clanRequests", "territory", "quests", "clanTechnologies", "clanShop"];
+
 export function useCreateClan(playerId: string) {
   return useClanCommand<{ name: string; tag: string }>(
     playerId,
     (input) => ({ path: `/api/clans/${playerId}`, body: input }),
-    ["clan", "clanRequests", "clanTechnologies"],
+    CLAN_MEMBERSHIP_SCOPES,
   );
 }
 
@@ -107,8 +108,7 @@ export function useJoinClan(playerId: string) {
   return useClanCommand<string>(
     playerId,
     (clanId) => ({ path: `/api/clans/${playerId}/join/${clanId}` }),
-    // Клан відкриває бонус території й кланові квести
-    ["clan", "clanRequests", "territory", "quests", "clanTechnologies"],
+    CLAN_MEMBERSHIP_SCOPES,
   );
 }
 
@@ -150,6 +150,23 @@ export function useAssignRole(playerId: string) {
     (input) => ({ path: `/api/clans/${playerId}/members/${input.targetPlayerId}/role`, body: { roleId: input.roleId } }),
     ["clan"],
   );
+}
+
+/** Власні ролі клану: створення, зміна й видалення. Видалена роль переводить своїх носіїв у звичайні учасники. */
+export function useCreateClanRole(playerId: string) {
+  return useClanCommand<ClanRoleRequest>(playerId, (role) => ({ path: `/api/clans/${playerId}/roles`, body: role }), ["clan"]);
+}
+
+export function useUpdateClanRole(playerId: string) {
+  return useClanCommand<{ roleId: string; role: ClanRoleRequest }>(
+    playerId,
+    (input) => ({ path: `/api/clans/${playerId}/roles/${input.roleId}`, method: "PUT", body: input.role }),
+    ["clan"],
+  );
+}
+
+export function useDeleteClanRole(playerId: string) {
+  return useClanCommand<string>(playerId, (roleId) => ({ path: `/api/clans/${playerId}/roles/${roleId}`, method: "DELETE" }), ["clan"]);
 }
 
 export function useUpdateClanSettings(playerId: string) {
@@ -198,7 +215,7 @@ export function useResolveRequest(playerId: string) {
   return useClanCommand<{ requestId: string; approve: boolean }>(
     playerId,
     (input) => ({ path: `/api/clans/${playerId}/requests/${input.requestId}/resolve`, body: { approve: input.approve } }),
-    ["clan", "clanRequests", "clanHelp", "clanTechnologies"],
+    [...CLAN_MEMBERSHIP_SCOPES, "clanHelp"],
   );
 }
 
@@ -210,23 +227,29 @@ export function useCancelRequest(playerId: string) {
   );
 }
 
-const POLICIES = ["Open", "ByApproval", "InviteOnly"] as const;
+/** Значення ClanJoinPolicy з контракту — у порядку, в якому їх показує вибір. */
+export const JOIN_POLICIES = ["Open", "ByApproval", "InviteOnly"] as const satisfies readonly ClanJoinPolicy[];
 
 export function joinPolicyLabel(policy: string): string {
-  return (POLICIES as readonly string[]).includes(policy) ? t(`social:clan.policy.${policy as (typeof POLICIES)[number]}`) : policy;
+  return (JOIN_POLICIES as readonly string[]).includes(policy)
+    ? t(`social:clan.policy.${policy as ClanJoinPolicy}`)
+    : policy;
 }
 
-/** Числові значення ClanJoinPolicy з контракту — сервер приймає enum числом. */
-export const JOIN_POLICIES: { value: ClanJoinPolicy; name: string }[] = [
-  { value: 0, name: "Open" },
-  { value: 1, name: "ByApproval" },
-  { value: 2, name: "InviteOnly" },
-];
-
-const PERMISSIONS = ["Recruit", "Kick", "AssignRoles", "ManageRoles", "EditProfile", "BuildStructures", "Disband", "ManageTechnologies"] as const;
+/** Дозволи клану в порядку, в якому їх показує редактор ролей; satisfies ловить новий дозвіл без підпису. */
+export const CLAN_PERMISSIONS = [
+  "Recruit",
+  "Kick",
+  "AssignRoles",
+  "ManageRoles",
+  "EditProfile",
+  "BuildStructures",
+  "ManageTechnologies",
+  "Disband",
+] as const satisfies readonly Exclude<ClanPermission, "None">[];
 
 export function permissionLabel(permission: string): string {
-  return (PERMISSIONS as readonly string[]).includes(permission)
-    ? t(`social:clan.permission.${permission as (typeof PERMISSIONS)[number]}`)
+  return (CLAN_PERMISSIONS as readonly string[]).includes(permission)
+    ? t(`social:clan.permission.${permission as (typeof CLAN_PERMISSIONS)[number]}`)
     : permission;
 }

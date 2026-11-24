@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Garrisons.ReadModels;
 using EmpireIdle.Application.Interfaces;
@@ -36,11 +37,9 @@ namespace EmpireIdle.Application.Garrisons.Queries
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-               ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
-            var garrison = await _garrisonRepository.GetByVillageIdReadOnlyAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageReadOnlyAsync(village.Id, cancellationToken);
 
             // Прострочені не показуємо: вони вже недоступні для відновлення,
             // а рядки в БД прибирає окремий джоб

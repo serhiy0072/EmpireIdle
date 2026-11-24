@@ -1,4 +1,5 @@
-using EmpireIdle.Application.Chat.Contracts;
+using EmpireIdle.Application.Common;
+using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.Application.Chat.Services;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
@@ -30,8 +31,7 @@ namespace EmpireIdle.Application.Chat.Queries
         public async Task<IReadOnlyList<ChatConversationView>> Handle(GetChatConversationsQuery request,
             CancellationToken cancellationToken)
         {
-            var viewer = await _players.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId.ToString());
+            var viewer = await _players.RequireAsync(request.PlayerId, cancellationToken);
 
             var latest = await _chat.GetLatestPrivateMessagesAsync(viewer.Id, GetChatConversationsQuery.MaxConversations,
                 cancellationToken);

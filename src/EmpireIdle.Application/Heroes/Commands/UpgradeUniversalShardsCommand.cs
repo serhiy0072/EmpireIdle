@@ -17,7 +17,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record UpgradeUniversalShardsCommand(Guid PlayerId, Rarity From, int Count)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class UpgradeUniversalShardsCommandHandler : IRequestHandler<UpgradeUniversalShardsCommand>
+    public sealed class UpgradeUniversalShardsCommandHandler : IRequestHandler<UpgradeUniversalShardsCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IInventoryRepository _inventoryRepository;

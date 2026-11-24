@@ -23,7 +23,7 @@ function BannerTile({ drop }: { drop: BannerDropResult }) {
         {item !== null ? (
           <ItemIcon itemKey={item.key} type={item.type} rarity={item.rarity} size={64} />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-3xl">
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/10 text-3xl">
             {drop.dropKey.startsWith("hero_") ? "🧩" : "🎁"}
           </div>
         )}
@@ -39,12 +39,13 @@ interface Props {
   onClose: () => void;
   again?: DropsAgain;
   pending?: boolean;
+  error?: unknown;
 }
 
 /** Що випало з банера — те саме вікно «Нагороди», що й у скринь: гравець бачить результат там, де клікнув. */
-export default function BannerDrops({ drops, onClose, again, pending }: Props) {
+export default function BannerDrops({ drops, onClose, again, pending, error }: Props) {
   return (
-    <RewardsWindow onClose={onClose} again={again} pending={pending}>
+    <RewardsWindow onClose={onClose} again={again} pending={pending} error={error}>
       {drops.map((drop, index) => (
         <BannerTile key={index} drop={drop} />
       ))}

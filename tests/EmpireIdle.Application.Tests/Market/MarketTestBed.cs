@@ -123,7 +123,7 @@ internal sealed class MarketTestBed
 
     private (Village, Garrison) GivenPlayer(Guid playerId, int townHallLevel, int gold)
     {
-        var village = new Village(Guid.NewGuid(), playerId, "Test", TestKeys.AllResources, 0, 0);
+        var village = new Village(Guid.NewGuid(), playerId, "Test", TestKeys.AllResources, 0, 0, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { [TestKeys.Gold] = gold }, Now);
         village.AddBuilding(TestKeys.Townhall, Catalog.Buildings, Now);

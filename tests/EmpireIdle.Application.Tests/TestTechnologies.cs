@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Territory.Services;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Interfaces;
@@ -58,9 +59,11 @@ internal static class TestTechnologies
     /// </summary>
     public static ResearchSettlement Settlement(GameCatalog catalog, IVillageRepository villages,
         IPlayerResearchRepository? research = null, IServerRepository? servers = null)
-        => new(villages, servers ?? Substitute.For<IServerRepository>(),
-            TestEffects.Resolver(Substitute.For<IActiveEffectRepository>(), catalog: catalog, research: research),
-            new WorldGeometry(catalog.Config.Map), catalog, new PersonalTechnologies(catalog.Config.Technologies.Personal));
+        => new(villages,
+            new VillageProductionRates(servers ?? Substitute.For<IServerRepository>(),
+                TestEffects.Resolver(Substitute.For<IActiveEffectRepository>(), catalog: catalog, research: research),
+                new WorldGeometry(catalog.Config.Map)),
+            catalog, new PersonalTechnologies(catalog.Config.Technologies.Personal));
 
     /// <summary>Дерево фікстури TestKit, де attack_infantry ще й дає цей стат за рівень.</summary>
     public static TechnologiesConfig TreeWith(TechnologyStat stat, double perLevel)

@@ -1,3 +1,4 @@
+using EmpireIdle.Domain.Enums;
 using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
@@ -74,13 +75,13 @@ namespace EmpireIdle.Application.Clans.Queries
 
             var roles = clan.Roles
                 .OrderByDescending(r => r.Rank)
-                .Select(r => new ClanRoleView(r.Id, r.Name, r.Key, r.Rank, r.Permissions, r.IsLeaderRole, r.IsDefaultRole))
+                .Select(r => new ClanRoleView(r.Id, r.Name, r.Key, r.Rank, r.Permissions.Granted(), r.IsLeaderRole, r.IsDefaultRole))
                 .ToList();
 
             return new MyClan(
                 clan.Id, clan.Name, clan.Tag, clan.Description, clan.JoinPolicy,
                 clan.Members.Count, _catalog.Config.Clan.Capacity, clan.CreatedAt,
-                myRole.Id, myRole.Permissions, roles, members);
+                myRole.Id, myRole.Permissions.Granted(), roles, members);
         }
     }
 }

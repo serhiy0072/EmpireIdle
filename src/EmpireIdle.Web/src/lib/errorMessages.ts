@@ -89,6 +89,11 @@ export function explainError(error: unknown, names?: RefusalNames): ErrorMessage
     return { text: t("errors:badCredentials"), actionable: true };
   }
 
+  // Ліміт запитів приходить без тіла, тож коду помилки немає — розпізнаємо за статусом
+  if (error.status === 429) {
+    return { text: t("errors:tooManyRequests"), actionable: true };
+  }
+
   // Валідація запиту — помилка в клієнті: гравець її виправити не може
   console.error("Запит відхилено сервером", error.problem);
 

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useCatalog } from "../../lib/queries/catalog";
 import { useInventory } from "../../lib/queries/inventory";
-import { MARKET_KIND, useListOnMarket, useMarketQuote, type MarketGoods } from "../../lib/queries/market";
+import { useListOnMarket, useMarketQuote, type MarketGoods } from "../../lib/queries/market";
 import ErrorBanner from "../ErrorBanner";
 import { formatNumber } from "../../lib/format";
 import { t } from "i18next";
@@ -19,6 +19,8 @@ interface Option {
   goods: MarketGoods;
   /** Скільки штук є — лише для стакових предметів. */
   available?: number;
+  /** Артефакт зараз на герої: виставлення зніме його. */
+  equipped?: boolean;
 }
 
 /**
@@ -43,7 +45,8 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
         label: `${catalog.itemName(item.itemKey)}${item.level > 0 ? ` · ${t("items:artifact.level", { level: item.level })}` : ""}${
           item.equippedByHeroId != null ? ` ${t("items:sell.equipped")}` : ""
         }`,
-        goods: { kind: MARKET_KIND.Equipment, equipmentId: item.id, quantity: 1 },
+        goods: { kind: "Equipment" as const, equipmentId: item.id, quantity: 1 },
+        equipped: item.equippedByHeroId != null,
       }));
 
     const stacks = (inventory.data?.items ?? [])
@@ -51,7 +54,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
       .map((item) => ({
         id: `i:${item.itemKey}`,
         label: `${item.displayName} ${t("common:owned", { count: item.count })}`,
-        goods: { kind: MARKET_KIND.Item, itemKey: item.itemKey, quantity: 1 },
+        goods: { kind: "Item" as const, itemKey: item.itemKey, quantity: 1 },
         available: item.count,
       }));
 
@@ -69,23 +72,23 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
   const tax = quote.data === undefined ? 0 : Math.max(1, Math.ceil(chosenPrice * quote.data.taxShare));
 
   if (!canList) {
-    return <p className="text-sm text-slate-500">{t("items:sell.full")}</p>;
+    return <p className="text-sm text-sky-100/70">{t("items:sell.full")}</p>;
   }
 
   if (options.length === 0) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-sky-100/70">
         {t("items:sell.nothing")}
       </p>
     );
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="space-y-3 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-4">
       <ErrorBanner error={list.error ?? quote.error} />
 
       <label className="block text-sm">
-        <span className="text-slate-600">{t("items:sell.what")}</span>
+        <span className="text-slate-200">{t("items:sell.what")}</span>
         <select
           value={selectedId}
           onChange={(event) => {
@@ -93,7 +96,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
             setQuantity(1);
             setPrice(null);
           }}
-          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1"
+          className="mt-1 w-full rounded-lg border border-[#4a72b0] bg-[#1d3b6f] px-2 py-1"
         >
           <option value="">{t("items:sell.pick")}</option>
           {options.map((option) => (
@@ -104,9 +107,13 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
         </select>
       </label>
 
+      {selected?.equipped === true && (
+        <p className="rounded-lg bg-amber-500/15 px-3 py-2 text-sm text-amber-200">{t("items:sell.unequipWarning")}</p>
+      )}
+
       {selected?.available !== undefined && (
         <label className="block text-sm">
-          <span className="text-slate-600">{t("items:sell.quantity", { count: selected.available })}</span>
+          <span className="text-slate-200">{t("items:sell.quantity", { count: selected.available })}</span>
           <input
             type="number"
             min={1}
@@ -116,7 +123,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
               setQuantity(Number(event.target.value));
               setPrice(null);
             }}
-            className="mt-1 w-32 rounded-lg border border-slate-300 px-2 py-1"
+            className="mt-1 w-32 rounded-lg border border-[#4a72b0] px-2 py-1"
           />
         </label>
       )}
@@ -124,7 +131,7 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
       {quote.data !== undefined && (
         <>
           <label className="block text-sm">
-            <span className="text-slate-600">
+            <span className="text-slate-200">
               {t("items:sell.price", { min: formatNumber(quote.data.minPrice), max: formatNumber(quote.data.maxPrice) })}
             </span>
             <input
@@ -133,11 +140,11 @@ export default function SellPanel({ playerId, canList, onListed }: Props) {
               max={quote.data.maxPrice}
               value={chosenPrice}
               onChange={(event) => setPrice(Number(event.target.value))}
-              className="mt-1 w-40 rounded-lg border border-slate-300 px-2 py-1"
+              className="mt-1 w-40 rounded-lg border border-[#4a72b0] px-2 py-1"
             />
           </label>
 
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-sky-100/70">
             {t("items:sell.tax", { tax: formatNumber(tax) })}
           </p>
 

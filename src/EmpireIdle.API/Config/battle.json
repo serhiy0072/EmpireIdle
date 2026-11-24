@@ -1,6 +1,7 @@
 {
   "GameConfig": {
     "RealtimeBattle": {
+      "PoisonTickSeconds": 1,
       "TickMilliseconds": 100,
       "MaxBattleSeconds": 90,
       "HeroLines": {

@@ -47,7 +47,7 @@ public class ReinforcementRulesTests
     private static Village NewVillage(Guid ownerId, int townHallLevel = 5)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), ownerId, "Test", ["food"], 50, 50);
+        var village = new Village(Guid.NewGuid(), ownerId, "Test", ["food"], 50, 50, serverId: 1);
 
         village.AddBuilding("townhall", catalog.Buildings, Now);
         village.AddBuilding("embassy", catalog.Buildings, Now);
@@ -57,7 +57,7 @@ public class ReinforcementRulesTests
         for (var i = 1; i < townHallLevel; i++)
         {
             townhall.BeginUpgrade(catalog.Buildings["townhall"], TimeSpan.Zero, Now, ProductionBoost.None, 1.0);
-            townhall.CompleteConstruction(Now);
+            townhall.CompleteConstruction(catalog.Buildings["townhall"], Now, ProductionBoost.None, locationMultiplier: 1.0);
         }
 
         return village;

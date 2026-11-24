@@ -16,7 +16,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record UpgradeHeroSkillCommand(Guid PlayerId, Guid HeroId, string SkillKey)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class UpgradeHeroSkillCommandHandler : IRequestHandler<UpgradeHeroSkillCommand>
+    public sealed class UpgradeHeroSkillCommandHandler : IRequestHandler<UpgradeHeroSkillCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IInventoryRepository _inventoryRepository;
@@ -78,8 +78,7 @@ namespace EmpireIdle.Application.Heroes.Commands
             var have = stack?.Count ?? 0;
 
             if (stack is null || have < need)
-                throw new RequirementNotMetException(RefusalReasons.HeroSkillNoBook,
-                    $"Raising '{skill.Key}' needs {need} '{book.ItemKey}', the player has {have}.", book.ItemKey, need, have);
+                throw new NotEnoughResourcesException(book.ItemKey, need, have);
 
             stack.Consume(need);
 

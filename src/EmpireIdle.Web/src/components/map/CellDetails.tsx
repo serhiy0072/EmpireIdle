@@ -18,6 +18,7 @@ import { formatRemaining } from "../../lib/time";
 import ErrorBanner from "../ErrorBanner";
 import StructureActions from "./StructureActions";
 import { formatNumber } from "../../lib/format";
+import { latestError } from "../../lib/latestError";
 import { t } from "i18next";
 
 interface Props {
@@ -142,7 +143,7 @@ export default function CellDetails({ playerId, cell, isHome, territory, threats
       )}
 
       {/* Одне місце для відмов розвідки й відкликання: кнопки розвідки є і в блоці табору, і в блоці села */}
-      <ErrorBanner error={scout.error ?? recall.error} />
+      <ErrorBanner error={latestError([scout, recall])} />
 
       {camps.length > 0 && (
         <ul className="space-y-2">

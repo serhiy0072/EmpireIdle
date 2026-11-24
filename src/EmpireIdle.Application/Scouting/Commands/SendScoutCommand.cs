@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Marches.Services;
@@ -76,16 +77,14 @@ namespace EmpireIdle.Application.Scouting.Commands
             var tower = scouting.RequiredBuilding
                 ?? throw new RequirementNotMetException("Scouting is disabled in this world.");
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             // Вежа стоїть із дня 1 під туманом — рахується лише відкрита
             if (village.Buildings.All(b => b.Type != tower) || !_status.IsUnlocked(village, tower))
                 throw new RequirementNotMetException(RefusalReasons.BuildingRequired,
                     $"Scouting requires a '{tower}'.", tower);
 
-            var garrison = await _garrisonRepository.GetByVillageIdAsync(village.Id, cancellationToken)
-                ?? throw new InvalidOperationException($"Garrison not found for village {village.Id}.");
+            var garrison = await _garrisonRepository.RequireByVillageAsync(village.Id, cancellationToken);
 
             var target = await _targets.ResolveAsync(request.TargetType, request.TargetId, village, now, cancellationToken);
 

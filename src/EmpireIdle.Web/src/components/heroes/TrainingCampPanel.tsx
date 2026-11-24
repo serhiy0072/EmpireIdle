@@ -46,7 +46,7 @@ export default function TrainingCampPanel({ camp, heroes, busy, onPlace, onRemov
         rarity={config?.rank}
         onClick={onClick}
         selected={selected}
-        dimmed={busy}
+        disabled={busy}
         title={catalog.heroName(hero.heroKey)}
         corner={<RoleBadge role={config?.class} size={16} />}
         top={<span className="pl-4">{t("heroes:list.level", { level })}</span>}

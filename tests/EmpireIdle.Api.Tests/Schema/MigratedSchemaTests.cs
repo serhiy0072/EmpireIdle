@@ -13,23 +13,14 @@ namespace EmpireIdle.Api.Tests.Schema;
 /// розбіжності не бачить — так EquipmentRolls існувала лише в моделі.
 /// </summary>
 [Collection("postgres")]
-public class MigratedSchemaTests : IAsyncLifetime
+public class MigratedSchemaTests
 {
     /// <summary>Системна колонка: є в кожній таблиці, але information_schema її не показує.</summary>
     private const string RowVersionColumn = "xmin";
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public MigratedSchemaTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public MigratedSchemaTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public async Task Migrations_ShouldCreateEveryMappedColumn()
@@ -54,5 +45,24 @@ public class MigratedSchemaTests : IAsyncLifetime
         var missing = expected.Except(actual).Order().ToList();
 
         Assert.Empty(missing);
+    }
+
+    /// <summary>
+    /// Унікальність email тримає база, а не лише перевірка Identity в коді: дві паралельні реєстрації
+    /// з одним email перевірку проходять обидві, і зупинити другу може тільки індекс.
+    /// </summary>
+    [Fact]
+    public async Task EmailIndex_ShouldBeUnique()
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var definition = await context.Database
+            .SqlQuery<string>($"""
+                SELECT indexdef AS "Value" FROM pg_indexes WHERE tablename = 'AspNetUsers' AND indexname = 'EmailIndex'
+                """)
+            .SingleAsync();
+
+        Assert.StartsWith("CREATE UNIQUE INDEX", definition);
     }
 }

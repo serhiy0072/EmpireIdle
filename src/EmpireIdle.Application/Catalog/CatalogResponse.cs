@@ -69,7 +69,19 @@
         int MapSize,
         string MainBuildingKey,
         string Language,
+        // Рідкість → скільки універсальних осколків іде за один осколок наступної рідкості
+        IReadOnlyDictionary<string, int> UniversalShardUpgrade,
+        CatalogLimits Limits,
         string Version);
+
+    /// <summary>Стелі запитів і пороги правил, які клієнт мусить знати, а не тримати власною копією.</summary>
+    /// <param name="MaxItemsPerUse">Скільки штук предмета приймає один запит «використати».</param>
+    /// <param name="MaxArtifactFood">Скільки предметів згодовується артефакту за раз.</param>
+    /// <param name="MaxKeyChestsPerOpen">Скільки скринь відкривається ключами за один запит.</param>
+    /// <param name="TowerSquadSize">Скільки героїв стає в загін вежі.</param>
+    /// <param name="NewbieShieldTownHallLevel">Захист новачка діє, поки головна будівля нижче цього рівня.</param>
+    public record CatalogLimits(int MaxItemsPerUse, int MaxArtifactFood, int MaxKeyChestsPerOpen, int TowerSquadSize,
+        int NewbieShieldTownHallLevel);
 
     /// <summary>
     /// Формула SpeedUpCalculator: ceil(Factor × хвилини^Exponent) за зрізану частину — усе понад

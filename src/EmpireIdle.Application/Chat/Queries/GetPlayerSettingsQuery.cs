@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Common;
+using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Exceptions;
@@ -6,9 +8,6 @@ using MediatR;
 
 namespace EmpireIdle.Application.Chat.Queries
 {
-    /// <summary>Налаштування гравця: мова інтерфейсу й мови, з яких можна обрати.</summary>
-    public record PlayerSettingsView(string Language, IReadOnlyList<string> Languages);
-
     public record GetPlayerSettingsQuery(Guid PlayerId) : IRequest<PlayerSettingsView>, IPlayerScopedRequest;
 
     public sealed class GetPlayerSettingsQueryHandler : IRequestHandler<GetPlayerSettingsQuery, PlayerSettingsView>
@@ -24,8 +23,7 @@ namespace EmpireIdle.Application.Chat.Queries
 
         public async Task<PlayerSettingsView> Handle(GetPlayerSettingsQuery request, CancellationToken cancellationToken)
         {
-            var player = await _players.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId.ToString());
+            var player = await _players.RequireAsync(request.PlayerId, cancellationToken);
 
             return new PlayerSettingsView(player.Language, _catalog.Config.Localization.SupportedLanguages);
         }

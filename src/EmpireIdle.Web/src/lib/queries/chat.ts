@@ -7,9 +7,8 @@ import { queryKeys } from "../queryKeys";
 export type ChatMessageView = components["schemas"]["ChatMessageView"];
 export type ChatConversationView = components["schemas"]["ChatConversationView"];
 
-/** Канал у запитах — числом, як enum сервера; у view і подіях — рядком. */
-export const CHAT_CHANNEL = { Server: 1, Clan: 2, Private: 3 } as const;
-export type ChatChannelName = keyof typeof CHAT_CHANNEL;
+/** Канал чату — назвою, як enum сервера в контракті. */
+export type ChatChannelName = components["schemas"]["ChatChannel"];
 
 export const HISTORY_SIZE = 50;
 
@@ -44,7 +43,7 @@ export function useSendChat(playerId: string) {
       api<{ messageId: string }>(`/api/chat/${playerId}/messages`, {
         method: "POST",
         idempotent: true,
-        body: { channel: CHAT_CHANNEL[input.channel], recipientId: input.recipientId, text: input.text },
+        body: { channel: input.channel, recipientId: input.recipientId, text: input.text },
       }),
   });
 }

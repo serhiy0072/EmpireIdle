@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Inventory.Contracts;
 using EmpireIdle.Domain.Services;
@@ -18,8 +19,7 @@ namespace EmpireIdle.Application.Inventory.Effects
             if (context.Config.Resources.Count == 0)
                 throw new InvalidOperationException($"Item '{context.Config.Key}' has no resources configured.");
 
-            var village = await _villageRepository.GetByPlayerIdAsync(context.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {context.PlayerId}.");
+            var village = await _villageRepository.RequireByPlayerAsync(context.PlayerId, cancellationToken);
 
             // Той самий шлях, що й нагороди квестів; стелі складу немає (GDD §4.1)
             foreach (var line in context.Config.Resources)

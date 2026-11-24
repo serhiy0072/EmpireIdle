@@ -78,7 +78,7 @@ public class GetMarchesQueryTests
 
     private Garrison GivenGarrison()
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [], 50, 50);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", [], 50, 50, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, village.ServerId);
 
         _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
@@ -165,7 +165,7 @@ public class GetMarchesQueryTests
     public async Task Handle_ShouldOrderByArrival()
     {
         var garrison = GivenGarrison();
-        var target = new Village(Guid.NewGuid(), Guid.NewGuid(), "Neighbour", [], 55, 55);
+        var target = new Village(Guid.NewGuid(), Guid.NewGuid(), "Neighbour", [], 55, 55, serverId: 1);
         var late = MarchTo(garrison, MarchTargetType.Village, target.Id, Now.AddMinutes(120));
         var soon = MarchTo(garrison, MarchTargetType.Village, target.Id, Now.AddSeconds(45));
 

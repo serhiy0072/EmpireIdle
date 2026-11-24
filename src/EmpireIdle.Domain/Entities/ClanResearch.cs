@@ -29,8 +29,6 @@ namespace EmpireIdle.Domain.Entities
 
         public DateTime UpdatedAt { get; private set; }
 
-        public uint Version { get; private set; }
-
         public ClanResearch(Guid id, Guid clanId, int serverId, DateTime utcNow) : base(id)
         {
             ClanId = clanId;

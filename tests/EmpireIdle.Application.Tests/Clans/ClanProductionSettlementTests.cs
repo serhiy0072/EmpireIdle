@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Clans.Commands;
 using EmpireIdle.Application.Clans.Services;
 using EmpireIdle.Application.Rewards;
@@ -68,15 +69,17 @@ public class ClanProductionSettlementTests
     {
         var research = Substitute.For<IPlayerResearchRepository>();
 
-        return new ResearchSettlement(_villages, _servers,
+        var rates = new VillageProductionRates(_servers,
             TestEffects.Resolver(Substitute.For<IActiveEffectRepository>(), catalog: _catalog, research: research, clanResearch: _clanResearch),
-            new WorldGeometry(_catalog.Config.Map), _catalog, new PersonalTechnologies(_catalog.Config.Technologies.Personal));
+            new WorldGeometry(_catalog.Config.Map));
+
+        return new ResearchSettlement(_villages, rates, _catalog, new PersonalTechnologies(_catalog.Config.Technologies.Personal));
     }
 
     /// <summary>Село гравця з фермою, що виробляє годину.</summary>
     private Building GivenFarm(Guid playerId)
     {
-        var village = new Village(Guid.NewGuid(), playerId, "Test", [TestKeys.Food, TestKeys.Gold], 0, 0);
+        var village = new Village(Guid.NewGuid(), playerId, "Test", [TestKeys.Food, TestKeys.Gold], 0, 0, serverId: 1);
         village.AddBuilding(TestKeys.Townhall, _catalog.Buildings, Now.AddHours(-1));
         village.AddBuilding(TestKeys.Farm, _catalog.Buildings, Now.AddHours(-1));
         _villages.GetByPlayerIdAsync(playerId, Arg.Any<CancellationToken>()).Returns(village);
@@ -100,7 +103,7 @@ public class ClanProductionSettlementTests
         clan.UpdateSettings(LeaderId, "", ClanJoinPolicy.Open, Now);
         _clans.GetByIdAsync(clan.Id, Arg.Any<CancellationToken>()).Returns(clan);
         _players.GetByIdAsync(PlayerId, Arg.Any<CancellationToken>())
-            .Returns(new Player(PlayerId, "player", "player@test.local", "u-player", Now));
+            .Returns(new Player(PlayerId, "player", "player@test.local", "u-player", Now, serverId: 1));
 
         await new JoinClanCommandHandler(_clans, _requests, _players, _unitOfWork, _catalog, new FakeTimeProvider(Now),
                 Settlement(), NullLogger<JoinClanCommandHandler>.Instance)

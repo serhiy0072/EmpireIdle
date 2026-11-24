@@ -1,5 +1,7 @@
 {
   "GameConfig": {
+    "MaxBuildingLevel": 30,
+    "AutoCollectSeconds": 60,
     "UnitBatchMin": 30,
     "UnitBatchMax": 1000,
     "MaxUnitLevel": 10,
@@ -14,6 +16,14 @@
     "UnitCapacityMax": 300000,
     "DefaultServerId": 1,
     "ActiveServerIds": [ 1 ],
-    "BuildingLevelsPerTier": 10
+    "BuildingLevelsPerTier": 10,
+    "Retention": {
+      "BattleReportDays": 30,
+      "ScoutReportDays": 30,
+      "FinishedDungeonRunDays": 1,
+      "ClosedMarketListingDays": 30,
+      "ResolvedClanRequestDays": 7,
+      "ExpiredEffectHours": 24
+    }
   }
 }

@@ -1,4 +1,5 @@
 using EmpireIdle.Application.Beasts.ReadModels;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
@@ -38,8 +39,7 @@ namespace EmpireIdle.Application.Beasts.Queries
 
         public async Task<BeastPenView> Handle(GetBeastPenQuery request, CancellationToken cancellationToken)
         {
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(request.PlayerId, cancellationToken)
-                ?? throw new InvalidOperationException($"Village not found for player {request.PlayerId}.");
+            var village = await _villages.RequireByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
 
             var pen = await _pens.GetByPlayerReadOnlyAsync(request.PlayerId, cancellationToken);
             var penLevel = _capacities.BeastPenLevel(village, _status);

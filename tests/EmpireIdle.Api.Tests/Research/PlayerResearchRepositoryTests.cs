@@ -14,23 +14,14 @@ namespace EmpireIdle.Api.Tests.Research;
 /// лише дозрілі дослідження свого світу, а другий рядок гравця відбиває унікальний індекс.
 /// </summary>
 [Collection("postgres")]
-public class PlayerResearchRepositoryTests : IAsyncLifetime
+public class PlayerResearchRepositoryTests
 {
     private const int ServerId = 37;
     private static readonly DateTime Now = new(2026, 10, 28, 12, 0, 0, DateTimeKind.Utc);
 
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public PlayerResearchRepositoryTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public PlayerResearchRepositoryTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     private AppDbContext CreateContext(int serverId = ServerId)
     {

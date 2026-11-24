@@ -20,8 +20,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Коли пройдено HighestFloor; null — ще нічого.</summary>
         public DateTime? ReachedAt { get; private set; }
 
-        public uint Version { get; private set; }
-
         public TowerProgress(Guid id, Guid playerId, int serverId) : base(id)
         {
             PlayerId = playerId;

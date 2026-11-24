@@ -15,7 +15,7 @@ namespace EmpireIdle.Application.Heroes.Commands
     public record SummonHeroCommand(Guid PlayerId, string HeroKey)
         : IRequest, IPlayerScopedRequest, IIdempotentRequest;
 
-    internal sealed class SummonHeroCommandHandler : IRequestHandler<SummonHeroCommand>
+    public sealed class SummonHeroCommandHandler : IRequestHandler<SummonHeroCommand>
     {
         private readonly IHeroRepository _heroRepository;
         private readonly IServerRepository _serverRepository;

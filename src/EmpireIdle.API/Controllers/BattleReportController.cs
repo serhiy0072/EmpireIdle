@@ -1,6 +1,6 @@
-using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Battles.Commands;
 using EmpireIdle.Application.Battles.Queries;
+using EmpireIdle.Application.Battles.ReadModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,26 +22,11 @@ public class BattleReportController : ControllerBase
 
     /// <summary>Останні звіти гравця (найновіші першими).</summary>
     [HttpGet("{playerId:guid}")]
-    [ProducesResponseType(typeof(List<BattleReportResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<BattleReportView>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<List<BattleReportResponse>>> GetReports(Guid playerId, [FromQuery] int take = 20, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<BattleReportView>>> GetReports(Guid playerId, [FromQuery] int take = 20, CancellationToken cancellationToken = default)
     {
-        var reports = await _mediator.Send(new GetBattleReportsQuery(playerId, take), cancellationToken);
-
-        var response = reports
-            .Select(r => new BattleReportResponse(
-                r.Id, r.MarchId, r.X, r.Y, r.TerrainType,
-                r.TargetName, r.TargetLevel, r.Won,
-                r.AttackerPower, r.DefenderPower, r.FoughtAt, r.IsRead,
-                r.Lines
-                    .Select(l => new BattleReportLineResponse(
-                        l.UnitType, l.Sent, l.Survived, l.Wounded, l.Recoverable, l.Dead))
-                    .ToList(),
-                r.TamedBeastKey,
-                r.HeroExperience))
-            .ToList();
-
-        return Ok(response);
+        return Ok(await _mediator.Send(new GetBattleReportsQuery(playerId, take), cancellationToken));
     }
 
     /// <summary>Позначити звіт прочитаним.</summary>

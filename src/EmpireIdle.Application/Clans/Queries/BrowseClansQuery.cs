@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Enums;
 using EmpireIdle.Domain.Services;
@@ -5,20 +6,6 @@ using MediatR;
 
 namespace EmpireIdle.Application.Clans.Queries
 {
-    /// <summary>Рядок списку кланів.</summary>
-    public record ClanListItem(
-        Guid Id,
-        string Name,
-        string Tag,
-        string Description,
-        ClanJoinPolicy JoinPolicy,
-        int MemberCount,
-        int Capacity,
-        bool IsFull);
-
-    /// <summary>Сторінка списку із загальною кількістю збігів.</summary>
-    public record ClanListPage(List<ClanListItem> Items, int Total, int Page, int PageSize);
-
     /// <summary>
     /// Клани світу для вступу. Не player-scoped: клани публічні в межах
     /// світу, а світ уже прийшов із токена.

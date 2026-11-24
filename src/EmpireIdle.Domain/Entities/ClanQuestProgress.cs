@@ -20,9 +20,6 @@ namespace EmpireIdle.Domain.Entities
         public QuestState State { get; private set; }
         public DateTime? CompletedAt { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin): внески учасників приходять паралельно.</summary>
-        public uint Version { get; private set; }
-
         public ClanQuestProgress(Guid id, int serverId, Guid clanId, string questKey, long target) : base(id)
         {
             if (target <= 0)

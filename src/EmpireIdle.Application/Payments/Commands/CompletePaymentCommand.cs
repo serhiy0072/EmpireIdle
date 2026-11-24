@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.ValueObjects;
 using MediatR;
@@ -65,8 +66,7 @@ namespace EmpireIdle.Application.Payments.Commands
             var player = await _playerRepository.GetByIdAsync(payment.PlayerId, cancellationToken)
                 ?? throw new InvalidOperationException($"Player {payment.PlayerId} not found.");
 
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new InvalidOperationException($"Wallet not found for player {payment.PlayerId}.");
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
             wallet.AddGems(new GemAmount(payment.Gems), payment.SessionId, now);
 

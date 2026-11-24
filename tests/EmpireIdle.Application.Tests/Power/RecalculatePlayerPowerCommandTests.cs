@@ -22,7 +22,7 @@ public class RecalculatePlayerPowerCommandTests
     [Fact]
     public async Task Handle_ShouldForwardToTheHomeGarrison()
     {
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
         var garrison = new Garrison(Guid.NewGuid(), village.Id, 1);
         _villages.GetByPlayerIdReadOnlyAsync(PlayerId, Arg.Any<CancellationToken>()).Returns(village);
         _garrisons.GetByVillageIdAsync(village.Id, Arg.Any<CancellationToken>()).Returns(garrison);

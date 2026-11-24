@@ -80,7 +80,10 @@ namespace EmpireIdle.Domain.Dungeons
             if (actor.IsAlive && !stunned)
             {
                 if (ability is null)
+                {
                     Strike(combatants, actorIndex, action.TargetIndex, 1.0, effects, random);
+                    StrikeAgain(state, combatants, actorIndex, action.TargetIndex, effects, random);
+                }
                 else
                     UseSkill(combatants, actorIndex, ability, action.TargetIndex, effects, random);
             }
@@ -294,7 +297,7 @@ namespace EmpireIdle.Domain.Dungeons
                 if (skill.Kind == SkillKind.Active)
                 {
                     skills.Add(skill.Key == used?.Key
-                        ? skill with { CooldownLeft = FullCooldown(skill, combatants[actorIndex]) }
+                        ? skill with { CooldownLeft = FullCooldown(skill, combatants[actorIndex], random) }
                         : Tick(skill));
                     continue;
                 }
@@ -303,7 +306,7 @@ namespace EmpireIdle.Domain.Dungeons
                 if (skill.Ready && canAct && combatants[actorIndex].IsAlive)
                 {
                     FirePeriodic(state, combatants, actorIndex, skill, effects, random);
-                    skills.Add(skill with { CooldownLeft = FullCooldown(skill, combatants[actorIndex]) });
+                    skills.Add(skill with { CooldownLeft = FullCooldown(skill, combatants[actorIndex], random) });
                     continue;
                 }
 
@@ -320,16 +323,64 @@ namespace EmpireIdle.Domain.Dungeons
         /// Артефакт на перезарядку скорочує лише активне — періодичне й так б'є без участі гравця —
         /// і не нижче одного ходу очікування: між двома застосуваннями лишається звичайний удар,
         /// інакше кілька таких артефактів дали б активне вміння щоходу.
+        ///
+        /// Скорочують двоє (рішення 16.11.2026): цілі ходи з наборів і відсотковий стат — частка власної
+        /// перезарядки вміння, як у вежі. Ціла частина ходів знімається завжди, залишок — шанс зняти ще один:
+        /// у середньому 20% стату дають ті самі +25% застосувань, що й у реалтайм-бою.
         /// </summary>
-        private static int FullCooldown(CombatSkill skill, Combatant actor)
+        private int FullCooldown(CombatSkill skill, Combatant actor, DeterministicRandom random)
         {
             var full = Math.Max(0, skill.Cooldown - 1);
 
-            var reduction = skill.Kind == SkillKind.Active
-                ? (int)Math.Round(actor.UniqueStats.GetValueOrDefault(DungeonStat.CooldownReduction))
-                : 0;
+            if (skill.Kind != SkillKind.Active)
+                return full;
+
+            var reduction = (int)Math.Round(actor.UniqueStats.GetValueOrDefault(DungeonStat.CooldownReduction));
+            var share = Math.Min(_config.MaxCooldownReduction, actor.UniqueStats.GetValueOrDefault(DungeonStat.CooldownReductionShare));
+
+            // Кидок лише в того, хто має стат і дробовий залишок: решта боїв зберігає ту саму послідовність кидків
+            if (share > 0)
+            {
+                var turns = share * skill.Cooldown;
+                var whole = (int)Math.Floor(turns);
+
+                reduction += whole;
+
+                if (turns - whole > 0 && random.NextDouble() < turns - whole)
+                    reduction++;
+            }
 
             return Math.Max(Math.Min(1, full), full - reduction);
+        }
+
+        /// <summary>
+        /// Швидкість атаки (рішення 16.11.2026): шанс другого звичайного удару в той самий хід — на повну шкоду,
+        /// з власними кидками криту й блоку та власним вампіризмом. Лише після звичайного удару й лише один.
+        /// Б'є ту саму ціль; якщо перший удар її вбив — найслабшу досяжну, як автобій; немає досяжних — не б'є.
+        /// Кидок лише в того, хто має стат: решта боїв зберігає ту саму послідовність кидків.
+        /// </summary>
+        private void StrikeAgain(BattleState state, List<Combatant> combatants, int actorIndex, int? targetIndex,
+            List<TurnEffect> effects, DeterministicRandom random)
+        {
+            var actor = combatants[actorIndex];
+            var speed = Math.Min(_config.MaxAttackSpeed, actor.UniqueStats.GetValueOrDefault(DungeonStat.AttackSpeed));
+
+            if (speed <= 0 || !actor.IsAlive || random.NextDouble() >= speed)
+                return;
+
+            var target = targetIndex is { } first && combatants[first].IsAlive
+                ? first
+                : PickAutoTarget(state with { Combatants = combatants }, actor, null);
+
+            if (target is not { } index)
+                return;
+
+            var from = effects.Count;
+
+            Strike(combatants, actorIndex, index, 1.0, effects, random);
+
+            for (var i = from; i < effects.Count; i++)
+                effects[i] = effects[i] with { ExtraStrike = true };
         }
 
         /// <summary>

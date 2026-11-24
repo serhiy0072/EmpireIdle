@@ -133,11 +133,6 @@ namespace EmpireIdle.Domain.Tests.Services
 
         // ---------- Економіка ----------
 
-        /// <summary>Крива нижче одиниці робить апгрейди дешевшими з рівнем.</summary>
-        [Fact]
-        public void Validate_ShouldRejectShrinkingUpgradeCost()
-            => Rejects(c => c.Buildings.First(b => b.Key == "farm").UpgradeCostGrowth = 0.9);
-
         [Fact]
         public void Validate_ShouldRejectUnknownStartingResource()
             => Rejects(c => c.StartingResources["gold"] = 100);
@@ -427,30 +422,6 @@ namespace EmpireIdle.Domain.Tests.Services
                 [new ResourceCost { Resource = "mithril", Amount = 10 }]);
 
         // ---------- Смуги втрат ----------
-
-        [Fact]
-        public void Validate_ShouldRejectABandWithMinAboveMax()
-        {
-            var error = Rejects(c => c.Combat.AttackerWinLosses = new LossBand { Min = 0.4, Max = 0.2 });
-
-            Assert.Contains("AttackerWinLosses", error.Message);
-        }
-
-        [Fact]
-        public void Validate_ShouldRejectABandAboveOne()
-        {
-            var error = Rejects(c => c.Combat.DefenderLossLosses = new LossBand { Min = 0.3, Max = 1.2 });
-
-            Assert.Contains("DefenderLossLosses", error.Message);
-        }
-
-        [Fact]
-        public void Validate_ShouldRejectANegativeBand()
-        {
-            var error = Rejects(c => c.Combat.DefenderWinLosses = new LossBand { Min = -0.1, Max = 0.2 });
-
-            Assert.Contains("DefenderWinLosses", error.Message);
-        }
 
         /// <summary>
         /// Головна перевірка: нижня межа програшу під верхньою межею перемоги

@@ -100,7 +100,7 @@ public class TrainUnitsCommandTests
         int barracksLevel = 1, int food = 10_000, bool barracksUnderConstruction = false, int townHallLevel = 1)
     {
         var catalog = new GameCatalog(Config());
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food"], 0, 0, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = food }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);
@@ -132,7 +132,7 @@ public class TrainUnitsCommandTests
         {
             building.BeginUpgrade(catalog.Buildings[type], TimeSpan.Zero, Now,
                 ProductionBoost.None, locationMultiplier: 1.0);
-            building.CompleteConstruction(Now);
+            building.CompleteConstruction(catalog.Buildings[type], Now, ProductionBoost.None, locationMultiplier: 1.0);
         }
     }
 
@@ -242,17 +242,31 @@ public class TrainUnitsCommandTests
     }
 
     /// <summary>
-    /// Казарма в процесі апгрейду не рахується: інакше замовлення робилось би
-    /// наперед, під ще недосягнутий рівень.
+    /// Казарма на апгрейді працює на поточному рівні (рішення 16.11.2026):
+    /// тренування триває, поки вона будується.
     /// </summary>
     [Fact]
-    public async Task Handle_ShouldReject_WhenTheBuildingIsUnderConstruction()
+    public async Task Handle_ShouldTrain_WhileTheBuildingIsUnderConstruction()
     {
-        GivenVillage(barracksLevel: 1, barracksUnderConstruction: true);
+        var (_, garrison) = GivenVillage(barracksLevel: 1, barracksUnderConstruction: true);
+
+        await Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 1), CancellationToken.None);
+
+        Assert.Single(garrison.TrainingOrders);
+    }
+
+    /// <summary>
+    /// Рівень піднімається лише із завершенням апгрейду: замовити наперед
+    /// юніта, якого відкриє наступний рівень казарми, не вийде.
+    /// </summary>
+    [Fact]
+    public async Task Handle_ShouldKeepTheCurrentBuildingLevel_WhileTheBuildingIsUnderConstruction()
+    {
+        GivenVillage(barracksLevel: 5, barracksUnderConstruction: true);
 
         var refusal = await Assert.ThrowsAsync<RequirementNotMetException>(() =>
-            Handler().Handle(new TrainUnitsCommand(PlayerId, "infantry", 1, 1), CancellationToken.None));
-        Assert.Equal(RefusalReasons.BuildingRequired.Key, refusal.Reason);
+            Handler().Handle(new TrainUnitsCommand(PlayerId, "siege", 1, 1), CancellationToken.None));
+        Assert.Equal(RefusalReasons.BuildingLevelRequired.Key, refusal.Reason);
     }
 
     /// <summary>

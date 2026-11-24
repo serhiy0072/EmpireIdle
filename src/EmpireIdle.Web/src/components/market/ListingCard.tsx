@@ -31,32 +31,32 @@ export default function ListingCard({ listing, action }: Props) {
   const unit = listing.kind === "Item" ? t("items:listing.perItem") : t("items:listing.perPower");
 
   return (
-    <div className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3">
+    <div className="flex gap-3 rounded-xl border border-[#335c9a] bg-[#1d3b6f] p-3">
       <ItemIcon itemKey={listing.itemKey} type={listing.kind === "Item" ? (catalog.item(listing.itemKey)?.type ?? "item") : "equipment"} rarity={rarity} size={48} />
 
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="truncate font-medium text-slate-800">
+          <span className="truncate font-medium text-white">
             {name}
-            {listing.quantity > 1 && <span className="ml-1 text-slate-500">×{listing.quantity}</span>}
+            {listing.quantity > 1 && <span className="ml-1 text-sky-100/70">×{listing.quantity}</span>}
             {(listing.equipment?.level ?? 0) > 0 && (
-              <span className="ml-1 text-amber-600">{t("items:artifact.level", { level: listing.equipment?.level })}</span>
+              <span className="ml-1 text-amber-300">{t("items:artifact.level", { level: listing.equipment?.level })}</span>
             )}
           </span>
-          <span className="font-medium text-amber-700">{formatNumber(listing.priceGold)} 🪙</span>
+          <span className="font-medium text-amber-200">{formatNumber(listing.priceGold)} 🪙</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-1 text-xs">
           {rarity !== undefined && <span className={`rounded px-2 py-0.5 ${rarityStyle(rarity)}`}>{rarityLabel(rarity)}</span>}
           {listing.equipment != null &&
             Object.entries(listing.equipment.stats).map(([stat, value]) => (
-              <span key={stat} className="rounded bg-slate-100 px-2 py-0.5 text-slate-600">
+              <span key={stat} className="rounded bg-white/10 px-2 py-0.5 text-slate-200">
                 {statLabel(stat)} {statValue(stat, value)}
               </span>
             ))}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-sky-100/70">
           <span>
             {t("items:listing.perUnit", { price: formatNumber(listing.pricePerUnit, { maximumFractionDigits: 1 }), unit })}
             {listing.state === "Active"

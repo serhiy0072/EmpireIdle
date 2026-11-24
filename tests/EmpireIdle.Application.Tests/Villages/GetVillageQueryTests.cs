@@ -71,7 +71,7 @@ public class GetVillageQueryTests
     private Village GivenVillage()
     {
         var catalog = Catalog();
-        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food", "gold"], 0, 0);
+        var village = new Village(Guid.NewGuid(), PlayerId, "Test", ["food", "gold"], 0, 0, serverId: 1);
 
         village.GrantStartingResources(new Dictionary<string, int> { ["food"] = 10_000, ["gold"] = 500 }, Now);
         village.AddBuilding("townhall", catalog.Buildings, Now);

@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards.Contracts;
@@ -46,8 +47,7 @@ namespace EmpireIdle.Application.Rewards.Granters
                 throw new InvalidOperationException(
                     $"Artifact reward from '{context.Reference}' has non-positive Amount {context.Reward.Amount}.");
 
-            var village = await _villages.GetByPlayerIdReadOnlyAsync(context.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", context.PlayerId);
+            var village = await _villages.RequireByPlayerReadOnlyAsync(context.PlayerId, cancellationToken);
 
             var mainLevel = village.Buildings.FirstOrDefault(b => b.Type == _catalog.MainBuildingKey)?.Level.Value ?? 0;
             var pieces = ArtifactPool.Pieces(_catalog, rarity, mainLevel);

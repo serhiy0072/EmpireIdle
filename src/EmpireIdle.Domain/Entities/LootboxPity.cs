@@ -17,9 +17,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Скільки всього відкрито — для аналітики й підтримки.</summary>
         public int TotalOpened { get; private set; }
 
-        /// <summary>Токен паралелізму: два одночасні відкриття інакше з'їли б одну гарантію двічі.</summary>
-        public uint Version { get; private set; }
-
         public LootboxPity(Guid id, Guid playerId, string lootboxKey) : base(id)
         {
             PlayerId = playerId;

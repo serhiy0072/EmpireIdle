@@ -35,7 +35,7 @@ export const queryKeys = {
   mailUnread: (playerId: string) => ["mail", playerId, "unread"] as const,
   /** Ринок гравця — префікс: мутації ринку інвалідують разом і «мої лоти», і вітрину, і котирування. */
   market: (playerId: string) => ["market", playerId] as const,
-  marketBrowse: (playerId: string, kind: number | null, page: number) => ["market", playerId, "browse", kind, page] as const,
+  marketBrowse: (playerId: string, kind: string | null, page: number) => ["market", playerId, "browse", kind, page] as const,
   marketQuote: (playerId: string, goods: unknown) => ["market", playerId, "quote", goods] as const,
   banners: (playerId: string) => ["banners", playerId] as const,
   clan: (playerId: string) => ["clan", playerId] as const,
@@ -46,7 +46,6 @@ export const queryKeys = {
   clanInvites: (playerId: string) => ["clanRequests", playerId, "invites"] as const,
   /** Каталог кланів нікому не належить: ключ — від пошуку й сторінки. */
   clanBrowse: (search: string, page: number) => ["clans", "browse", search, page] as const,
-  clanProfile: (clanId: string) => ["clans", "profile", clanId] as const,
   /** Територія клану гравця: очки, слоти, споруди, квести клану. */
   territory: (playerId: string) => ["territory", playerId] as const,
   /** Кланові технології гравця: дерево клану, мої спроби, монети й денні пороги. */

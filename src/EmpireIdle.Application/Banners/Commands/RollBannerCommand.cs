@@ -1,3 +1,5 @@
+using EmpireIdle.Application.Banners.ReadModels;
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Rewards;
@@ -22,23 +24,7 @@ namespace EmpireIdle.Application.Banners.Commands
         public const int MaxCount = 10;
     }
 
-    /// <param name="Drops">Випади в порядку роллів.</param>
-    /// <param name="GemBalance">Залишок після списання: клієнту не треба окремо перепитувати гаманець.</param>
-    public record BannerRollResponse(
-        string BannerKey,
-        IReadOnlyList<BannerDropResult> Drops,
-        int RareSince,
-        int UniqueSince,
-        int GemBalance);
-
-    public record BannerDropResult(
-        string DropKey,
-        string DisplayName,
-        Rarity Rarity,
-        bool WasPity,
-        bool LostFiftyFifty);
-
-    internal sealed class RollBannerCommandHandler : IRequestHandler<RollBannerCommand, BannerRollResponse>
+    public sealed class RollBannerCommandHandler : IRequestHandler<RollBannerCommand, BannerRollResponse>
     {
         private readonly IPlayerRepository _playerRepository;
         private readonly IPlayerWalletRepository _walletRepository;
@@ -105,11 +91,9 @@ namespace EmpireIdle.Application.Banners.Commands
                 throw new RequirementNotMetException(RefusalReasons.BannerClosed, $"Banner '{banner.Key}' closed at {end:u}.");
 
             // Гаманець належить акаунту, тож ідемо через Player за UserId
-            var player = await _playerRepository.GetByIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Player", request.PlayerId);
+            var player = await _playerRepository.RequireAsync(request.PlayerId, cancellationToken);
 
-            var wallet = await _walletRepository.GetByUserIdAsync(player.UserId, cancellationToken)
-                ?? throw new EntityNotFoundException("Wallet", player.UserId);
+            var wallet = await _walletRepository.RequireByUserAsync(player.UserId, cancellationToken);
 
             // Перевірка до списання — на всю серію одразу: половина серії за
             // рештки валюти була б несподіванкою, а Subtract кинув би виняток рівня

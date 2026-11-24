@@ -13,20 +13,11 @@ namespace EmpireIdle.Api.Tests.Schema;
 /// іде UPDATE на нуль рядків. Так ламався вступ у клан.
 /// </summary>
 [Collection("postgres")]
-public class ChildKeyGenerationTests : IAsyncLifetime
+public class ChildKeyGenerationTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public ChildKeyGenerationTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        return Task.CompletedTask;
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public ChildKeyGenerationTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     [Fact]
     public void CollectionChildren_ShouldNotGenerateGuidKeys()

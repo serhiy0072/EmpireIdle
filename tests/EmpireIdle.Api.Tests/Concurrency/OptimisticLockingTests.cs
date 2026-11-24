@@ -15,20 +15,11 @@ namespace EmpireIdle.Api.Tests.Concurrency;
 /// Кожен тест відтворює конкретний дюп із аудиту.
 /// </summary>
 [Collection("postgres")]
-public class OptimisticLockingTests : IAsyncLifetime
+public class OptimisticLockingTests
 {
-    private readonly PostgresFixture _postgres;
-    private TestApiFactory _factory = null!;
+    private readonly TestApiFactory _factory;
 
-    public OptimisticLockingTests(PostgresFixture postgres) => _postgres = postgres;
-
-    public async Task InitializeAsync()
-    {
-        _factory = new TestApiFactory(_postgres.ConnectionString);
-        await _factory.MigrateAsync();
-    }
-
-    public Task DisposeAsync() => _factory.DisposeAsync().AsTask();
+    public OptimisticLockingTests(PostgresFixture postgres) => _factory = postgres.Factory;
 
     /// <summary>
     /// Дюп армії: два паралельні марші з того самого гарнізону.
@@ -144,6 +135,49 @@ public class OptimisticLockingTests : IAsyncLifetime
     }
 
     /// <summary>
+    /// Подвійний рівень: союзник прочитав будівлю ще «на апгрейді», а власник тієї ж миті прискорив і завершив
+    /// будівництво. Якби допомога писала лише рядок будівлі, її таймер ліг би поверх завершеного апгрейду,
+    /// і сканер підняв би рівень удруге. Скорочення йде через село — і другий запис упирається в токен.
+    /// </summary>
+    [Fact]
+    public async Task Village_ShouldRejectAStaleConstructionCut_AfterTheUpgradeCompleted()
+    {
+        var villageId = await SeedVillageAsync();
+        var buildings = _factory.Services.GetRequiredService<GameCatalog>().Buildings;
+        var now = DateTime.UtcNow;
+        Guid farmId;
+
+        await using (var seed = CreateContext())
+        {
+            var village = await LoadVillageAsync(seed, villageId);
+            farmId = village.AddBuilding("farm", buildings, now);
+            village.Buildings.Single(b => b.Id == farmId)
+                .BeginUpgrade(buildings["farm"], TimeSpan.FromHours(1), now, ProductionBoost.None, locationMultiplier: 1.0);
+            await seed.SaveChangesAsync();
+        }
+
+        await using var owner = CreateContext();
+        await using var helper = CreateContext();
+
+        var ownersVillage = await LoadVillageAsync(owner, villageId);
+        var helpersVillage = await LoadVillageAsync(helper, villageId);
+
+        ownersVillage.ReduceConstructionTime(farmId, TimeSpan.FromHours(2), now);
+        ownersVillage.CompleteDueConstructions(now, buildings, ProductionBoost.None, locationMultiplier: 1.0);
+        helpersVillage.ReduceConstructionTime(farmId, TimeSpan.FromMinutes(5), now);
+
+        await owner.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => helper.SaveChangesAsync());
+
+        await using var verify = CreateContext();
+        var farm = (await LoadVillageAsync(verify, villageId)).Buildings.Single(b => b.Id == farmId);
+
+        Assert.Equal(2, farm.Level.Value);
+        Assert.False(farm.IsUnderConstruction);
+    }
+
+    /// <summary>
     /// Офіцер приймає заявку, а гравець тієї ж миті її скасовує. Без токена обидва
     /// зберегли б свій статус, і програвший мовчки перезаписав би переможця.
     /// </summary>
@@ -214,7 +248,7 @@ public class OptimisticLockingTests : IAsyncLifetime
 
         var village = new Village(
             Guid.NewGuid(), Guid.NewGuid(), "Concurrency Test",
-            ["gold", "food", "wood", "iron", "population"], x: 5, y: 5);
+            ["gold", "food", "wood", "iron", "population"], x: 5, y: 5, serverId: 1);
 
         // Ферма коштує 100 gold + 50 wood — з запасом, щоб ChargeCost не був причиною падіння
         village.GrantStartingResources(

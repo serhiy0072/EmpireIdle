@@ -27,9 +27,6 @@ namespace EmpireIdle.Domain.Entities
         /// <summary>Скільки всього роллів у групі — для аналітики й підтримки.</summary>
         public int TotalRolls { get; private set; }
 
-        /// <summary>Токен паралелізму: два одночасні ролли інакше з'їли б одну гарантію двічі.</summary>
-        public uint Version { get; private set; }
-
         public BannerPityProgress(Guid id, Guid playerId, string pityGroup) : base(id)
         {
             PlayerId = playerId;

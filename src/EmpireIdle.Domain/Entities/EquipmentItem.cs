@@ -79,9 +79,6 @@ namespace EmpireIdle.Domain.Entities
         /// </summary>
         public DateTime UpdatedAt { get; private set; }
 
-        /// <summary>Concurrency token (PostgreSQL xmin).</summary>
-        public uint Version { get; private set; }
-
         /// <summary>
         /// Предмет у заставі ринку: його не можна вдягнути, прокачати
         /// чи виставити вдруге, доки лот не закриється.

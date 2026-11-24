@@ -1,3 +1,4 @@
+using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Common.Services;
 using EmpireIdle.Application.Interfaces;
@@ -17,32 +18,26 @@ namespace EmpireIdle.Application.Villages.Commands
     public sealed class RepairVillageCommandHandler : IRequestHandler<RepairVillageCommand>
     {
         private readonly IVillageRepository _villageRepository;
-        private readonly IServerRepository _serverRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly EffectResolver _effectResolver;
+        private readonly VillageProductionRates _rates;
         private readonly GameCatalog _catalog;
-        private readonly WorldGeometry _geometry;
         private readonly CityFallRules _rules;
         private readonly TimeProvider _timeProvider;
         private readonly ILogger<RepairVillageCommandHandler> _logger;
 
         public RepairVillageCommandHandler(
             IVillageRepository villageRepository,
-            IServerRepository serverRepository,
             IUnitOfWork unitOfWork,
-            EffectResolver effectResolver,
+            VillageProductionRates rates,
             GameCatalog catalog,
-            WorldGeometry geometry,
             CityFallRules rules,
             TimeProvider timeProvider,
             ILogger<RepairVillageCommandHandler> logger)
         {
             _villageRepository = villageRepository;
-            _serverRepository = serverRepository;
             _unitOfWork = unitOfWork;
-            _effectResolver = effectResolver;
+            _rates = rates;
             _catalog = catalog;
-            _geometry = geometry;
             _rules = rules;
             _timeProvider = timeProvider;
             _logger = logger;
@@ -52,15 +47,12 @@ namespace EmpireIdle.Application.Villages.Commands
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var village = await _villageRepository.GetByPlayerIdAsync(request.PlayerId, cancellationToken)
-                ?? throw new EntityNotFoundException("Village for player", request.PlayerId);
+            var village = await _villageRepository.RequireByPlayerAsync(request.PlayerId, cancellationToken);
 
             // Ремонт матеріалізує буфери: вироблене до нього — за пошкодженим темпом
-            var boost = await _effectResolver.GetProductionBoostAsync(request.PlayerId, now, cancellationToken);
-            var serverLevel = await _serverRepository.GetLevelAsync(village.ServerId, cancellationToken);
-            var locationMultiplier = _geometry.ProductionMultiplierAt(village.X, village.Y, serverLevel);
+            var rates = await _rates.ForAsync(village, now, cancellationToken);
 
-            village.RepairAll(_catalog.Buildings, now, _rules.RepairCostShare, boost, locationMultiplier);
+            village.RepairAll(_catalog.Buildings, now, _rules.RepairCostShare, rates.Boost, rates.LocationMultiplier);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
