@@ -1,5 +1,5 @@
 using EmpireIdle.Application.Common.Security;
-using EmpireIdle.Application.Heroes.Contracts;
+using EmpireIdle.Application.Heroes.ReadModels;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Application.Research.Services;
 using EmpireIdle.Application.Wallets.Services;

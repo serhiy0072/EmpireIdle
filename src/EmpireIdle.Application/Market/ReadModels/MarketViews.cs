@@ -1,4 +1,4 @@
-namespace EmpireIdle.Application.Market.Contracts
+namespace EmpireIdle.Application.Market.ReadModels
 {
     /// <summary>
     /// Лот у поданні для клієнта. Назви товарів клієнт бере з каталогу за ItemKey;

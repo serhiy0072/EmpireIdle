@@ -1,6 +1,6 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.Application.Chat.Commands;
-using EmpireIdle.Application.Chat.Contracts;
+using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.Application.Chat.Queries;
 using EmpireIdle.Domain.Enums;
 using MediatR;

@@ -1,4 +1,4 @@
-namespace EmpireIdle.Application.Heroes.Contracts
+namespace EmpireIdle.Application.Heroes.ReadModels
 {
     /// <summary>
     /// Стан одного героя разом зі стелею рівня.

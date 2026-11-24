@@ -1,4 +1,4 @@
-namespace EmpireIdle.Application.Heroes.Contracts
+namespace EmpireIdle.Application.Heroes.ReadModels
 {
     /// <summary>
     /// Усе, що потрібно екрану героїв: ростер, уламки, пул досвіду, кап маршів і навчальний табір.

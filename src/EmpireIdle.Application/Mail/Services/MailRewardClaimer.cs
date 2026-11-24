@@ -1,4 +1,4 @@
-using EmpireIdle.Application.Mail.Contracts;
+using EmpireIdle.Application.Mail.ReadModels;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Services.Config;

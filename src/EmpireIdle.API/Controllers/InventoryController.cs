@@ -5,7 +5,7 @@ using EmpireIdle.Application.Inventory.Commands;
 using EmpireIdle.Application.Inventory.Queries;
 using EmpireIdle.Application.Inventory.ReadModels;
 using EmpireIdle.Application.Lootboxes.Commands;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Lootboxes.Queries;
 using EmpireIdle.Application.Speedups.Commands;
 using EmpireIdle.Domain.Enums;

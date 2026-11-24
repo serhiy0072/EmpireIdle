@@ -1,7 +1,7 @@
 using EmpireIdle.Application.Clans.ReadModels;
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Mail.Contracts;
+using EmpireIdle.Application.Mail.ReadModels;
 using EmpireIdle.Application.Scouting.ReadModels;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;

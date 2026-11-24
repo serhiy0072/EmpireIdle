@@ -1,5 +1,5 @@
 using EmpireIdle.Application.Chat.Commands;
-using EmpireIdle.Application.Chat.Contracts;
+using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.Application.Chat.EventHandlers;
 using EmpireIdle.Application.Chat.Queries;
 using EmpireIdle.Application.Chat.Services;

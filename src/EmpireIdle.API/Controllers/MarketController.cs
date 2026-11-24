@@ -1,7 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Market.Commands;
-using EmpireIdle.Application.Market.Contracts;
+using EmpireIdle.Application.Market.ReadModels;
 using EmpireIdle.Application.Market.Queries;
 using EmpireIdle.Domain.Enums;
 using MediatR;

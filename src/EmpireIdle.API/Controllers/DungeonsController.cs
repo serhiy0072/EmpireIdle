@@ -1,7 +1,7 @@
 using EmpireIdle.API.DTOs;
 using EmpireIdle.API.Swagger;
 using EmpireIdle.Application.Dungeons.Commands;
-using EmpireIdle.Application.Dungeons.Contracts;
+using EmpireIdle.Application.Dungeons.ReadModels;
 using EmpireIdle.Application.Dungeons.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

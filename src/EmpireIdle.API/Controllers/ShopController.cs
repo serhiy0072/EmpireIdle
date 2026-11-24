@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Shop.ReadModels;
 using EmpireIdle.Application.Lootboxes.Commands;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Shop.Commands;
 using EmpireIdle.Application.Shop.Queries;
 using MediatR;

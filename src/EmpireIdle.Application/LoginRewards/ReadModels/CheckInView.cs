@@ -1,4 +1,4 @@
-namespace EmpireIdle.Application.LoginRewards.Contracts
+namespace EmpireIdle.Application.LoginRewards.ReadModels
 {
     /// <summary>
     /// Підсумок входу: день серії (null — сьогодні вже заходив) і чи прийшли

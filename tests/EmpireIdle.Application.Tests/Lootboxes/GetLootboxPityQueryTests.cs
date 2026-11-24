@@ -1,5 +1,5 @@
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Lootboxes.Queries;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.TestKit;

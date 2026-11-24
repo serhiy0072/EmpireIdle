@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Scouting.ReadModels;
 
-namespace EmpireIdle.Application.Mail.Contracts
+namespace EmpireIdle.Application.Mail.ReadModels
 {
     /// <summary>Скринька гравця: особисті листи, оголошення світу й лічильник непрочитаних.</summary>
     public record MailboxView(IReadOnlyList<MailLetterView> Letters, IReadOnlyList<AnnouncementView> Announcements, int Unread);

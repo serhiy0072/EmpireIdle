@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Common;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Rewards;
 using EmpireIdle.Domain.Entities;
 using EmpireIdle.Domain.Enums;

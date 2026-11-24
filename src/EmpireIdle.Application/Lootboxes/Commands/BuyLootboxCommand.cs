@@ -1,6 +1,6 @@
 using EmpireIdle.Application.Common.Security;
 using EmpireIdle.Application.Interfaces;
-using EmpireIdle.Application.Lootboxes.Contracts;
+using EmpireIdle.Application.Lootboxes.ReadModels;
 using EmpireIdle.Application.Lootboxes.Services;
 using EmpireIdle.Application.Shop.Services;
 using EmpireIdle.Domain.Exceptions;

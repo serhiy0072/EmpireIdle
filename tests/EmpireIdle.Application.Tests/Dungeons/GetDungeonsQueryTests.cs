@@ -1,4 +1,4 @@
-using EmpireIdle.Application.Dungeons.Contracts;
+using EmpireIdle.Application.Dungeons.ReadModels;
 using EmpireIdle.Application.Dungeons.Queries;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;

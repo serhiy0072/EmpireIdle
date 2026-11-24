@@ -1,6 +1,6 @@
 using EmpireIdle.Domain.Dungeons;
 
-namespace EmpireIdle.Application.Dungeons.Contracts
+namespace EmpireIdle.Application.Dungeons.ReadModels
 {
     /// <summary>Вітрина данжів: що доступно, за скільки й що з нього падає.</summary>
     /// <param name="RefillPriceGems">Ціна наступного поповнення енергії до стелі; null — на сьогодні поповнень не лишилось.</param>

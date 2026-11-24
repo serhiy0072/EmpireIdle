@@ -1,4 +1,4 @@
-using EmpireIdle.Application.Chat.Contracts;
+using EmpireIdle.Application.Chat.ReadModels;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Entities;
 

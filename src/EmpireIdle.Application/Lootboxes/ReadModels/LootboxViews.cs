@@ -1,4 +1,4 @@
-namespace EmpireIdle.Application.Lootboxes.Contracts
+namespace EmpireIdle.Application.Lootboxes.ReadModels
 {
     /// <summary>
     /// Що випало зі скрині — вже видане. Випадковий артефакт тут уже конкретний предмет (Equipment),

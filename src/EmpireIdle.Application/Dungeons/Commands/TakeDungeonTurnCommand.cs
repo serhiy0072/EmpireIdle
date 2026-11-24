@@ -1,7 +1,6 @@
 using EmpireIdle.Application.Dungeons.ReadModels;
 using EmpireIdle.Application.Common.Exceptions;
 using EmpireIdle.Application.Common.Security;
-using EmpireIdle.Application.Dungeons.Contracts;
 using EmpireIdle.Application.Dungeons.Services;
 using EmpireIdle.Application.Interfaces;
 using EmpireIdle.Domain.Dungeons;

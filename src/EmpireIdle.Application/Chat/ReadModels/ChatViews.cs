@@ -1,4 +1,4 @@
-namespace EmpireIdle.Application.Chat.Contracts
+namespace EmpireIdle.Application.Chat.ReadModels
 {
     /// <summary>
     /// Повідомлення для конкретного читача. TranslatedText — переклад на мову
