@@ -30,6 +30,14 @@ export interface GameTab<T extends string> {
   alert?: boolean;
 }
 
+/** Прокручує лише смугу вкладок (не сторінку), щоб активна вкладка була в полі зору на вузькому екрані. */
+function revealTab(node: HTMLButtonElement | null) {
+  const strip = node?.parentElement;
+  if (!node || !strip) return;
+  const left = node.offsetLeft - strip.offsetLeft;
+  if (left < strip.scrollLeft || left + node.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = left - 8;
+}
+
 /**
  * Вкладки «картками», як у грі: активна світла й трохи вища.
  * Стрілки перемикають вкладки; вкладена група (друга на сторінці) вимикає їх — інакше дві групи
@@ -49,16 +57,17 @@ export function GameTabs<T extends string>({
   useTabHotkeys(tabs.map((tab) => tab.key), value, onChange, hotkeys);
 
   return (
-    <nav className="flex gap-1">
+    <nav className="flex gap-1 overflow-x-auto [scrollbar-width:none]">
       {tabs.map((tab) => {
         const active = tab.key === value;
 
         return (
           <button
             key={tab.key}
+            ref={active ? revealTab : undefined}
             type="button"
             onClick={() => onChange(tab.key)}
-            className={`relative flex-1 rounded-t-xl px-2 text-sm font-semibold transition ${
+            className={`relative flex-1 shrink-0 whitespace-nowrap rounded-t-xl px-2 text-sm font-semibold transition ${
               active
                 ? "bg-[#e8eef8] py-2.5 text-[#1d3b6f]"
                 : "mt-1 bg-[#5b85c4] py-2 text-white hover:bg-[#6a93d0]"

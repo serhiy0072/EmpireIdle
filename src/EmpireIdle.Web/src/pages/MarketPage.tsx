@@ -62,15 +62,16 @@ export default function MarketPage() {
 
   if (!market.isOpen) {
     return (
-      <div className="space-y-2">
-        <MarketTabs />
-        <h1 className="text-xl font-medium text-white">{t("items:market.title")}</h1>
-        <p className="text-sm text-slate-200">
-          {market.opensAtTownHall != null
-            ? t("items:market.locked", { level: market.opensAtTownHall })
-            : t("items:market.none")}
-        </p>
-      </div>
+      <GameScreen title={t("items:market.title")}>
+        <div className="space-y-3">
+          <MarketTabs />
+          <p className="text-sm text-slate-200">
+            {market.opensAtTownHall != null
+              ? t("items:market.locked", { level: market.opensAtTownHall })
+              : t("items:market.none")}
+          </p>
+        </div>
+      </GameScreen>
     );
   }
 

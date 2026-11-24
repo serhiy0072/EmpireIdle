@@ -82,11 +82,11 @@ export default function ClanTechnologiesPanel({ playerId, view, now, canMark }: 
 
       {/* Вкладки дерева — ті самі «картки», що й у Лабораторії: дерево одне на вигляд в обох місцях */}
       <div className="rounded-t-xl bg-[#16305e] px-2 pt-2">
-        <GameTabs tabs={view.tabs.map((key) => ({ key, label: technologyTabName(key) }))} value={activeTab} onChange={setTab} />
+        <GameTabs tabs={view.tabs.map((key) => ({ key, label: technologyTabName(key) }))} value={activeTab} onChange={setTab} hotkeys={false} />
       </div>
 
       <div className="!mt-0 space-y-6 rounded-b-xl bg-[#1d3b6f] px-2 py-4 text-white">
-        {finished && <p className="rounded-lg bg-amber-500/35 px-3 py-2 text-sm text-amber-950">{t("technologies:clan.finished")}</p>}
+        {finished && <p className="rounded-lg bg-amber-500/35 px-3 py-2 text-sm text-amber-50">{t("technologies:clan.finished")}</p>}
         {view.tiers.map((tier) => (
           <TierTree
             key={tier.tier}

@@ -29,7 +29,7 @@ function KeyChestCard({ chest, since, busy, onOpen }: CardProps) {
   const batch = Math.min(chest.keys, KEY_BATCH);
 
   return (
-    <div id={chest.chestKey} className="rounded-xl border border-amber-400/50 bg-gradient-to-b from-amber-50 to-white p-3">
+    <div id={chest.chestKey} className="rounded-xl border border-amber-400/50 bg-gradient-to-b from-amber-500/25 to-[#1d3b6f] p-3">
       <div className="flex items-baseline justify-between gap-2">
         <span className="font-medium text-white">{catalog.itemName(chest.chestKey)}</span>
         <span className="text-xs text-sky-100/70">

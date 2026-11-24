@@ -29,7 +29,7 @@ function Message({ message }: { message: ChatMessageView }) {
     <li className={`flex ${message.isOwn ? "justify-end" : "justify-start"}`}>
       <div
         className={`max-w-[80%] rounded-xl px-3 py-1.5 text-sm ${
-          message.isOwn ? "bg-emerald-500/25 text-emerald-950" : "bg-[#1d3b6f] text-white"
+          message.isOwn ? "bg-emerald-500/25 text-emerald-50" : "bg-[#1d3b6f] text-white"
         }`}
         title={translated ? t("social:chat.original", { language: message.language, text: message.text }) : undefined}
       >
@@ -72,7 +72,7 @@ function Thread({ playerId, channel, partnerId, emptyText }: ThreadProps) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-16rem)] flex-col gap-2">
+    <div className="flex h-[calc(100dvh-24rem)] min-h-64 flex-col gap-2">
       <ErrorBanner error={history.error ?? send.error} />
 
       <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto rounded-xl bg-white/10 p-3">

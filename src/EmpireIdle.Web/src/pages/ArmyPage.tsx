@@ -106,7 +106,10 @@ export default function ArmyPage() {
             </div>
           )}
 
-          <HospitalPanel playerId={playerId} />
+          {/* Панель спільна зі світлою карткою будівлі в селі — тут вона в такій самій світлій картці */}
+          <div className="rounded-xl bg-white p-3 text-slate-800">
+            <HospitalPanel playerId={playerId} />
+          </div>
         </div>
       </div>
     </GameScreen>
